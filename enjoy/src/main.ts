@@ -22,7 +22,8 @@ Sentry.init({
  * Fix for SUID sandbox issues on Linux
  * See: https://github.com/electron/electron/issues/17972
  */
-if (process.env.CI == "e2e" && process.platform == "linux") {
+if (process.env.CI && process.platform == "linux") {
+  logger.info("Running in CI, disabling sandbox");
   app.commandLine.appendSwitch("--no-sandbox");
 }
 app.commandLine.appendSwitch("enable-features", "SharedArrayBuffer");
