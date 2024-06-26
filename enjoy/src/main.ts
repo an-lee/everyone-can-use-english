@@ -18,6 +18,13 @@ Sentry.init({
   dsn: SENTRY_DSN,
 });
 
+/**
+ * Fix for SUID sandbox issues on Linux
+ * See: https://github.com/electron/electron/issues/17972
+ */
+if (process.env.CI == "e2e" && process.platform == "linux") {
+  app.commandLine.appendSwitch("--no-sandbox");
+}
 app.commandLine.appendSwitch("enable-features", "SharedArrayBuffer");
 
 // config auto updater
