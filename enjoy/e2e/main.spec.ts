@@ -37,7 +37,7 @@ test.beforeAll(async () => {
   process.env.LIBRARY_PATH = resultDir;
 
   electronApp = await electron.launch({
-    args: [appInfo.main],
+    args: [appInfo.main, '--no-sandbox', '--disable-setuid-sandbox'],
     executablePath: appInfo.executable,
   });
   console.log("Electron app launched");
