@@ -51,6 +51,7 @@ jobs:
         env:
           DEBUG: pw:browser*
         run: |
+          sysctl kernel.unprivileged_userns_clone=1
           xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" -- yarn enjoy:test:main
 
       - name: Run main tests on macOS or Windows
