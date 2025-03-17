@@ -1,6 +1,6 @@
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { textCommand } from "./text.command";
-import { LANGUAGES } from "@/shared/constants";
+import { LANGUAGES } from "@shared/constants";
 
 export const analyzeCommand = async (
   text: string,

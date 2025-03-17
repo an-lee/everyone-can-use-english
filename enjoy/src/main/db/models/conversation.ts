@@ -21,11 +21,11 @@ import {
   Speech,
   UserSetting,
 } from "@main/db/models";
-import mainWindow from "@/main/ipc/window";
-import log from "@/main/services/logger";
+import mainWindow from "@main/windows/main-window";
+import log from "@main/services/logger";
 import { t } from "i18next";
-import { SttEngineOptionEnum, UserSettingKeyEnum } from "@/shared/types/enums";
-import { DEFAULT_GPT_CONFIG } from "@/shared/constants";
+import { SttEngineOptionEnum, UserSettingKeyEnum } from "@shared/types/enums";
+import { DEFAULT_GPT_CONFIG } from "@shared/constants";
 
 const logger = log.scope("db/models/conversation");
 @Table({

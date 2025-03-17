@@ -1,7 +1,7 @@
 import { ipcMain, app, BrowserWindow } from "electron";
 import path from "path";
 import fs from "fs";
-import mainWin from "@/main/ipc/window";
+import mainWin from "@main/windows/main-window";
 import { config } from "@main/config";
 class Downloader {
   public tasks: Electron.DownloadItem[];

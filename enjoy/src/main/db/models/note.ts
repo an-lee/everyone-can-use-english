@@ -12,9 +12,9 @@ import {
   AllowNull,
   AfterFind,
 } from "sequelize-typescript";
-import mainWindow from "@/main/ipc/window";
-import log from "@/main/services/logger";
-import { Client } from "@/shared/api";
+import mainWindow from "@main/windows/main-window";
+import log from "@main/services/logger";
+import { Client } from "@shared/api";
 import { config } from "@main/config";
 import { Segment, UserSetting } from "@main/db/models";
 

@@ -14,9 +14,9 @@ import {
 } from "sequelize";
 import dayjs from "dayjs";
 import { t } from "i18next";
-import log from "@/main/services/logger";
+import log from "@main/services/logger";
 import { NIL as NIL_UUID } from "uuid";
-import FfmpegWrapper from "@/main/services/ffmpeg";
+import FfmpegWrapper from "@main/services/ffmpeg";
 import path from "path";
 import { config } from "@main/config";
 import { enjoyUrlToPath, pathToEnjoyUrl } from "@main/utils";

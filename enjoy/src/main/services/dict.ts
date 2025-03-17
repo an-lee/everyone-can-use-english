@@ -2,10 +2,10 @@ import path from "path";
 import fs from "fs-extra";
 import { ipcMain } from "electron";
 import { LRUCache } from "lru-cache";
-import log from "@/main/services/logger";
-import { DICTS } from "@/shared/constants/dicts";
+import log from "@main/services/logger";
+import { DICTS } from "@shared/constants/dicts";
 import sqlite3, { Database } from "sqlite3";
-import { hashFile } from "@/main/utils";
+import { hashFile } from "@main/utils";
 import decompresser from "./decompresser";
 import { config } from "@main/config";
 

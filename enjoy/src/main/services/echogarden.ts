@@ -17,7 +17,7 @@ import {
 } from "echogarden/dist/utilities/Timeline.d.js";
 import { ensureAndGetPackagesDir } from "echogarden/dist/utilities/PackageManager.js";
 import path from "path";
-import log from "@/main/services/logger";
+import log from "@main/services/logger";
 import fs from "fs-extra";
 import ffmpegPath from "ffmpeg-static";
 import { enjoyUrlToPath, pathToEnjoyUrl } from "../utils";

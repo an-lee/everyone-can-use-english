@@ -3,7 +3,7 @@ import { app, BrowserWindow, protocol, net, dialog } from "electron";
 import path from "path";
 import fs from "fs-extra";
 import log from "@main/services/logger";
-import mainWindow from "@main/ipc/window";
+import mainWindow from "@main/windows/main-window";
 import ElectronSquirrelStartup from "electron-squirrel-startup";
 import contextMenu from "electron-context-menu";
 import Bugsnag from "@bugsnag/electron";

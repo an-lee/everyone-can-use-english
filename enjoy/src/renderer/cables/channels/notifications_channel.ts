@@ -1,4 +1,4 @@
-import { toast } from "@/renderer/components/ui";
+import { toast } from "@renderer/components/ui";
 import { type Consumer } from "@rails/actioncable";
 
 export class NoticiationsChannel {

@@ -14,8 +14,8 @@ import {
   HasOne,
   BeforeSave,
 } from "sequelize-typescript";
-import mainWindow from "@/main/ipc/window";
-import log from "@/main/services/logger";
+import mainWindow from "@main/windows/main-window";
+import log from "@main/services/logger";
 import {
   Chat,
   ChatAgent,
@@ -27,7 +27,7 @@ import {
   ChatMessageCategoryEnum,
   ChatMessageRoleEnum,
   ChatMessageStateEnum,
-} from "@/shared/types/enums";
+} from "@shared/types/enums";
 
 const logger = log.scope("db/models/chat-message");
 @Table({

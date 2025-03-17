@@ -2,11 +2,11 @@ import { ipcMain } from "electron";
 import ffmpegPath from "ffmpeg-static";
 import ffprobePath from "@andrkrn/ffprobe-static";
 import Ffmpeg from "fluent-ffmpeg";
-import log from "@/main/services/logger";
+import log from "@main/services/logger";
 import path from "path";
 import fs from "fs-extra";
 import { config } from "@main/config";
-import { FFMPEG_CONVERT_WAV_OPTIONS } from "@/shared/constants";
+import { FFMPEG_CONVERT_WAV_OPTIONS } from "@shared/constants";
 import { enjoyUrlToPath, pathToEnjoyUrl } from "@main/utils";
 
 /*

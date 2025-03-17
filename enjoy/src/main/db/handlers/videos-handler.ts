@@ -1,10 +1,10 @@
 import { IpcMainEvent } from "electron";
 import { Video, Transcription } from "@main/db/models";
 import { FindOptions, WhereOptions, Attributes, Op } from "sequelize";
-import downloader from "@/main/services/downloader";
-import log from "@/main/services/logger";
+import downloader from "@main/services/downloader";
+import log from "@main/services/logger";
 import { t } from "i18next";
-import youtubedr from "@/main/services/youtubedr";
+import youtubedr from "@main/services/youtubedr";
 import { pathToEnjoyUrl } from "@main/utils";
 import { BaseHandler, HandlerMethod } from "./base-handler";
 

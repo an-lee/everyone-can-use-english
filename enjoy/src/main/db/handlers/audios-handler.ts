@@ -1,10 +1,10 @@
 import { IpcMainEvent } from "electron";
 import { Audio, Transcription } from "@main/db/models";
 import { FindOptions, WhereOptions, Attributes, Op } from "sequelize";
-import downloader from "@/main/services/downloader";
+import downloader from "@main/services/downloader";
 import { t } from "i18next";
-import youtubedr from "@/main/services/youtubedr";
-import { pathToEnjoyUrl } from "@/main/utils";
+import youtubedr from "@main/services/youtubedr";
+import { pathToEnjoyUrl } from "@main/utils";
 import { BaseHandler } from "./base-handler";
 
 class AudiosHandler extends BaseHandler {

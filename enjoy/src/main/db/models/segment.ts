@@ -14,18 +14,18 @@ import {
   AfterFind,
 } from "sequelize-typescript";
 import { Audio, Transcription, UserSetting, Video } from "@main/db/models";
-import mainWindow from "@/main/ipc/window";
-import log from "@/main/services/logger";
-import { Client } from "@/shared/api";
+import mainWindow from "@main/windows/main-window";
+import log from "@main/services/logger";
+import { Client } from "@shared/api";
 import { config } from "@main/config";
-import storage from "@/main/services/storage";
+import storage from "@main/services/storage";
 import path from "path";
 import { TimelineEntry } from "echogarden/dist/utilities/Timeline.d.js";
-import FfmpegWrapper from "@/main/services/ffmpeg";
-import { hashFile } from "@/main/utils";
+import FfmpegWrapper from "@main/services/ffmpeg";
+import { hashFile } from "@main/utils";
 import fs from "fs-extra";
 import { v5 as uuidv5 } from "uuid";
-import { MIME_TYPES } from "@/shared/constants";
+import { MIME_TYPES } from "@shared/constants";
 
 const logger = log.scope("db/models/segment");
 const OUTPUT_FORMAT = "mp3";

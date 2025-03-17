@@ -1,10 +1,10 @@
-import log from "@/main/services/logger";
+import log from "@main/services/logger";
 import path from "path";
 import fs from "fs-extra";
 import { ipcMain } from "electron";
 import { LRUCache } from "lru-cache";
 import { Mdict as MdictReader } from "@divisey/js-mdict";
-import { hashFile } from "@/main/utils";
+import { hashFile } from "@main/utils";
 import { config } from "@main/config";
 
 const logger = log.scope("mdict");

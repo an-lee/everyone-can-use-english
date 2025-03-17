@@ -13,11 +13,11 @@ import {
   AllowNull,
   AfterFind,
 } from "sequelize-typescript";
-import mainWindow from "@/main/ipc/window";
+import mainWindow from "@main/windows/main-window";
 import { Recording, UserSetting } from "@main/db/models";
 import { Client } from "@shared/api";
 import { config } from "@main/config";
-import log from "@/main/services/logger";
+import log from "@main/services/logger";
 
 @Table({
   modelName: "PronunciationAssessment",

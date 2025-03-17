@@ -1,9 +1,9 @@
 import { ipcMain, IpcMainEvent } from "electron";
 import { ChatMessage, Recording } from "@main/db/models";
 import { FindOptions, WhereOptions, Attributes, Op } from "sequelize";
-import { enjoyUrlToPath } from "@/main/utils";
+import { enjoyUrlToPath } from "@main/utils";
 import fs from "fs-extra";
-import { ChatMessageStateEnum } from "@/shared/types/enums";
+import { ChatMessageStateEnum } from "@shared/types/enums";
 import { BaseHandler } from "./base-handler";
 import { withTransaction } from "@main/db/transaction";
 

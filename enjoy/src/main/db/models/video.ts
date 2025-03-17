@@ -21,19 +21,19 @@ import {
   UserSetting,
 } from "@main/db/models";
 import { config } from "@main/config";
-import { AudioFormats, MIME_TYPES, VideoFormats } from "@/shared/constants";
+import { AudioFormats, MIME_TYPES, VideoFormats } from "@shared/constants";
 import { hashFile } from "@main/utils";
 import path from "path";
 import fs from "fs-extra";
 import { t } from "i18next";
-import mainWindow from "@/main/ipc/window";
-import log from "@/main/services/logger";
-import storage from "@/main/services/storage";
-import Ffmpeg from "@/main/services/ffmpeg";
-import { Client } from "@/shared/api";
+import mainWindow from "@main/windows/main-window";
+import log from "@main/services/logger";
+import storage from "@main/services/storage";
+import Ffmpeg from "@main/services/ffmpeg";
+import { Client } from "@shared/api";
 import startCase from "lodash/startCase";
 import { v5 as uuidv5 } from "uuid";
-import FfmpegWrapper from "@/main/services/ffmpeg";
+import FfmpegWrapper from "@main/services/ffmpeg";
 
 const logger = log.scope("db/models/video");
 

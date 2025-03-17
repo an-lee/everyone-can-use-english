@@ -12,10 +12,10 @@ import {
   Unique,
 } from "sequelize-typescript";
 import { Audio, UserSetting, Video } from "@main/db/models";
-import mainWindow from "@/main/ipc/window";
-import log from "@/main/services/logger";
-import { Client } from "@/shared/api";
-import { PROCESS_TIMEOUT } from "@/shared/constants";
+import mainWindow from "@main/windows/main-window";
+import log from "@main/services/logger";
+import { Client } from "@shared/api";
+import { PROCESS_TIMEOUT } from "@shared/constants";
 import { config } from "@main/config";
 import { AlignmentResult } from "echogarden/dist/api/Alignment";
 import { createHash } from "crypto";

@@ -8,10 +8,10 @@ import {
   AllowNull,
 } from "sequelize-typescript";
 import { Op } from "sequelize";
-import log from "@/main/services/logger";
+import log from "@main/services/logger";
 import { config } from "@main/config";
 import * as i18n from "i18next";
-import { SttEngineOptionEnum, UserSettingKeyEnum } from "@/shared/types/enums";
+import { SttEngineOptionEnum, UserSettingKeyEnum } from "@shared/types/enums";
 
 const logger = log.scope("db/userSetting");
 

@@ -14,7 +14,7 @@ import {
   AllowNull,
   Unique,
 } from "sequelize-typescript";
-import mainWindow from "@/main/ipc/window";
+import mainWindow from "@main/windows/main-window";
 import fs from "fs-extra";
 import path from "path";
 import { config } from "@main/config";
@@ -22,8 +22,8 @@ import OpenAI, { type ClientOptions } from "openai";
 import { t } from "i18next";
 import { hashFile } from "@main/utils";
 import { Audio, Document, Message, UserSetting } from "@main/db/models";
-import log from "@/main/services/logger";
-import proxyAgent from "@/main/services/proxy-agent";
+import log from "@main/services/logger";
+import proxyAgent from "@main/services/proxy-agent";
 
 const logger = log.scope("db/models/speech");
 @Table({
