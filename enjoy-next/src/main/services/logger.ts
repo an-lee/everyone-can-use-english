@@ -1,86 +1,84 @@
-import { app } from "electron";
-import path from "path";
-import { createLogger, format, transports } from "winston";
+import * as winston from "winston";
+import * as path from "path";
+import * as fs from "fs-extra";
 
-const logDir = path.join(app.getPath("userData"), "logs");
+// Create logs directory
+const logsDir = path.join(
+  process.env.APPDATA ||
+    (process.platform === "darwin"
+      ? path.join(process.env.HOME || "", "Library", "Application Support")
+      : path.join(process.env.HOME || "", ".local", "share")),
+  "enjoy-next",
+  "logs"
+);
 
-// Define log levels and colors
-const logLevels = {
-  error: 0,
-  warn: 1,
-  info: 2,
-  debug: 3,
-};
+fs.ensureDirSync(logsDir);
 
-// Create base logger instance
-const logger = createLogger({
-  level: app.isPackaged ? "info" : "debug",
-  levels: logLevels,
-  format: format.combine(
-    format.timestamp({
-      format: "YYYY-MM-DD HH:mm:ss",
-    }),
-    format.errors({ stack: true }),
-    format.splat(),
-    format.json()
+// Create the logger
+const logger = winston.createLogger({
+  level: process.env.NODE_ENV === "production" ? "info" : "debug",
+  format: winston.format.combine(
+    winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+    winston.format.errors({ stack: true }),
+    winston.format.splat(),
+    winston.format.json()
   ),
+  defaultMeta: { service: "enjoy-next" },
   transports: [
-    // File transport for all logs
-    new transports.File({
-      filename: path.join(logDir, "error.log"),
+    // Write to all logs with level 'info' and below to `combined.log`
+    // Write all logs with level 'error' and below to `error.log`
+    new winston.transports.File({
+      filename: path.join(logsDir, "error.log"),
       level: "error",
-      maxsize: 5242880, // 5MB
-      maxFiles: 5,
     }),
-    new transports.File({
-      filename: path.join(logDir, "app.log"),
-      maxsize: 5242880, // 5MB
-      maxFiles: 5,
+    new winston.transports.File({
+      filename: path.join(logsDir, "combined.log"),
     }),
   ],
 });
 
-// Add console transport in development
-if (!app.isPackaged) {
+// If we're not in production, also log to the console
+if (process.env.NODE_ENV !== "production") {
   logger.add(
-    new transports.Console({
-      format: format.combine(
-        format.colorize({ all: true }),
-        format.printf(({ level, message, timestamp, scope, ...rest }) => {
-          const scopeStr = scope ? `[${scope}] ` : "";
-          const restStr = Object.keys(rest).length
-            ? ` ${JSON.stringify(rest)}`
-            : "";
-          return `${timestamp} ${level}: ${scopeStr}${message}${restStr}`;
-        })
+    new winston.transports.Console({
+      format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.simple()
       ),
     })
   );
 }
 
-// Create a scoped logger factory
-const createScopedLogger = (scope: string) => {
-  const scopedLogger = {
-    error: (message: string, meta?: any) =>
-      logger.error(message, { scope, ...meta }),
-    warn: (message: string, meta?: any) =>
-      logger.warn(message, { scope, ...meta }),
-    info: (message: string, meta?: any) =>
-      logger.info(message, { scope, ...meta }),
-    debug: (message: string, meta?: any) =>
-      logger.debug(message, { scope, ...meta }),
-    scope: (nestedScope: string) =>
-      createScopedLogger(`${scope}:${nestedScope}`),
-  };
-
-  return scopedLogger;
-};
-
-// Export a root logger that can create scoped loggers
+// Add scope functionality
 export default {
-  error: (message: string, meta?: any) => logger.error(message, meta),
-  warn: (message: string, meta?: any) => logger.warn(message, meta),
-  info: (message: string, meta?: any) => logger.info(message, meta),
-  debug: (message: string, meta?: any) => logger.debug(message, meta),
-  scope: (scope: string) => createScopedLogger(scope),
+  scope: (scope: string) => {
+    return {
+      info: (message: string, ...meta: any[]) =>
+        logger.info(`[${scope}] ${message}`, ...meta),
+      error: (message: string | Error, ...meta: any[]) => {
+        if (message instanceof Error) {
+          logger.error(`[${scope}] ${message.message}`, {
+            error: message,
+            ...meta,
+          });
+        } else {
+          logger.error(`[${scope}] ${message}`, ...meta);
+        }
+      },
+      warn: (message: string, ...meta: any[]) =>
+        logger.warn(`[${scope}] ${message}`, ...meta),
+      debug: (message: string, ...meta: any[]) =>
+        logger.debug(`[${scope}] ${message}`, ...meta),
+    };
+  },
+  info: (message: string, ...meta: any[]) => logger.info(message, ...meta),
+  error: (message: string | Error, ...meta: any[]) => {
+    if (message instanceof Error) {
+      logger.error(message.message, { error: message, ...meta });
+    } else {
+      logger.error(message, ...meta);
+    }
+  },
+  warn: (message: string, ...meta: any[]) => logger.warn(message, ...meta),
+  debug: (message: string, ...meta: any[]) => logger.debug(message, ...meta),
 };
