@@ -6,7 +6,7 @@ import {
   PluginLifecycle,
   PluginManifest,
   PluginContext,
-} from "./plugin-types";
+} from "@main/core/plugin-types";
 import log from "@main/services/logger";
 
 const logger = log.scope("base-plugin");
@@ -17,7 +17,7 @@ export abstract class BasePlugin implements IPlugin {
   public isBuiltIn: boolean;
   public lifecycle: PluginLifecycle;
 
-  protected context: PluginContext;
+  protected context!: PluginContext;
   private configPath: string;
   private config: Record<string, any> = {};
 

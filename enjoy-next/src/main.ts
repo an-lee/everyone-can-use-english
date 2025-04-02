@@ -1,10 +1,10 @@
 import { app, BrowserWindow } from "electron";
 import path from "node:path";
 import started from "electron-squirrel-startup";
-import log from "./main/services/logger";
-import pluginManager from "./main/core/plugin-manager";
-import { publishEvent } from "./main/core/plugin-context";
-import { setupIpcHandlers } from "./main/core/ipc-handlers";
+import log from "@main/services/logger";
+import pluginManager from "@main/core/plugin-manager";
+import { publishEvent } from "@main/core/plugin-context";
+import { setupIpcHandlers } from "@main/core/ipc-handlers";
 
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
 declare const MAIN_WINDOW_VITE_NAME: string;
