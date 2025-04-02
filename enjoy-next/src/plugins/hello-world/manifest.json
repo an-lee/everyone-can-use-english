@@ -1,0 +1,24 @@
+{
+  "id": "hello-world",
+  "name": "Hello World",
+  "version": "1.0.0",
+  "description": "A sample plugin that demonstrates the plugin system",
+  "author": "Enjoy Developer",
+  "main": "index.js",
+  "contributes": {
+    "commands": [
+      {
+        "id": "showGreeting",
+        "title": "Show Greeting"
+      }
+    ],
+    "menus": {
+      "mainMenu": [
+        {
+          "id": "helloWorld",
+          "command": "showGreeting"
+        }
+      ]
+    }
+  }
+}
