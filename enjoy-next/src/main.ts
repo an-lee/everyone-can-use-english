@@ -6,6 +6,11 @@ import pluginManager from "./main/core/plugin-manager";
 import { publishEvent } from "./main/core/plugin-context";
 import { setupIpcHandlers } from "./main/core/ipc-handlers";
 
+declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
+declare const MAIN_WINDOW_VITE_NAME: string;
+
+const __dirname = import.meta.dirname;
+
 // Configure logger
 const logger = log.scope("main");
 

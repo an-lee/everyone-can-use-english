@@ -1,23 +1,26 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "module": "NodeNext",
+    "module": "ESNext",
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "strictNullChecks": true,
+    "strict": true,
     "noImplicitAny": true,
     "sourceMap": true,
     "baseUrl": ".",
     "outDir": "dist",
-    "moduleResolution": "NodeNext",
+    "moduleResolution": "node",
     "resolveJsonModule": true,
     "jsx": "react-jsx",
     "paths": {
-      "@/*": ["./src/*"],
-      "@renderer/*": ["./src/renderer/*"],
-      "@main/*": ["./src/main/*"],
-      "@shared/*": ["./src/shared/*"]
-    }
-  }
+      "@/*": ["src/*"],
+      "@renderer/*": ["src/renderer/*"],
+      "@main/*": ["src/main/*"],
+      "@shared/*": ["src/shared/*"]
+    },
+    "types": ["vite/client"]
+  },
+  "include": ["src"]
 }

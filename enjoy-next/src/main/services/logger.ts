@@ -50,7 +50,7 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 // Add scope functionality
-export default {
+const log = {
   scope: (scope: string) => {
     return {
       info: (message: string, ...meta: any[]) =>
@@ -82,3 +82,5 @@ export default {
   warn: (message: string, ...meta: any[]) => logger.warn(message, ...meta),
   debug: (message: string, ...meta: any[]) => logger.debug(message, ...meta),
 };
+
+export default log;

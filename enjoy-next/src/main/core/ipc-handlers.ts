@@ -8,8 +8,8 @@ const logger = log.scope("ipc-handlers");
 /**
  * Set up all IPC handlers for plugin system
  */
-export function setupIpcHandlers() {
-  logger.info("Setting up IPC handlers");
+export const setupIpcHandlers = () => {
+  console.log("Setting up IPC handlers");
 
   // Get all plugins
   ipcMain.handle("plugins:get", async () => {
@@ -39,7 +39,7 @@ export function setupIpcHandlers() {
       }
     }
   );
-}
+};
 
 /**
  * Send event to all renderer windows

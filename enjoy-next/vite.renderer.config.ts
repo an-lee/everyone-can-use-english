@@ -2,6 +2,8 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 // eslint-disable-next-line import/no-unresolved
 import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
+// eslint-disable-next-line import/no-unresolved
+import tailwindcss from "@tailwindcss/vite";
 import path from "node:path";
 
 // https://vitejs.dev/config
@@ -14,6 +16,7 @@ export default defineConfig({
       generatedRouteTree: "./src/renderer/routeTree.gen.ts",
     }),
     react(),
+    tailwindcss(),
   ],
   resolve: {
     preserveSymlinks: true,

@@ -167,6 +167,6 @@ export function subscribeToEvent(
 /**
  * Publish a global event
  */
-export function publishEvent(event: string, ...args: any[]): void {
-  eventBus.emit(event, ...args);
-}
+export const publishEvent = (eventName: string, data?: any) => {
+  console.log(`Publishing event: ${eventName}`, data || "");
+};
