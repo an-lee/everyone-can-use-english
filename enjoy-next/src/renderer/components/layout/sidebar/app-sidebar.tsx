@@ -17,7 +17,7 @@ import {
 import { NavMain } from "@renderer/components/layout/sidebar/nav-main";
 import { NavProjects } from "@renderer/components/layout/sidebar/nav-projects";
 import { NavUser } from "@renderer/components/layout/sidebar/nav-user";
-import { TeamSwitcher } from "@renderer/components/layout/sidebar/team-switcher";
+import { AppInfo } from "@renderer/components/layout/sidebar/app-info";
 import {
   Sidebar,
   SidebarContent,
@@ -160,14 +160,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <NavUser user={data.user} />
       </SidebarHeader>
       <SidebarContent className="draggable-region">
         <NavMain items={data.navMain} />
         <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <AppInfo />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
