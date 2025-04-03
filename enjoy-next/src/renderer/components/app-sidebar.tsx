@@ -24,7 +24,7 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
-} from "@renderer/components/ui/sidebar";
+} from "@renderer/components/ui";
 
 // This is sample data.
 const data = {

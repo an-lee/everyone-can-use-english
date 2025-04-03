@@ -89,16 +89,16 @@ export const Sidebar = (props: {
     <div
       className={`h-content pt-8 transition-all relative draggable-region ${
         isCollapsed
-          ? "w-[--sidebar-collapsed-width]"
-          : "w-[--sidebar-expanded-width]"
+          ? "w-[var(--sidebar-collapsed-width)]"
+          : "w-[var(--sidebar-expanded-width)]"
       }`}
       data-testid="sidebar"
     >
       <div
         className={`fixed top-0 left-0 h-full bg-muted border-r ${
           isCollapsed
-            ? "w-[--sidebar-collapsed-width]"
-            : "w-[--sidebar-expanded-width]"
+            ? "w-[var(--sidebar-collapsed-width)]"
+            : "w-[var(--sidebar-expanded-width)]"
         }`}
       >
         <ScrollArea className="w-full h-full pb-12 pt-8">
@@ -352,7 +352,7 @@ const SidebarHeader = (props: { isCollapsed: boolean }) => {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent
-          className="w-[--radix-dropdown-menu-trigger-width]"
+          className="w-[var(--radix-dropdown-menu-trigger-width)]"
           align="start"
           side="bottom"
         >
