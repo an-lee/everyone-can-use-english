@@ -22,13 +22,15 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@renderer/components/ui";
-
-const SIDEBAR_COOKIE_NAME = "sidebar_state";
-const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
-const SIDEBAR_WIDTH = "16rem";
-const SIDEBAR_WIDTH_MOBILE = "18rem";
-const SIDEBAR_WIDTH_ICON = "3rem";
-const SIDEBAR_KEYBOARD_SHORTCUT = "b";
+import {
+  MENUBAR_HEIGHT,
+  SIDEBAR_COOKIE_NAME,
+  SIDEBAR_COOKIE_MAX_AGE,
+  SIDEBAR_WIDTH,
+  SIDEBAR_WIDTH_MOBILE,
+  SIDEBAR_WIDTH_ICON,
+  SIDEBAR_KEYBOARD_SHORTCUT,
+} from "@renderer/components/layout/config";
 
 type SidebarContextProps = {
   state: "expanded" | "collapsed";
@@ -141,11 +143,12 @@ const SidebarProvider = React.forwardRef<
               {
                 "--sidebar-width": SIDEBAR_WIDTH,
                 "--sidebar-width-icon": SIDEBAR_WIDTH_ICON,
+                "--menubar-height": MENUBAR_HEIGHT,
                 ...style,
               } as React.CSSProperties
             }
             className={cn(
-              "group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-sidebar",
+              "group/sidebar-wrapper flex min-h-[calc(100svh-var(--menubar-height))] w-full has-[[data-variant=inset]]:bg-sidebar",
               className
             )}
             ref={ref}
@@ -242,7 +245,7 @@ const Sidebar = React.forwardRef<
         />
         <div
           className={cn(
-            "fixed inset-y-0 z-10 hidden h-svh w-[var(--sidebar-width)] transition-[left,right,width] duration-200 ease-linear md:flex",
+            "fixed inset-y-[var(--menubar-height)] z-10 hidden h-[calc(100svh-var(--menubar-height))] w-[var(--sidebar-width)] transition-[left,right,width] duration-200 ease-linear md:flex",
             side === "left"
               ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
               : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",

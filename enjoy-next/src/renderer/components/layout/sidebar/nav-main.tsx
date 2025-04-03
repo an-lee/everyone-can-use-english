@@ -31,7 +31,7 @@ export function NavMain({
   }[];
 }) {
   return (
-    <SidebarGroup>
+    <SidebarGroup className="non-draggable-region">
       <SidebarGroupLabel>Platform</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (

@@ -5,11 +5,13 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@renderer/components/ui";
-import { AppSidebar } from "@renderer/components/app-sidebar";
+import { AppSidebar } from "@renderer/components/layout/sidebar";
+import { AppMenubar } from "../components/layout/menubar";
 
 export const Route = createRootRoute({
   component: () => (
-    <div>
+    <>
+      <AppMenubar />
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset>
@@ -26,6 +28,6 @@ export const Route = createRootRoute({
         </SidebarInset>
       </SidebarProvider>
       <TanStackRouterDevtools />
-    </div>
+    </>
   ),
 });

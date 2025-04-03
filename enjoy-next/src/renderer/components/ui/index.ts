@@ -3,6 +3,7 @@ export * from "./button";
 export * from "./collapsible";
 export * from "./dropdown-menu";
 export * from "./input";
+export * from "./menubar";
 export * from "./separator";
 export * from "./skeleton";
 export * from "./sheet";
