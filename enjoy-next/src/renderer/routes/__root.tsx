@@ -4,7 +4,7 @@ import { SidebarInset, SidebarProvider } from "@renderer/components/ui";
 import { AppSidebar } from "@renderer/components/layout/sidebar";
 import { AppMenubar } from "@renderer/components/layout/menubar";
 import { useAppStore } from "@renderer/store";
-import { Login } from "@renderer/components/login";
+import { LoginForm } from "@/renderer/components/auth/login-form";
 
 const isAuthenticated = useAppStore.getState().currentUser !== null;
 
@@ -29,8 +29,10 @@ export const Route = createRootRoute({
             </SidebarInset>
           </>
         ) : (
-          <div className="w-full min-h-[calc(100svh-var(--menubar-height))]">
-            <Login />
+          <div className="w-full flex min-h-[calc(100svh-var(--menubar-height))] flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
+            <div className="flex w-full max-w-sm flex-col gap-6">
+              <LoginForm />
+            </div>
           </div>
         )}
       </SidebarProvider>
