@@ -1,8 +1,8 @@
 import { app } from "electron";
 import path from "path";
 import fs from "fs-extra";
-import { PluginContext, PluginManifest } from "./plugin-types";
-import log from "../services/logger";
+import { PluginContext, PluginManifest } from "@/types/plugin";
+import log from "@main/services/logger";
 import { EventEmitter } from "events";
 
 const logger = log.scope("plugin-context");

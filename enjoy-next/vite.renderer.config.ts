@@ -24,6 +24,7 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
       "@renderer": path.resolve(__dirname, "./src/renderer"),
       "@shared": path.resolve(__dirname, "./src/shared"),
+      "@types": path.resolve(__dirname, "./src/types"),
       "vendor/pdfjs": path.resolve(
         __dirname,
         "./node_modules/foliate-js/vendor/pdfjs"

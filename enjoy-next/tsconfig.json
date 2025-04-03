@@ -18,7 +18,8 @@
       "@/*": ["src/*"],
       "@renderer/*": ["src/renderer/*"],
       "@main/*": ["src/main/*"],
-      "@shared/*": ["src/shared/*"]
+      "@shared/*": ["src/shared/*"],
+      "@types/*": ["src/types/*"]
     },
     "types": ["vite/client"]
   },

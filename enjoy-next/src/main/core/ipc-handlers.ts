@@ -1,7 +1,7 @@
 import { ipcMain, BrowserWindow, IpcMainInvokeEvent } from "electron";
-import pluginManager from "./plugin-manager";
-import { executeCommand } from "./plugin-context";
-import log from "../services/logger";
+import pluginManager from "@main/core/plugin-manager";
+import { executeCommand } from "@main/core/plugin-context";
+import log from "@main/services/logger";
 
 const logger = log.scope("ipc-handlers");
 
