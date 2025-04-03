@@ -11,7 +11,7 @@
     "sourceMap": true,
     "baseUrl": ".",
     "outDir": "dist",
-    "moduleResolution": "node",
+    "moduleResolution": "node10",
     "resolveJsonModule": true,
     "jsx": "react-jsx",
     "paths": {
@@ -21,7 +21,10 @@
       "@shared/*": ["src/shared/*"],
       "@types/*": ["src/types/*"]
     },
-    "types": ["vite/client"]
+    "types": ["vite/client"],
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false
   },
   "include": ["src"]
 }

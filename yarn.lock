@@ -10969,15 +10969,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^20.11.30":
-  version: 20.17.30
-  resolution: "@types/node@npm:20.17.30"
-  dependencies:
-    undici-types: "npm:~6.19.2"
-  checksum: 10c0/649782c7822367d751472d70c948bcc50cded1a4744610f706f81cd54e1fc015523567d7e3e17f6b19e3e2797f6f23b653e898bdb4a2f21f8759ceba49976310
-  languageName: node
-  linkType: hard
-
 "@types/node@npm:^20.9.0":
   version: 20.17.9
   resolution: "@types/node@npm:20.17.9"
@@ -10993,6 +10984,15 @@ __metadata:
   dependencies:
     undici-types: "npm:~6.20.0"
   checksum: 10c0/a3865f9503d6f718002374f7b87efaadfae62faa499c1a33b12c527cfb9fd86f733e1a1b026b80c5a0e4a965701174bc3305595a7d36078aa1abcf09daa5dee9
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^22.14.0":
+  version: 22.14.0
+  resolution: "@types/node@npm:22.14.0"
+  dependencies:
+    undici-types: "npm:~6.21.0"
+  checksum: 10c0/9d79f3fa1af9c2c869514f419c4a4905b34c10e12915582fd1784868ac4e74c6d306cf5eb47ef889b6750ab85a31be96618227b86739c4a3e0b1c15063f384c6
   languageName: node
   linkType: hard
 
@@ -16020,7 +16020,7 @@ __metadata:
     "@tanstack/react-router-devtools": "npm:^1.114.32"
     "@tanstack/router-plugin": "npm:^1.114.32"
     "@types/fs-extra": "npm:^11.0.4"
-    "@types/node": "npm:^20.11.30"
+    "@types/node": "npm:^22.14.0"
     "@types/react": "npm:^19.0.13"
     "@types/react-dom": "npm:^19.0.5"
     "@typescript-eslint/eslint-plugin": "npm:^8.29.0"
@@ -16039,6 +16039,7 @@ __metadata:
     react: "npm:^19.1.0"
     react-dom: "npm:^19.1.0"
     reflect-metadata: "npm:^0.2.2"
+    sqlite3: "npm:^5.1.7"
     tailwind-merge: "npm:^3.1.0"
     tailwindcss: "npm:^4.1.0"
     ts-node: "npm:^10.9.2"
@@ -28644,6 +28645,13 @@ __metadata:
   version: 6.20.0
   resolution: "undici-types@npm:6.20.0"
   checksum: 10c0/68e659a98898d6a836a9a59e6adf14a5d799707f5ea629433e025ac90d239f75e408e2e5ff086afc3cace26f8b26ee52155293564593fbb4a2f666af57fc59bf
+  languageName: node
+  linkType: hard
+
+"undici-types@npm:~6.21.0":
+  version: 6.21.0
+  resolution: "undici-types@npm:6.21.0"
+  checksum: 10c0/c01ed51829b10aa72fc3ce64b747f8e74ae9b60eafa19a7b46ef624403508a54c526ffab06a14a26b3120d055e1104d7abe7c9017e83ced038ea5cf52f8d5e04
   languageName: node
   linkType: hard
 
