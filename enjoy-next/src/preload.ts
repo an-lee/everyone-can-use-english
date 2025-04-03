@@ -5,6 +5,16 @@ import { contextBridge, ipcRenderer } from "electron";
 
 // Define the shape of our exposed API
 interface EnjoyAPI {
+  appConfig: {
+    get: (key: string) => Promise<any>;
+    set: (key: string, value: any) => Promise<void>;
+    file: () => Promise<string>;
+    libraryPath: () => Promise<string>;
+    currentUser: () => Promise<any>;
+    userDataPath: (subPath: string) => Promise<string>;
+    dbPath: () => Promise<string>;
+    cachePath: () => Promise<string>;
+  };
   plugins: {
     getPlugins: () => Promise<any[]>;
     executeCommand: (commandId: string, ...args: any[]) => Promise<any>;
@@ -29,6 +39,18 @@ const validChannels = [
 
 // Expose protected methods that allow the renderer process to use IPC with the main process
 contextBridge.exposeInMainWorld("enjoy", {
+  appConfig: {
+    get: (key: string) => ipcRenderer.invoke("appConfig:get", key),
+    set: (key: string, value: any) =>
+      ipcRenderer.invoke("appConfig:set", key, value),
+    file: () => ipcRenderer.invoke("appConfig:file"),
+    libraryPath: () => ipcRenderer.invoke("appConfig:libraryPath"),
+    currentUser: () => ipcRenderer.invoke("appConfig:currentUser"),
+    userDataPath: (subPath?: string) =>
+      ipcRenderer.invoke("appConfig:userDataPath", subPath),
+    dbPath: () => ipcRenderer.invoke("appConfig:dbPath"),
+    cachePath: () => ipcRenderer.invoke("appConfig:cachePath"),
+  },
   plugins: {
     getPlugins: () => ipcRenderer.invoke("plugins:get"),
     executeCommand: (commandId: string, ...args: any[]) =>

@@ -6,3 +6,12 @@ export const WS_URL = "wss://enjoy.bot";
 export const DISCUSS_URL = "https://discuss.enjoy.bot";
 export const REPO_URL =
   "https://github.com/zuodaotech/everyone-can-use-english";
+
+export const USER_DATA_SUB_PATH = [
+  "audios",
+  "documents",
+  "recordings",
+  "segments",
+  "speeches",
+  "videos",
+];
