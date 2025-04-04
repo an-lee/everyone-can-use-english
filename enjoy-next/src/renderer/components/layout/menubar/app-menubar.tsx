@@ -8,13 +8,19 @@ import {
   MenubarTrigger,
   Button,
   SidebarTrigger,
+  Dialog,
+  DialogTrigger,
+  DialogContent,
 } from "@renderer/components/ui";
 import { MENUBAR_HEIGHT } from "@renderer/components/layout/config";
 import { MaximizeIcon, MinimizeIcon, XIcon } from "lucide-react";
 import { useSystem } from "@renderer/hooks/use-system";
+import { useAppStore } from "@/renderer/store";
+import { Icon } from "@iconify/react";
 
 export const AppMenubar = () => {
   const system = useSystem();
+  const isAuthenticated = useAppStore((state) => state.isAuthenticated());
 
   return (
     <Menubar
@@ -24,7 +30,16 @@ export const AppMenubar = () => {
       <div
         className={`flex items-center gap-1 non-draggable-region ${system === "macos" ? "ml-16" : "ml-2"}`}
       >
-        <SidebarTrigger className="size-7 rounded-none px-2" />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-8 rounded-none non-draggable-region hover:bg-primary/10"
+        >
+          <img src="./assets/icon.png" alt="Enjoy" className="size-5" />
+        </Button>
+        {isAuthenticated && (
+          <SidebarTrigger className="size-7 rounded-none px-2" />
+        )}
         <MenubarMenu>
           <MenubarTrigger>File</MenubarTrigger>
           <MenubarContent>
@@ -40,6 +55,16 @@ export const AppMenubar = () => {
         </MenubarMenu>
       </div>
       <div className="non-draggable-region ml-auto">
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <Icon icon="lucide:settings" className="size-6" />
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-[80svw] h-[70svh]">
+            <div className="flex flex-col gap-4">Settings</div>
+          </DialogContent>
+        </Dialog>
         {system !== "macos" && (
           <>
             <Button variant="ghost" size="icon">
