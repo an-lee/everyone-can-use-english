@@ -1,9 +1,21 @@
 {
   "welcome": "欢迎回来",
-  "continueWithGoogle": "使用谷歌登录",
+  "continueWithGoogle": "使用Google登录",
   "continueWithGithub": "使用Github登录",
   "continueWithMixin": "使用Mixin登录",
+  "continueWithEmail": "使用邮箱登录",
+  "continueWithPhone": "使用手机号登录",
   "continueWithOtherAccount": "使用其他账号登录",
   "openBrowser": "打开浏览器",
-  "pleaseFinishLoginInBrowser": "请在浏览器中完成登录"
+  "pleaseFinishLoginInBrowser": "请在浏览器中完成登录",
+  "email": "邮箱",
+  "verificationCode": "验证码",
+  "sendVerificationCode": "发送验证码",
+  "resend": "重新发送",
+  "verify": "验证",
+  "back": "返回",
+  "loginSuccess": "登录成功",
+  "loginError": "登录失败",
+  "sendVerificationCodeSuccess": "验证码发送成功",
+  "sendVerificationCodeError": "验证码发送失败 {{error}}"
 }

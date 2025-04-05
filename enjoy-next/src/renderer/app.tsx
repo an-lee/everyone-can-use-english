@@ -9,6 +9,7 @@ import { useAppStore, useAuthStore } from "./store";
 import { Icon } from "@iconify/react";
 import { AppMenubar } from "./components/layout/menubar";
 import { Login } from "./routes/login";
+import { Toaster } from "./components/ui";
 
 // Create a new router instance
 const router = createRouter({ routeTree });
@@ -34,6 +35,7 @@ const App = () => {
       <div className="flex h-[100svh] w-screen items-center justify-center pt-[var(--menubar-height)]">
         <AppMenubar isAuthenticated={false} />
         <Icon icon="mdi:loading" className="h-10 w-10 animate-spin" />
+        <Toaster richColors closeButton position="top-center" />
       </div>
     );
   }
@@ -43,6 +45,7 @@ const App = () => {
       <div className="flex h-[100svh] w-screen items-center justify-center pt-[var(--menubar-height)]">
         <AppMenubar isAuthenticated={false} />
         <Login />
+        <Toaster richColors closeButton position="top-center" />
       </div>
     );
   }
@@ -57,6 +60,7 @@ if (rootElement && !rootElement.innerHTML) {
   root.render(
     <StrictMode>
       <App />
+      <Toaster richColors closeButton position="top-center" />
     </StrictMode>
   );
 }

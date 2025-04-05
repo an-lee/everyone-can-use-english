@@ -3,7 +3,19 @@
   "continueWithGoogle": "Continue with Google",
   "continueWithGithub": "Continue with Github",
   "continueWithMixin": "Continue with Mixin",
+  "continueWithEmail": "Continue with Email",
+  "continueWithPhone": "Continue with Phone",
   "continueWithOtherAccount": "Continue with other account",
   "openBrowser": "Open Browser",
-  "pleaseFinishLoginInBrowser": "Please finish login in browser"
+  "pleaseFinishLoginInBrowser": "Please finish login in browser",
+  "email": "Email",
+  "verificationCode": "Verification Code",
+  "sendVerificationCode": "Send Verification Code",
+  "resend": "Resend",
+  "verify": "Verify",
+  "back": "Back",
+  "loginSuccess": "Login Success",
+  "loginError": "Login Error",
+  "sendVerificationCodeSuccess": "Verification Code Sent Success",
+  "sendVerificationCodeError": "Verification Code Sent Error {{error}}"
 }

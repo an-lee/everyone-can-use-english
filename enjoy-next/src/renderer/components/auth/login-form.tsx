@@ -9,6 +9,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  Input,
   Separator,
 } from "@renderer/components/ui";
 import { Icon } from "@iconify/react";
@@ -17,9 +18,9 @@ import {
   useAuthStore,
   type LoginMethodType,
 } from "@/renderer/store/use-auth-store";
-import { useAppStore } from "@/renderer/store";
-import { useEffect, useRef, useState } from "react";
-import { Client } from "@/renderer/api";
+import { useEffect } from "react";
+import { LoginFormOauth } from "./login-form-oauth";
+import { LoginFormEmail } from "./login-form-email";
 
 export function LoginForm({
   className,
@@ -38,7 +39,7 @@ export function LoginForm({
   }, []);
 
   if (logingMethod === "email") {
-    return <EmailLoginForm />;
+    return <LoginFormEmail />;
   }
 
   if (
@@ -46,7 +47,7 @@ export function LoginForm({
       logingMethod
     )
   ) {
-    return <OauthLoginForm />;
+    return <LoginFormOauth />;
   }
 
   return (
@@ -82,7 +83,23 @@ export function LoginForm({
                 </p>
               </div>
             )}
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-2">
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => handleLogin("phone")}
+              >
+                <Icon icon="tabler:phone" className="size-4 mr-2" />
+                {t("continueWithPhone")}
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => handleLogin("email")}
+              >
+                <Icon icon="tabler:mail" className="size-4 mr-2" />
+                {t("continueWithEmail")}
+              </Button>
               <Button
                 variant="outline"
                 className="w-full"
@@ -116,68 +133,12 @@ export function LoginForm({
 }
 
 function EmailLoginForm() {
-  return <div>EmailLoginForm</div>;
-}
-
-function OauthLoginForm() {
-  let timer: NodeJS.Timeout | null = null;
-  const { logingMethod, setLogingMethod, nonce, login } = useAuthStore();
   const { t } = useTranslation("components/auth");
-  const webApiUrl = useAppStore((state) => state.webApiUrl);
-  const hasOpenedRef = useRef(false);
-
-  const openOauthUrl = () => {
-    const oauthUrl = `${webApiUrl}/auth/${logingMethod}?state=${nonce}`;
-    window.EnjoyAPI.shell.openExternal(oauthUrl);
-  };
-
-  const pollOauthState = () => {
-    console.log("==poll oauth state==", nonce);
-    if (!nonce) return;
-
-    const api = new Client();
-    timer = setInterval(() => {
-      console.log("==polling oauth state==");
-      api.auth
-        .oauthState(nonce)
-        .then((oauthState) => {
-          login(oauthState);
-        })
-        .catch((err) => {
-          console.error("==poll oauth state error==", err);
-        });
-    }, 2000);
-  };
-
-  useEffect(() => {
-    if (nonce && !hasOpenedRef.current) {
-      openOauthUrl();
-      hasOpenedRef.current = true;
-    }
-
-    pollOauthState();
-
-    return () => {
-      if (timer) {
-        console.log("==stop polling oauth state==");
-        clearInterval(timer);
-      }
-    };
-  }, [nonce]);
-
+  const { setLogingMethod } = useAuthStore();
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-center">
-        <Icon icon="mdi:loading" className="size-10 animate-spin" />
-      </div>
-      <div className="flex items-center justify-center">
-        <p>{t("pleaseFinishLoginInBrowser")}</p>
-      </div>
-      <div className="flex items-center justify-center">
-        <Button variant="outline" onClick={openOauthUrl}>
-          {t("openBrowser")}
-        </Button>
-      </div>
+    <div className="flex flex-col gap-3">
+      <Input type="email" placeholder={t("email")} />
+      <Input type="password" placeholder={t("password")} />
       <div className="flex items-center justify-center">
         <Button variant="ghost" onClick={() => setLogingMethod(null)}>
           {t("back")}
