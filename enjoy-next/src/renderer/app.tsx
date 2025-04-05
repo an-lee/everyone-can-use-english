@@ -16,6 +16,12 @@ declare module "@tanstack/react-router" {
   }
 }
 
+declare global {
+  interface Window {
+    EnjoyAPI: any;
+  }
+}
+
 // Render the app
 const rootElement = document.getElementById("root");
 if (rootElement && !rootElement.innerHTML) {

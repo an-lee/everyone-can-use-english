@@ -68,10 +68,10 @@ export const AppMenubar = () => {
         {system !== "macos" && (
           <>
             <Button variant="ghost" size="icon">
-              <MinimizeIcon className="size-6" />
+              <Icon icon="tabler:minus" className="size-6" />
             </Button>
             <Button variant="ghost" size="icon">
-              <MaximizeIcon className="size-6" />
+              <Icon icon="tabler:squares" className="size-6" />
             </Button>
             <Button
               variant="ghost"

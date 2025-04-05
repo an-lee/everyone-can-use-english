@@ -1,5 +1,6 @@
 {
   "welcome": "欢迎回来",
-  "loginWithApple": "使用苹果登录",
-  "loginWithGoogle": "使用谷歌登录"
+  "continueWithGoogle": "使用谷歌登录",
+  "continueWithGithub": "使用Github登录",
+  "continueWithMixin": "使用Mixin登录"
 }

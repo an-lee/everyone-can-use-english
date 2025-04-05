@@ -38,7 +38,7 @@ const validChannels = [
 ];
 
 // Expose protected methods that allow the renderer process to use IPC with the main process
-contextBridge.exposeInMainWorld("enjoy", {
+contextBridge.exposeInMainWorld("EnjoyAPI", {
   appConfig: {
     get: (key: string) => ipcRenderer.invoke("appConfig:get", key),
     set: (key: string, value: any) =>
@@ -50,6 +50,11 @@ contextBridge.exposeInMainWorld("enjoy", {
       ipcRenderer.invoke("appConfig:userDataPath", subPath),
     dbPath: () => ipcRenderer.invoke("appConfig:dbPath"),
     cachePath: () => ipcRenderer.invoke("appConfig:cachePath"),
+  },
+  shell: {
+    openExternal: (url: string) =>
+      ipcRenderer.invoke("shell:openExternal", url),
+    openPath: (path: string) => ipcRenderer.invoke("shell:openPath", path),
   },
   plugins: {
     getPlugins: () => ipcRenderer.invoke("plugins:get"),

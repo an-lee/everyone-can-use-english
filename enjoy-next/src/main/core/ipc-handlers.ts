@@ -1,4 +1,4 @@
-import { ipcMain, BrowserWindow, IpcMainInvokeEvent } from "electron";
+import { ipcMain, BrowserWindow, IpcMainInvokeEvent, shell } from "electron";
 import pluginManager from "@main/core/plugin-manager";
 import { executeCommand } from "@main/core/plugin-context";
 import log from "@main/services/logger";
@@ -6,11 +6,25 @@ import log from "@main/services/logger";
 const logger = log.scope("ipc-handlers");
 
 /**
- * Set up all IPC handlers for plugin system
+ * Set up all IPC handlers
  */
 export const setupIpcHandlers = () => {
-  console.log("Setting up IPC handlers");
+  setupPluginIpcHandlers();
 
+  // Shell
+  ipcMain.handle("shell:openExternal", (_event, url) => {
+    shell.openExternal(url);
+  });
+
+  ipcMain.handle("shell:openPath", (_event, path) => {
+    shell.openPath(path);
+  });
+};
+
+/**
+ * Set up all IPC handlers for plugin system
+ */
+const setupPluginIpcHandlers = () => {
   // Get all plugins
   ipcMain.handle("plugins:get", async () => {
     const plugins = pluginManager.getAllPlugins();

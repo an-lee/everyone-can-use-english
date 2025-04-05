@@ -1,5 +1,6 @@
 {
   "welcome": "Welcome back",
-  "loginWithApple": "Login with Apple",
-  "loginWithGoogle": "Login with Google"
+  "continueWithGoogle": "Continue with Google",
+  "continueWithGithub": "Continue with Github",
+  "continueWithMixin": "Continue with Mixin"
 }
