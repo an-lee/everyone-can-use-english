@@ -6,7 +6,6 @@ import {
   AvatarImage,
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
   Input,
@@ -20,7 +19,7 @@ import {
 } from "@/renderer/store/use-auth-store";
 import { useEffect } from "react";
 import { LoginFormOauth } from "./login-form-oauth";
-import { LoginFormEmail } from "./login-form-email";
+import { LoginFormCode } from "./login-form-code";
 
 export function LoginForm({
   className,
@@ -39,7 +38,11 @@ export function LoginForm({
   }, []);
 
   if (logingMethod === "email") {
-    return <LoginFormEmail />;
+    return <LoginFormCode provider="email" />;
+  }
+
+  if (logingMethod === "phone") {
+    return <LoginFormCode provider="phone" />;
   }
 
   if (

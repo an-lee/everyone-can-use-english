@@ -9,6 +9,7 @@
   "openBrowser": "Open Browser",
   "pleaseFinishLoginInBrowser": "Please finish login in browser",
   "email": "Email",
+  "phone": "Phone",
   "verificationCode": "Verification Code",
   "sendVerificationCode": "Send Verification Code",
   "resend": "Resend",

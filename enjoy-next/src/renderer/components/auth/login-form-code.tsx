@@ -6,10 +6,12 @@ import { Client } from "@renderer/api";
 import { toast } from "sonner";
 import { Icon } from "@iconify/react";
 
-export function LoginFormEmail() {
+export function LoginFormCode(props: { provider: "email" | "phone" }) {
+  const { provider } = props;
   const { t } = useTranslation("components/auth");
   const { setLogingMethod, login } = useAuthStore();
   const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [requested, setRequested] = useState(false);
@@ -23,8 +25,9 @@ export function LoginFormEmail() {
 
     setLoading(true);
     const api = new Client();
+    const params = provider === "email" ? { email } : { phoneNumber };
     api.auth
-      .loginCode({ email })
+      .loginCode(params)
       .then(() => {
         toast.success(t("sendVerificationCodeSuccess"));
         setRequested(true);
