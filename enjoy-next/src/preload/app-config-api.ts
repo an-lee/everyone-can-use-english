@@ -6,7 +6,7 @@ export interface AppConfigAPI {
   file: () => Promise<string>;
   libraryPath: () => Promise<string>;
   currentUser: () => Promise<any>;
-  rememberUser: (user: UserType) => Promise<void>;
+  logout: () => Promise<void>;
   userDataPath: (subPath?: string) => Promise<string>;
   dbPath: () => Promise<string>;
   cachePath: () => Promise<string>;
@@ -19,8 +19,7 @@ export const AppConfigAPI: AppConfigAPI = {
   file: () => ipcRenderer.invoke("appConfig:file"),
   libraryPath: () => ipcRenderer.invoke("appConfig:libraryPath"),
   currentUser: () => ipcRenderer.invoke("appConfig:currentUser"),
-  rememberUser: (user: UserType) =>
-    ipcRenderer.invoke("appConfig:rememberUser", user),
+  logout: () => ipcRenderer.invoke("appConfig:logout"),
   userDataPath: (subPath?: string) =>
     ipcRenderer.invoke("appConfig:userDataPath", subPath),
   dbPath: () => ipcRenderer.invoke("appConfig:dbPath"),

@@ -11,6 +11,7 @@ export type LoginMethodType =
 type AuthState = {
   isAuthenticated: () => boolean;
   currentUser: UserType | null;
+  sessions: UserType[];
 
   nonce: string | null;
   logingMethod: LoginMethodType;
@@ -21,12 +22,13 @@ type AuthState = {
   generateNonce: () => string;
   login: (currentUser: UserType) => void;
   logout: () => void;
+  fetchSessions: () => Promise<void>;
 };
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   isAuthenticated: () => !!get().currentUser?.id,
   currentUser: null,
-
+  sessions: [],
   logingMethod: null,
   nonce: null,
 
@@ -53,8 +55,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (!currentUser) return;
 
     if (window.EnjoyAPI) {
-      window.EnjoyAPI.appConfig.set("user", null);
-      window.EnjoyAPI.appConfig.rememberUser(currentUser);
+      window.EnjoyAPI.appConfig.logout();
     }
     set({ currentUser: null });
   },
@@ -71,6 +72,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const nonce = `ENJOYAPP${Math.random().toString(36).substring(2, 15)}`;
     set({ nonce });
     return nonce;
+  },
+
+  fetchSessions: async () => {
+    if (window.EnjoyAPI) {
+      const sessions = await window.EnjoyAPI.appConfig.get("sessions");
+      set({ sessions });
+    }
   },
 }));
 

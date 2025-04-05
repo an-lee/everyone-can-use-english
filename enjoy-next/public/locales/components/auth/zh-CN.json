@@ -3,6 +3,7 @@
   "continueWithGoogle": "使用谷歌登录",
   "continueWithGithub": "使用Github登录",
   "continueWithMixin": "使用Mixin登录",
+  "continueWithOtherAccount": "使用其他账号登录",
   "openBrowser": "打开浏览器",
   "pleaseFinishLoginInBrowser": "请在浏览器中完成登录"
 }

@@ -40,7 +40,7 @@ const APP_CONFIG_SCHEMA = {
     items: {
       type: "object",
       properties: {
-        id: { type: "string" },
+        id: { type: "number" },
         name: { type: "string" },
         avatarUrl: { type: "string" },
         accessToken: { type: "string" },
@@ -76,16 +76,19 @@ class AppConfig {
     return this.get("user");
   }
 
-  rememberUser(session: UserType) {
-    const sessions = this.get("sessions") || [];
-    const existingSession = sessions.find((s: UserType) => s.id === session.id);
-    if (existingSession) {
-      this.set(
-        "sessions",
-        sessions.filter((s: UserType) => s.id !== session.id)
-      );
-    }
-    this.set("sessions", [...sessions, session]);
+  logout() {
+    const currentUser = this.currentUser();
+    if (!currentUser) return;
+
+    let sessions = this.get("sessions") || [];
+    sessions = sessions.filter((s: UserType) => typeof s.id === "number");
+
+    const existingSession = sessions.find(
+      (s: UserType) => s.id === currentUser.id
+    );
+    if (existingSession) return;
+
+    this.set("sessions", [...sessions, currentUser]);
   }
 
   ensureLibraryPath() {
@@ -168,12 +171,9 @@ class AppConfig {
       return this.currentUser();
     });
 
-    ipcMain.handle(
-      "appConfig:rememberUser",
-      (_event: IpcMainInvokeEvent, session: UserType) => {
-        this.rememberUser(session);
-      }
-    );
+    ipcMain.handle("appConfig:logout", (_event: IpcMainInvokeEvent) => {
+      this.logout();
+    });
 
     ipcMain.handle(
       "appConfig:userDataPath",

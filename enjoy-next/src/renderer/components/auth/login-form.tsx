@@ -1,11 +1,15 @@
 import { cn } from "@renderer/lib/utils";
 import { Button } from "@renderer/components/ui/button";
 import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
+  Separator,
 } from "@renderer/components/ui";
 import { Icon } from "@iconify/react";
 import { useTranslation } from "react-i18next";
@@ -22,11 +26,16 @@ export function LoginForm({
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
   const { t } = useTranslation("components/auth");
-  const { logingMethod, setLogingMethod } = useAuthStore();
+  const { logingMethod, setLogingMethod, fetchSessions, sessions, login } =
+    useAuthStore();
 
   const handleLogin = (method: LoginMethodType) => {
     setLogingMethod(method);
   };
+
+  useEffect(() => {
+    fetchSessions();
+  }, []);
 
   if (logingMethod === "email") {
     return <EmailLoginForm />;
@@ -48,6 +57,31 @@ export function LoginForm({
         </CardHeader>
         <CardContent>
           <div className="grid gap-6">
+            {sessions.length > 0 && (
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center justify-center gap-3">
+                  {sessions.map((session) => (
+                    <Button
+                      key={session.id}
+                      variant="outline"
+                      className="size-10 rounded-full"
+                      onClick={() => login(session)}
+                    >
+                      <Avatar className="size-10">
+                        <AvatarImage src={session.avatarUrl} />
+                        <AvatarFallback>
+                          {session.name?.slice(0, 2)}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  ))}
+                </div>
+                <Separator />
+                <p className="text-center text-sm text-muted-foreground">
+                  {t("continueWithOtherAccount")}
+                </p>
+              </div>
+            )}
             <div className="flex flex-col gap-3">
               <Button
                 variant="outline"

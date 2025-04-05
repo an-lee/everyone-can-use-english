@@ -13,8 +13,8 @@ i18n
     },
     ns: ["common", "components"], // Default namespaces
     defaultNS: "common",
-    lng: "en",
-    fallbackLng: "en",
+    lng: "zh-CN",
+    fallbackLng: "zh-CN",
     supportedLngs: ["en", "zh-CN"],
     interpolation: {
       escapeValue: false,
