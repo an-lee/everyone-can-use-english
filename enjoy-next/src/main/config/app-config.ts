@@ -11,14 +11,6 @@ import { app, ipcMain, IpcMainInvokeEvent } from "electron";
 import fs from "fs-extra";
 
 const APP_CONFIG_SCHEMA = {
-  appearance: {
-    type: "object",
-    properties: {
-      theme: { type: "string", default: "system" },
-      fontSize: { type: "number", default: 16 },
-      language: { type: "string", default: "zh-CN" },
-    },
-  },
   libraryPath: {
     type: "string",
     default:
@@ -30,8 +22,8 @@ const APP_CONFIG_SCHEMA = {
   proxy: {
     type: "object",
     properties: {
-      host: { type: "string" },
-      port: { type: "number" },
+      enabled: { type: "boolean", default: false },
+      url: { type: "string" },
     },
   },
   user: {

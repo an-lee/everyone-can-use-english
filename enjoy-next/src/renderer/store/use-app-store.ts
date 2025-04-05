@@ -1,48 +1,34 @@
 import { create } from "zustand";
+import { version } from "../../../package.json";
 
 type AppState = {
   isLoading: boolean;
   setLoading: (loading: boolean) => void;
 
-  currentView: string;
-  setCurrentView: (view: string) => void;
-
+  version: string;
   webApiUrl: string;
-
-  appearance: {
-    theme: string;
-    fontSize: number;
-    language: string;
-  };
-  setAppearance: (appearance: Partial<AppState["appearance"]>) => Promise<void>;
-
   libraryPath: string | null;
+  proxy?: {
+    enabled: boolean;
+    url: string;
+  };
   fetchConfig: () => Promise<void>;
 };
 
+/**
+ * App store
+ *
+ * This store is used to store the app Info.
+ */
 export const useAppStore = create<AppState>()((set, get) => ({
   isLoading: true,
+  version,
   webApiUrl: "",
-  currentView: "home",
-  currentUser: null,
-  appearance: {
-    theme: "system",
-    fontSize: 16,
-    language: "zh-CN",
-  },
   libraryPath: null,
+  proxy: undefined,
 
   // State setters
   setLoading: (loading) => set({ isLoading: loading }),
-  setCurrentView: (view) => set({ currentView: view }),
-
-  // Actions
-  setAppearance: async (appearance) => {
-    set({ appearance: { ...get().appearance, ...appearance } });
-    if (window.EnjoyAPI) {
-      await window.EnjoyAPI.appConfig.set("appearance", get().appearance);
-    }
-  },
 
   fetchConfig: async () => {
     set({ isLoading: true });
@@ -51,16 +37,16 @@ export const useAppStore = create<AppState>()((set, get) => ({
         // Fetch webApiUrl
         const webApiUrl = await window.EnjoyAPI.appConfig.get("webApiUrl");
 
-        // Fetch appearance settings
-        const appearance = await window.EnjoyAPI.appConfig.get("appearance");
-
         // Fetch library path
         const libraryPath = await window.EnjoyAPI.appConfig.libraryPath();
 
+        // Fetch proxy
+        const proxy = await window.EnjoyAPI.appConfig.get("proxy");
+
         set({
-          appearance: { ...get().appearance, ...appearance },
           libraryPath,
           webApiUrl,
+          proxy,
         });
       } catch (error) {
         console.error("Failed to fetch config from main process:", error);
