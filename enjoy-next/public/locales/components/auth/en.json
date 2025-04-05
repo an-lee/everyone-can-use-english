@@ -2,5 +2,7 @@
   "welcome": "Welcome back",
   "continueWithGoogle": "Continue with Google",
   "continueWithGithub": "Continue with Github",
-  "continueWithMixin": "Continue with Mixin"
+  "continueWithMixin": "Continue with Mixin",
+  "openBrowser": "Open Browser",
+  "pleaseFinishLoginInBrowser": "Please finish login in browser"
 }

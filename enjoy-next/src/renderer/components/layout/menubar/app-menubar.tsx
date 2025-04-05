@@ -18,9 +18,9 @@ import { useSystem } from "@renderer/hooks/use-system";
 import { useAppStore, useAuthStore } from "@renderer/store";
 import { Icon } from "@iconify/react";
 
-export const AppMenubar = () => {
+export const AppMenubar = (props: { isAuthenticated?: boolean }) => {
+  const { isAuthenticated = useAuthStore.getState().isAuthenticated() } = props;
   const system = useSystem();
-  const isAuthenticated = useAuthStore.getState().isAuthenticated();
 
   return (
     <Menubar

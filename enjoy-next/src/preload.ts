@@ -8,6 +8,10 @@ import { PluginEvents, PluginsAPI } from "./preload/plugins-api";
 export interface EnjoyAPI {
   appConfig: typeof AppConfigAPI;
   plugins: typeof PluginsAPI;
+  shell: {
+    openExternal: (url: string) => Promise<void>;
+    openPath: (path: string) => Promise<void>;
+  };
   events: {
     on: (channel: string, listener: (...args: any[]) => void) => void;
     off: (channel: string, listener: (...args: any[]) => void) => void;

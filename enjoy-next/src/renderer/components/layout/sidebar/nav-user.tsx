@@ -1,15 +1,6 @@
 "use client";
 
 import {
-  BadgeCheck,
-  Bell,
-  ChevronsUpDown,
-  CreditCard,
-  LogOut,
-  Sparkles,
-} from "lucide-react";
-
-import {
   Avatar,
   AvatarFallback,
   AvatarImage,
@@ -25,17 +16,14 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@renderer/components/ui";
+import { useAuthStore } from "@/renderer/store";
+import { Icon } from "@iconify/react";
+import { useTranslation } from "react-i18next";
 
-export function NavUser({
-  user,
-}: {
-  user: {
-    name: string;
-    email: string;
-    avatar: string;
-  };
-}) {
+export function NavUser() {
   const { isMobile } = useSidebar();
+  const { logout, currentUser } = useAuthStore();
+  const { t } = useTranslation("components/layout/sidebar");
 
   return (
     <SidebarMenu className="non-draggable-region">
@@ -47,14 +35,21 @@ export function NavUser({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                <AvatarImage
+                  src={currentUser?.avatarUrl}
+                  alt={currentUser?.name}
+                />
+                <AvatarFallback className="rounded-lg">
+                  {currentUser?.name?.slice(0, 2)}
+                </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">{user.name}</span>
-                <span className="truncate text-xs">{user.email}</span>
+                <span className="truncate font-semibold">
+                  {currentUser?.name}
+                </span>
+                <span className="truncate text-xs">{currentUser?.id}</span>
               </div>
-              <ChevronsUpDown className="ml-auto size-4" />
+              <Icon icon="tabler:chevron-down" className="ml-auto size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -66,41 +61,41 @@ export function NavUser({
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                  <AvatarImage
+                    src={currentUser?.avatarUrl}
+                    alt={currentUser?.name}
+                  />
+                  <AvatarFallback className="rounded-lg">
+                    {currentUser?.name?.slice(0, 2)}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{user.name}</span>
-                  <span className="truncate text-xs">{user.email}</span>
+                  <span className="truncate font-semibold">
+                    {currentUser?.name}
+                  </span>
+                  <span className="truncate text-xs">{currentUser?.email}</span>
                 </div>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem>
-                <Sparkles />
-                Upgrade to Pro
+                <Icon icon="tabler:user" className="size-4" />
+                {t("account")}
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Icon icon="tabler:credit-card" className="size-4" />
+                {t("billing")}
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Icon icon="tabler:bell" className="size-4" />
+                {t("notifications")}
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <BadgeCheck />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCard />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Bell />
-                Notifications
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <LogOut />
-              Log out
+            <DropdownMenuItem onClick={logout}>
+              <Icon icon="tabler:logout" className="size-4" />
+              {t("logout")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

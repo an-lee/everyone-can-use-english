@@ -29,7 +29,7 @@ const APP_CONFIG_SCHEMA = {
   user: {
     type: "object",
     properties: {
-      id: { type: "string" },
+      id: { type: "number" },
       name: { type: "string" },
       avatarUrl: { type: "string" },
       accessToken: { type: "string" },
@@ -77,7 +77,7 @@ class AppConfig {
   }
 
   rememberUser(session: UserType) {
-    const sessions = this.get("sessions");
+    const sessions = this.get("sessions") || [];
     const existingSession = sessions.find((s: UserType) => s.id === session.id);
     if (existingSession) {
       this.set(

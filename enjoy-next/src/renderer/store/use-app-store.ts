@@ -2,8 +2,7 @@ import { create } from "zustand";
 import { version } from "../../../package.json";
 
 type AppState = {
-  isLoading: boolean;
-  setLoading: (loading: boolean) => void;
+  initialized: boolean;
 
   version: string;
   webApiUrl: string;
@@ -21,17 +20,13 @@ type AppState = {
  * This store is used to store the app Info.
  */
 export const useAppStore = create<AppState>()((set, get) => ({
-  isLoading: true,
+  initialized: false,
   version,
   webApiUrl: "",
   libraryPath: null,
   proxy: undefined,
 
-  // State setters
-  setLoading: (loading) => set({ isLoading: loading }),
-
   fetchConfig: async () => {
-    set({ isLoading: true });
     if (window.EnjoyAPI) {
       try {
         // Fetch webApiUrl
@@ -48,10 +43,10 @@ export const useAppStore = create<AppState>()((set, get) => ({
           webApiUrl,
           proxy,
         });
+        set({ initialized: true });
       } catch (error) {
         console.error("Failed to fetch config from main process:", error);
       } finally {
-        set({ isLoading: false });
       }
     }
   },

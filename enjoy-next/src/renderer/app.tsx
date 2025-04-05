@@ -21,7 +21,7 @@ declare module "@tanstack/react-router" {
 }
 
 const App = () => {
-  const { isLoading, fetchConfig } = useAppStore();
+  const { fetchConfig, initialized } = useAppStore();
   const { isAuthenticated, autoLogin } = useAuthStore();
 
   useEffect(() => {
@@ -29,10 +29,10 @@ const App = () => {
     autoLogin();
   }, []);
 
-  if (isLoading) {
+  if (!initialized) {
     return (
       <div className="flex h-[100svh] w-screen items-center justify-center pt-[var(--menubar-height)]">
-        <AppMenubar />
+        <AppMenubar isAuthenticated={false} />
         <Icon icon="mdi:loading" className="h-10 w-10 animate-spin" />
       </div>
     );
@@ -41,7 +41,7 @@ const App = () => {
   if (!isAuthenticated()) {
     return (
       <div className="flex h-[100svh] w-screen items-center justify-center pt-[var(--menubar-height)]">
-        <AppMenubar />
+        <AppMenubar isAuthenticated={false} />
         <Login />
       </div>
     );

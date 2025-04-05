@@ -18,11 +18,5 @@ export const useSettingsStore = create<SettingsState>()((set, get) => ({
   setFontSize: (fontSize) => set({ fontSize }),
 
   // Actions
-  refresh: async () => {
-    const api = new Client();
-
-    if (window.EnjoyAPI) {
-      const settings = await window.EnjoyAPI.appConfig.get("settings");
-    }
-  },
+  refresh: async () => {},
 }));
