@@ -2,13 +2,14 @@ import { ipcMain, BrowserWindow, IpcMainInvokeEvent, shell } from "electron";
 import pluginManager from "@main/core/plugin-manager";
 import { executeCommand } from "@main/core/plugin-context";
 import log from "@main/services/logger";
-
+import appConfig from "@main/config/app-config";
 const logger = log.scope("ipc-handlers");
 
 /**
  * Set up all IPC handlers
  */
 export const setupIpcHandlers = () => {
+  appConfig.setupIpcHandlers();
   setupPluginIpcHandlers();
 
   // Shell

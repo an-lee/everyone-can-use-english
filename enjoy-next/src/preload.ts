@@ -2,23 +2,12 @@
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 
 import { contextBridge, ipcRenderer } from "electron";
-
+import { AppConfigAPI } from "./preload/app-config-api";
+import { PluginEvents, PluginsAPI } from "./preload/plugins-api";
 // Define the shape of our exposed API
-interface EnjoyAPI {
-  appConfig: {
-    get: (key: string) => Promise<any>;
-    set: (key: string, value: any) => Promise<void>;
-    file: () => Promise<string>;
-    libraryPath: () => Promise<string>;
-    currentUser: () => Promise<any>;
-    userDataPath: (subPath: string) => Promise<string>;
-    dbPath: () => Promise<string>;
-    cachePath: () => Promise<string>;
-  };
-  plugins: {
-    getPlugins: () => Promise<any[]>;
-    executeCommand: (commandId: string, ...args: any[]) => Promise<any>;
-  };
+export interface EnjoyAPI {
+  appConfig: typeof AppConfigAPI;
+  plugins: typeof PluginsAPI;
   events: {
     on: (channel: string, listener: (...args: any[]) => void) => void;
     off: (channel: string, listener: (...args: any[]) => void) => void;
@@ -27,52 +16,38 @@ interface EnjoyAPI {
 }
 
 // Allowed IPC channels for events
-const validChannels = [
-  "plugin:loaded",
-  "plugin:activated",
-  "plugin:deactivated",
-  "command:executed",
-  "view:registered",
-  "on-lookup",
-  "on-translate",
-];
+const validChannels = [...PluginEvents, "on-lookup", "on-translate"] as const;
 
 // Expose protected methods that allow the renderer process to use IPC with the main process
 contextBridge.exposeInMainWorld("EnjoyAPI", {
-  appConfig: {
-    get: (key: string) => ipcRenderer.invoke("appConfig:get", key),
-    set: (key: string, value: any) =>
-      ipcRenderer.invoke("appConfig:set", key, value),
-    file: () => ipcRenderer.invoke("appConfig:file"),
-    libraryPath: () => ipcRenderer.invoke("appConfig:libraryPath"),
-    currentUser: () => ipcRenderer.invoke("appConfig:currentUser"),
-    userDataPath: (subPath?: string) =>
-      ipcRenderer.invoke("appConfig:userDataPath", subPath),
-    dbPath: () => ipcRenderer.invoke("appConfig:dbPath"),
-    cachePath: () => ipcRenderer.invoke("appConfig:cachePath"),
-  },
+  appConfig: AppConfigAPI,
   shell: {
     openExternal: (url: string) =>
       ipcRenderer.invoke("shell:openExternal", url),
     openPath: (path: string) => ipcRenderer.invoke("shell:openPath", path),
   },
-  plugins: {
-    getPlugins: () => ipcRenderer.invoke("plugins:get"),
-    executeCommand: (commandId: string, ...args: any[]) =>
-      ipcRenderer.invoke("command:execute", commandId, ...args),
-  },
+  plugins: PluginsAPI,
   events: {
-    on: (channel: string, listener: (...args: any[]) => void) => {
+    on: (
+      channel: (typeof validChannels)[number],
+      listener: (...args: any[]) => void
+    ) => {
       if (validChannels.includes(channel)) {
         ipcRenderer.on(channel, (event, ...args) => listener(...args));
       }
     },
-    off: (channel: string, listener: (...args: any[]) => void) => {
+    off: (
+      channel: (typeof validChannels)[number],
+      listener: (...args: any[]) => void
+    ) => {
       if (validChannels.includes(channel)) {
         ipcRenderer.removeListener(channel, listener);
       }
     },
-    once: (channel: string, listener: (...args: any[]) => void) => {
+    once: (
+      channel: (typeof validChannels)[number],
+      listener: (...args: any[]) => void
+    ) => {
       if (validChannels.includes(channel)) {
         ipcRenderer.once(channel, (event, ...args) => listener(...args));
       }

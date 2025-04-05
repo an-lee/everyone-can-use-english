@@ -13,14 +13,14 @@ import {
   DialogContent,
 } from "@renderer/components/ui";
 import { MENUBAR_HEIGHT } from "@renderer/components/layout/config";
-import { MaximizeIcon, MinimizeIcon, XIcon } from "lucide-react";
+import { XIcon } from "lucide-react";
 import { useSystem } from "@renderer/hooks/use-system";
-import { useAppStore } from "@/renderer/store";
+import { useAppStore, useAuthStore } from "@renderer/store";
 import { Icon } from "@iconify/react";
 
 export const AppMenubar = () => {
   const system = useSystem();
-  const isAuthenticated = useAppStore((state) => state.isAuthenticated());
+  const isAuthenticated = useAuthStore.getState().isAuthenticated();
 
   return (
     <Menubar

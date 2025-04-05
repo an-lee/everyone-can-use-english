@@ -34,6 +34,27 @@ const APP_CONFIG_SCHEMA = {
       port: { type: "number" },
     },
   },
+  user: {
+    type: "object",
+    properties: {
+      id: { type: "string" },
+      name: { type: "string" },
+      avatarUrl: { type: "string" },
+      accessToken: { type: "string" },
+    },
+  },
+  sessions: {
+    type: "array",
+    items: {
+      type: "object",
+      properties: {
+        id: { type: "string" },
+        name: { type: "string" },
+        avatarUrl: { type: "string" },
+        accessToken: { type: "string" },
+      },
+    },
+  },
 };
 
 class AppConfig {
@@ -61,6 +82,18 @@ class AppConfig {
 
   currentUser() {
     return this.get("user");
+  }
+
+  rememberUser(session: UserType) {
+    const sessions = this.get("sessions");
+    const existingSession = sessions.find((s: UserType) => s.id === session.id);
+    if (existingSession) {
+      this.set(
+        "sessions",
+        sessions.filter((s: UserType) => s.id !== session.id)
+      );
+    }
+    this.set("sessions", [...sessions, session]);
   }
 
   ensureLibraryPath() {
@@ -109,7 +142,7 @@ class AppConfig {
     return tmpDir;
   }
 
-  registerIpcHandlers() {
+  setupIpcHandlers() {
     ipcMain.handle(
       "appConfig:get",
       (
@@ -142,6 +175,13 @@ class AppConfig {
     ipcMain.handle("appConfig:currentUser", (_event: IpcMainInvokeEvent) => {
       return this.currentUser();
     });
+
+    ipcMain.handle(
+      "appConfig:rememberUser",
+      (_event: IpcMainInvokeEvent, session: UserType) => {
+        this.rememberUser(session);
+      }
+    );
 
     ipcMain.handle(
       "appConfig:userDataPath",
