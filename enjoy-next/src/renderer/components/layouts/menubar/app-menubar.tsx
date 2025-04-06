@@ -24,6 +24,7 @@ import {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
+  DialogTitle,
 } from "@renderer/components/ui";
 import { MENUBAR_HEIGHT } from "@/renderer/components/layouts/config";
 import { XIcon } from "lucide-react";
@@ -32,6 +33,7 @@ import { useAuthStore } from "@renderer/store";
 import { Icon } from "@iconify/react";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { Settings } from "@renderer/components/settings";
 
 export const AppMenubar = (props: { isAuthenticated?: boolean }) => {
   const { isAuthenticated = useAuthStore.getState().isAuthenticated() } = props;
@@ -120,8 +122,9 @@ export const AppMenubar = (props: { isAuthenticated?: boolean }) => {
                 <Icon icon="lucide:settings" className="size-6" />
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-[80svw] h-[70svh]">
-              <div className="flex flex-col gap-4">Settings</div>
+            <DialogContent className="max-w-screen-md xl:max-w-screen-lg h-5/6 p-0">
+              <DialogTitle className="hidden">{t("settings")}</DialogTitle>
+              <Settings />
             </DialogContent>
           </Dialog>
           {system !== "macos" && (

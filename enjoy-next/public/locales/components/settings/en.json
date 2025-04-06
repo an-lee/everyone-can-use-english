@@ -1,0 +1,32 @@
+{
+  "settings": "Settings",
+  "settingsDescription": "Customize your application settings",
+
+  "appearance": "Appearance",
+  "appearanceDescription": "Customize how the application looks and feels",
+
+  "account": "Account",
+  "accountSettingsComing": "Account settings coming soon",
+
+  "security": "Security",
+  "securitySettingsComing": "Security settings coming soon",
+
+  "notifications": "Notifications",
+  "notificationSettingsComing": "Notification settings coming soon",
+
+  "theme": "Theme",
+  "lightTheme": "Light",
+  "darkTheme": "Dark",
+  "systemTheme": "System",
+  "themeSettings": "Theme Settings",
+  "themeDescription": "Change how the application looks",
+
+  "language": "Language",
+  "selectLanguage": "Select language",
+  "languageSettings": "Language Settings",
+  "languageDescription": "Change the display language",
+
+  "fontSize": "Font Size",
+  "textSettings": "Text Settings",
+  "textSettingsDescription": "Customize text appearance throughout the application"
+}

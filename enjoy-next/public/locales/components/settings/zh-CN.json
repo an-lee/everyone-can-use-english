@@ -1,0 +1,32 @@
+{
+  "settings": "设置",
+  "settingsDescription": "自定义应用程序设置",
+
+  "appearance": "外观",
+  "appearanceDescription": "自定义应用程序的外观和感觉",
+
+  "account": "账户",
+  "accountSettingsComing": "账户设置即将推出",
+
+  "security": "安全",
+  "securitySettingsComing": "安全设置即将推出",
+
+  "notifications": "通知",
+  "notificationSettingsComing": "通知设置即将推出",
+
+  "theme": "主题",
+  "lightTheme": "浅色",
+  "darkTheme": "深色",
+  "systemTheme": "跟随系统",
+  "themeSettings": "主题设置",
+  "themeDescription": "更改应用程序的外观",
+
+  "language": "语言",
+  "selectLanguage": "选择语言",
+  "languageSettings": "语言设置",
+  "languageDescription": "更改显示语言",
+
+  "fontSize": "字体大小",
+  "textSettings": "文本设置",
+  "textSettingsDescription": "自定义应用程序中的文本外观"
+}
