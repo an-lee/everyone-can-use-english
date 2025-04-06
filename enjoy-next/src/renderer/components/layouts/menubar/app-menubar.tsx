@@ -28,7 +28,6 @@ import {
   DialogDescription,
 } from "@renderer/components/ui";
 import { MENUBAR_HEIGHT } from "@/renderer/components/layouts/config";
-import { XIcon } from "lucide-react";
 import { useSystem } from "@renderer/hooks/use-system";
 import { useAuthStore } from "@renderer/store";
 import { Icon } from "@iconify/react";
@@ -145,7 +144,7 @@ export const AppMenubar = (props: { isAuthenticated?: boolean }) => {
                 <TooltipTrigger asChild>
                   <Button variant="ghost" size="icon" onClick={handleMaximize}>
                     <Icon
-                      icon={isMaximized ? "tabler:squares" : "tabler:rectangle"}
+                      icon={isMaximized ? "tabler:squares" : "tabler:square"}
                       className="size-6"
                     />
                   </Button>
@@ -161,7 +160,7 @@ export const AppMenubar = (props: { isAuthenticated?: boolean }) => {
                     size="icon"
                     className="non-draggable-region hover:bg-destructive hover:text-primary-foreground rounded-none cursor-pointer"
                   >
-                    <XIcon className="size-6" />
+                    <Icon icon="tabler:x" className="size-6" />
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
