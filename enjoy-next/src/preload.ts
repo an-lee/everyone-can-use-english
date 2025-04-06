@@ -6,6 +6,7 @@ import { AppConfigAPI } from "./preload/app-config-api";
 import { PluginEvents, PluginsAPI } from "./preload/plugins-api";
 import { DbAPI } from "./preload/db-api";
 import { AudioAPI } from "./preload/audio-api";
+import { AppInitializerAPI } from "./preload/app-initializer-api";
 
 // Define the shape of our exposed API
 export interface EnjoyAPI {
@@ -19,8 +20,8 @@ export interface EnjoyAPI {
     userDataPath: (subPath?: string) => Promise<any>;
     dbPath: () => Promise<any>;
     cachePath: () => Promise<any>;
-    initStatus: () => Promise<any>;
   };
+  initializer: typeof AppInitializerAPI;
   plugins: typeof PluginsAPI;
   db: typeof DbAPI;
   audio: typeof AudioAPI;
@@ -53,10 +54,8 @@ const validChannels = [
 
 // Expose protected methods that allow the renderer process to use IPC with the main process
 contextBridge.exposeInMainWorld("EnjoyAPI", {
-  appConfig: {
-    ...AppConfigAPI,
-    initStatus: () => ipcRenderer.invoke("appConfig:initStatus"),
-  },
+  appConfig: AppConfigAPI,
+  initializer: AppInitializerAPI,
   db: DbAPI,
   audio: AudioAPI,
   shell: {

@@ -7,29 +7,13 @@ import {
   USER_DATA_SUB_PATH,
 } from "@shared/constants";
 import path from "path";
-import { app, ipcMain, IpcMainInvokeEvent, BrowserWindow } from "electron";
+import { app, ipcMain } from "electron";
 import fs from "fs-extra";
 import { UserType } from "@renderer/api";
 import { EventEmitter } from "events";
 import log from "@main/services/logger";
 
 const logger = log.scope("AppConfig");
-
-// Application initialization steps
-export type InitStep =
-  | "starting"
-  | "config_loaded"
-  | "paths_verified"
-  | "user_loaded"
-  | "ready";
-
-// Initialization status
-export type InitStatus = {
-  currentStep: InitStep;
-  progress: number; // 0-100
-  error: string | null;
-  message: string;
-};
 
 const APP_CONFIG_SCHEMA = {
   libraryPath: {
@@ -72,12 +56,8 @@ const APP_CONFIG_SCHEMA = {
 
 class AppConfig extends EventEmitter {
   private store: any;
-  private initStatus: InitStatus = {
-    currentStep: "starting",
-    progress: 0,
-    error: null,
-    message: "Starting application...",
-  };
+  private isInitialized: boolean = false;
+  private ipcHandlersRegistered: boolean = false;
 
   constructor() {
     super();
@@ -89,102 +69,39 @@ class AppConfig extends EventEmitter {
   // Initialize app configuration
   async initialize() {
     try {
-      logger.info("Starting AppConfig initialization");
+      if (this.isInitialized) {
+        logger.info("AppConfig already initialized");
+        return true;
+      }
 
-      this.updateInitStatus({
-        currentStep: "starting",
-        progress: 0,
-        message: "Loading application configuration...",
-      });
-
-      // Ensure we're properly loaded from the store
+      logger.info("Initializing AppConfig");
       logger.info(`Configuration loaded from: ${this.store.path}`);
-
-      this.updateInitStatus({
-        currentStep: "config_loaded",
-        progress: 20,
-        message: "Verifying application paths...",
-      });
 
       // Verify paths
       await this.ensureLibraryPath();
       logger.info(`Library path verified: ${this.get("libraryPath")}`);
 
-      this.updateInitStatus({
-        currentStep: "paths_verified",
-        progress: 40,
-        message: "Checking user login status...",
-      });
+      // Setup IPC handlers only once
+      this.setupIpcHandlers();
 
       // Check if user is already logged in
       const user = this.currentUser();
       if (user) {
         logger.info(`User found: ${user.name || user.id}`);
-        this.updateInitStatus({
-          currentStep: "user_loaded",
-          progress: 80,
-          message: "User authenticated, initializing database...",
-        });
 
-        // Emit user login event
+        // Emit user login event after initialization is complete
         this.emit("user:login", user.id);
       } else {
         logger.info("No authenticated user found");
-        this.updateInitStatus({
-          currentStep: "user_loaded",
-          progress: 80,
-          message: "No user logged in.",
-        });
       }
 
-      // Initialization complete
-      this.updateInitStatus({
-        currentStep: "ready",
-        progress: 100,
-        message: "Application ready.",
-      });
-
+      this.isInitialized = true;
       logger.info("AppConfig initialized successfully");
       return true;
     } catch (error) {
       logger.error("Failed to initialize AppConfig", error);
-      this.updateInitStatus({
-        currentStep: "starting",
-        progress: 0,
-        error: error instanceof Error ? error.message : String(error),
-        message: "Error initializing application.",
-      });
       return false;
     }
-  }
-
-  private updateInitStatus(updates: Partial<InitStatus>) {
-    this.initStatus = { ...this.initStatus, ...updates };
-
-    logger.debug(
-      `Init status update: ${this.initStatus.currentStep} - ${this.initStatus.message} (${this.initStatus.progress}%)`
-    );
-
-    // Broadcast status to all windows
-    try {
-      const windows = BrowserWindow.getAllWindows();
-      if (windows.length > 0) {
-        windows.forEach((window) => {
-          if (!window.isDestroyed()) {
-            window.webContents.send("app-init-status", this.initStatus);
-          }
-        });
-        logger.debug(`Broadcast init status to ${windows.length} windows`);
-      } else {
-        logger.debug("No windows available to broadcast init status");
-      }
-    } catch (error) {
-      logger.error("Failed to broadcast init status", error);
-    }
-  }
-
-  getInitStatus() {
-    return this.initStatus;
   }
 
   get(key: keyof typeof APP_CONFIG_SCHEMA | string) {
@@ -215,12 +132,18 @@ class AppConfig extends EventEmitter {
     let sessions = this.get("sessions") || [];
     sessions = sessions.filter((s: UserType) => typeof s.id === "number");
 
-    const existingSession = sessions.find(
+    // Check if user already exists in sessions
+    const existingSessionIndex = sessions.findIndex(
       (s: UserType) => s.id === currentUser.id
     );
-    if (existingSession) return;
 
-    this.set("sessions", [...sessions, currentUser]);
+    // Only add to sessions if not already there
+    if (existingSessionIndex === -1) {
+      this.set("sessions", [...sessions, currentUser]);
+    }
+
+    // Always emit logout event and delete user
+    logger.info(`Logging out user: ${currentUser.id}`);
     this.emit("user:logout", currentUser);
     this.store.delete("user");
   }
@@ -277,22 +200,33 @@ class AppConfig extends EventEmitter {
   }
 
   setupIpcHandlers() {
-    ipcMain.handle("appConfig:get", (_event, key) => this.get(key));
-    ipcMain.handle("appConfig:set", (_event, key, value) =>
-      this.set(key, value)
-    );
-    ipcMain.handle("appConfig:file", () => this.file());
-    ipcMain.handle("appConfig:libraryPath", () => this.libraryPath());
-    ipcMain.handle("appConfig:currentUser", () => this.currentUser());
-    ipcMain.handle("appConfig:logout", () => this.logout());
-    ipcMain.handle("appConfig:userDataPath", (_event, subPath) =>
-      this.userDataPath(subPath)
-    );
-    ipcMain.handle("appConfig:dbPath", () => this.dbPath());
-    ipcMain.handle("appConfig:cachePath", () => this.cachePath());
-    ipcMain.handle("appConfig:initStatus", () => this.getInitStatus());
+    // Only register handlers once
+    if (this.ipcHandlersRegistered) {
+      logger.debug("AppConfig IPC handlers already registered, skipping");
+      return;
+    }
 
-    logger.info("AppConfig IPC handlers set up");
+    try {
+      ipcMain.handle("appConfig:get", (_event, key) => this.get(key));
+      ipcMain.handle("appConfig:set", (_event, key, value) =>
+        this.set(key, value)
+      );
+      ipcMain.handle("appConfig:file", () => this.file());
+      ipcMain.handle("appConfig:libraryPath", () => this.libraryPath());
+      ipcMain.handle("appConfig:currentUser", () => this.currentUser());
+      ipcMain.handle("appConfig:logout", () => this.logout());
+      ipcMain.handle("appConfig:userDataPath", (_event, subPath) =>
+        this.userDataPath(subPath)
+      );
+      ipcMain.handle("appConfig:dbPath", () => this.dbPath());
+      ipcMain.handle("appConfig:cachePath", () => this.cachePath());
+
+      this.ipcHandlersRegistered = true;
+      logger.info("AppConfig IPC handlers set up");
+    } catch (error) {
+      logger.error("Failed to register AppConfig IPC handlers", error);
+      // Don't set ipcHandlersRegistered to true if there was an error
+    }
   }
 }
 

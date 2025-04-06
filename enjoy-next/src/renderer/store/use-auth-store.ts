@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { UserType } from "@renderer/api";
 
 export type LoginMethodType =
   | "google_oauth2"
@@ -55,8 +56,26 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (!currentUser) return;
 
     if (window.EnjoyAPI) {
+      // First check if there's an active database connection
+      window.EnjoyAPI.db
+        .status()
+        .then((status) => {
+          if (status.state === "connected") {
+            console.log("Disconnecting database before logout");
+            window.EnjoyAPI.db
+              .disconnect()
+              .catch((err) =>
+                console.error("Error disconnecting DB before logout:", err)
+              );
+          }
+        })
+        .catch((err) => console.error("Error checking DB status:", err));
+
+      // Proceed with logout
+      console.log("Logging out user:", currentUser.id);
       window.EnjoyAPI.appConfig.logout();
     }
+
     set({ currentUser: null });
   },
 

@@ -13,7 +13,7 @@ import { Toaster } from "./components/ui";
 import { useTheme } from "./hooks/use-theme";
 import { useFontSize } from "./hooks/use-font-size";
 import { DbState } from "../preload/db-api";
-import { InitStatus } from "../main/config/app-config";
+import { InitStatus } from "../preload/app-initializer-api";
 
 // Maximum retry attempts for database connection
 const MAX_RETRIES = 5;
@@ -77,7 +77,7 @@ const App = () => {
 
     // Get initial status
     if (window.EnjoyAPI) {
-      window.EnjoyAPI.appConfig.initStatus().then(handleInitStatus);
+      window.EnjoyAPI.initializer.getStatus().then(handleInitStatus);
       window.EnjoyAPI.events.on("app-init-status", handleInitStatus);
     }
 
@@ -95,6 +95,14 @@ const App = () => {
         setAppStatus("ready");
       } else {
         setAppStatus("login");
+
+        // When user logs out, ensure db state is checked
+        if (window.EnjoyAPI && dbState.state === "connected") {
+          window.EnjoyAPI.db.status().then((status) => {
+            setDbState(status);
+            console.log("DB status after logout:", status);
+          });
+        }
       }
     }
   }, [isAuthenticated(), initStatus.currentStep]);

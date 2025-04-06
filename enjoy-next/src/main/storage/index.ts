@@ -34,6 +34,7 @@ export const db = {
   autoConnected: false,
   retryCount: 0,
   retryTimer: null as NodeJS.Timeout | null,
+  ipcHandlersRegistered: false,
   currentState: {
     state: "disconnected",
     path: null,
@@ -230,6 +231,8 @@ export const db = {
 
   // Initialize the database module
   init: () => {
+    logger.info("Initializing database module");
+
     // Set up event listeners for login/logout
     appConfig.on("user:login", async (userId) => {
       logger.info(`User ${userId} logged in, connecting to database`);
@@ -244,15 +247,40 @@ export const db = {
     appConfig.on("user:logout", async (user) => {
       logger.info(`User ${user?.id} logged out, disconnecting from database`);
       try {
+        // Make sure to set autoConnected to false first to prevent auto-reconnect attempts
         db.autoConnected = false;
+
+        // Cancel any pending retry attempts
+        db.cancelRetry();
+
+        // Disconnect from database
         await db.disconnect();
+
+        // Ensure state is updated even if disconnect doesn't throw an error but fails silently
+        db.broadcastState({
+          state: "disconnected",
+          path: null,
+          error: null,
+          autoConnected: false,
+        });
+
+        logger.info("Database disconnected after user logout");
       } catch (error) {
         logger.error("Failed to disconnect from database after logout", error);
+        // Update state even after error
+        db.broadcastState({
+          state: "error",
+          path: appConfig.dbPath(),
+          error: error instanceof Error ? error.message : String(error),
+          autoConnected: false,
+        });
       }
     });
 
     // Register IPC handlers
     db.registerIpcHandlers();
+
+    logger.info("Database module initialized");
   },
 
   // Cancel any pending retry
@@ -311,76 +339,88 @@ export const db = {
 
   // Register IPC handlers for database operations
   registerIpcHandlers: () => {
-    // Register DB handlers
-    ipcMain.handle("db-connect", async () => {
-      try {
-        await db.connect({ retry: true });
-        return db.currentState;
-      } catch (error) {
-        logger.error("IPC db-connect error:", error);
-        // Return current state even on error - UI will show the error state
-        return db.currentState;
-      }
-    });
+    // Only register handlers once
+    if (db.ipcHandlersRegistered) {
+      logger.debug("Database IPC handlers already registered, skipping");
+      return;
+    }
 
-    ipcMain.handle("db-disconnect", async () => {
-      try {
-        await db.disconnect();
-        return { state: "disconnected" as const };
-      } catch (error) {
-        logger.error("IPC db-disconnect error:", error);
-        return db.currentState;
-      }
-    });
-
-    ipcMain.handle("db-backup", async () => {
-      try {
-        await db.backup();
-        return { state: "backup-completed" as const };
-      } catch (error) {
-        logger.error("IPC db-backup error:", error);
-        throw error;
-      }
-    });
-
-    ipcMain.handle("db-status", async () => {
-      try {
-        // If connected but datasource is actually not initialized, correct the state
-        if (
-          db.currentState.state === "connected" &&
-          !db.dataSource?.isInitialized
-        ) {
-          db.broadcastState({
-            ...db.currentState,
-            state: "disconnected",
-            error: "Database connection lost",
-          });
+    try {
+      // Register DB handlers
+      ipcMain.handle("db-connect", async () => {
+        try {
+          await db.connect({ retry: true });
+          return db.currentState;
+        } catch (error) {
+          logger.error("IPC db-connect error:", error);
+          // Return current state even on error - UI will show the error state
+          return db.currentState;
         }
+      });
 
-        // For new connections, check if path is valid
-        if (db.currentState.state === "disconnected") {
-          const dbPath = appConfig.dbPath();
-          if (!dbPath) {
-            return {
+      ipcMain.handle("db-disconnect", async () => {
+        try {
+          await db.disconnect();
+          return { state: "disconnected" as const };
+        } catch (error) {
+          logger.error("IPC db-disconnect error:", error);
+          return db.currentState;
+        }
+      });
+
+      ipcMain.handle("db-backup", async () => {
+        try {
+          await db.backup();
+          return { state: "backup-completed" as const };
+        } catch (error) {
+          logger.error("IPC db-backup error:", error);
+          throw error;
+        }
+      });
+
+      ipcMain.handle("db-status", async () => {
+        try {
+          // If connected but datasource is actually not initialized, correct the state
+          if (
+            db.currentState.state === "connected" &&
+            !db.dataSource?.isInitialized
+          ) {
+            db.broadcastState({
               ...db.currentState,
-              error: "No database path available, please login first",
-            };
+              state: "disconnected",
+              error: "Database connection lost",
+            });
           }
+
+          // For new connections, check if path is valid
+          if (db.currentState.state === "disconnected") {
+            const dbPath = appConfig.dbPath();
+            if (!dbPath) {
+              return {
+                ...db.currentState,
+                error: "No database path available, please login first",
+              };
+            }
+          }
+
+          return db.currentState;
+        } catch (error) {
+          logger.error("IPC db-status error:", error);
+          return {
+            state: "error",
+            path: appConfig.dbPath(),
+            error: error instanceof Error ? error.message : String(error),
+            autoConnected: false,
+          };
         }
+      });
 
-        return db.currentState;
-      } catch (error) {
-        logger.error("IPC db-status error:", error);
-        return {
-          state: "error",
-          path: appConfig.dbPath(),
-          error: error instanceof Error ? error.message : String(error),
-          autoConnected: false,
-        };
-      }
-    });
-
-    logger.info("Database IPC handlers registered");
+      db.ipcHandlersRegistered = true;
+      logger.info("Database IPC handlers registered");
+    } catch (error) {
+      logger.error("Failed to register Database IPC handlers", error);
+      // Don't set ipcHandlersRegistered to true if there was an error
+    }
   },
 };
 

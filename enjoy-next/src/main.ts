@@ -2,11 +2,8 @@ import { app, BrowserWindow } from "electron";
 import path from "node:path";
 import started from "electron-squirrel-startup";
 import log from "@main/services/logger";
-import pluginManager from "@main/core/plugin-manager";
-import { publishEvent } from "@main/core/plugin-context";
 import { setupIpcHandlers } from "@main/core/ipc-handlers";
-import db from "@main/storage";
-import appConfig from "@main/config/app-config";
+import { appInitializer } from "@main/core/app-initializer";
 
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
 declare const MAIN_WINDOW_VITE_NAME: string;
@@ -52,9 +49,6 @@ const createWindow = async () => {
   if (!app.isPackaged) {
     mainWindow.webContents.openDevTools();
   }
-
-  // Emit window-ready event for plugins
-  publishEvent("window:ready", mainWindow);
 };
 
 // Initialize application
@@ -62,57 +56,17 @@ const initApp = async () => {
   try {
     logger.info("Initializing application");
 
-    // Initialize AppConfig first - this is critical
-    logger.info("Initializing application configuration");
-    const configInitialized = await appConfig.initialize();
-    if (!configInitialized) {
-      logger.error(
-        "Failed to initialize application configuration, but continuing..."
-      );
-    }
-
-    // Set up IPC handlers
+    // Set up global IPC handlers
     logger.info("Setting up IPC handlers");
     setupIpcHandlers();
 
-    // Register database IPC handlers
-    logger.info("Registering database IPC handlers");
-    db.registerIpcHandlers();
-
-    // Initialize plugin system
-    logger.info("Initializing plugin system");
-    await pluginManager.init();
-
-    // Activate plugins
-    logger.info("Activating plugins");
-    await pluginManager.activatePlugins();
+    // Run application initialization using the new AppInitializer
+    logger.info("Starting application initialization");
+    await appInitializer.initialize();
 
     // Create main window
     logger.info("Creating application window");
     await createWindow();
-
-    // Listen for user login/logout events
-    appConfig.on("user:login", async (userId) => {
-      logger.info(`User logged in (ID: ${userId}), connecting to database`);
-      try {
-        await db.connect();
-      } catch (error) {
-        logger.error("Failed to connect to database after login", error);
-      }
-    });
-
-    appConfig.on("user:logout", async () => {
-      logger.info("User logged out, disconnecting from database");
-      try {
-        await db.disconnect();
-      } catch (error) {
-        logger.error("Failed to disconnect from database after logout", error);
-      }
-    });
-
-    // Notify plugins that app is ready
-    logger.info("Publishing app:ready event to plugins");
-    publishEvent("app:ready");
 
     logger.info("Application initialized successfully");
   } catch (error) {
@@ -152,16 +106,6 @@ app.on("activate", () => {
   // dock icon is clicked and there are no other windows open.
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
-  }
-});
-
-// Clean up before quitting
-app.on("before-quit", async () => {
-  try {
-    logger.info("Deactivating plugins before quit");
-    await pluginManager.deactivatePlugins();
-  } catch (error) {
-    logger.error("Error during app shutdown", error);
   }
 });
 
