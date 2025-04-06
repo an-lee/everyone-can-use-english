@@ -15,6 +15,7 @@ const logger = log.scope("Storage");
 // Retry configuration
 const RETRY_DELAYS = [1000, 2000, 3000, 5000, 8000]; // Fibonacci-like sequence
 const MAX_RETRIES = RETRY_DELAYS.length;
+const CONNECTION_TIMEOUT = 10000; // 10 seconds timeout for connection
 
 // Database state type
 export type DbState = {
@@ -75,7 +76,16 @@ export const db = {
     });
 
     try {
+      // Check if we already have a connection
       if (db.dataSource?.isInitialized) {
+        logger.info("Database already connected");
+        db.broadcastState({
+          state: "connected",
+          path: appConfig.dbPath(),
+          error: null,
+          autoConnected: db.autoConnected,
+        });
+        db.isConnecting = false;
         return;
       }
 
@@ -89,9 +99,32 @@ export const db = {
       // Ensure the directory exists
       fs.ensureDirSync(path.dirname(dbPath));
 
-      // Initialize the data source
-      await AppDataSource.initialize();
-      db.dataSource = AppDataSource;
+      // Make sure we have the latest path in the datasource
+      AppDataSource.setOptions({
+        database: dbPath,
+      });
+
+      // Add connection timeout
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => {
+          reject(
+            new Error(
+              "Database connection timed out after " + CONNECTION_TIMEOUT + "ms"
+            )
+          );
+        }, CONNECTION_TIMEOUT);
+      });
+
+      // Initialize the data source with timeout
+      if (db.dataSource === null) {
+        logger.info("Initializing new AppDataSource");
+        await Promise.race([AppDataSource.initialize(), timeoutPromise]);
+        db.dataSource = AppDataSource;
+      } else {
+        // Reinitialize if previously destroyed
+        logger.info("Reinitializing existing AppDataSource");
+        await Promise.race([db.dataSource.initialize(), timeoutPromise]);
+      }
 
       // Register entity handlers
       registerAudioHandlers();
@@ -167,6 +200,15 @@ export const db = {
         db.retryCount = 0;
 
         logger.info("Database connection closed");
+        db.broadcastState({
+          state: "disconnected",
+          path: null,
+          error: null,
+          autoConnected: false,
+        });
+      } else {
+        // Make sure we also broadcast state even if datasource wasn't initialized
+        logger.info("No active database connection to close");
         db.broadcastState({
           state: "disconnected",
           path: null,
@@ -269,36 +311,76 @@ export const db = {
 
   // Register IPC handlers for database operations
   registerIpcHandlers: () => {
+    // Register DB handlers
     ipcMain.handle("db-connect", async () => {
-      if (db.isConnecting)
-        return {
-          state: "connecting",
-          path: appConfig.dbPath(),
-          error: null,
-          autoConnected: db.autoConnected,
-        };
-
       try {
-        await db.connect();
+        await db.connect({ retry: true });
         return db.currentState;
-      } catch (err: any) {
+      } catch (error) {
+        logger.error("IPC db-connect error:", error);
+        // Return current state even on error - UI will show the error state
         return db.currentState;
       }
     });
 
     ipcMain.handle("db-disconnect", async () => {
-      await db.disconnect();
-      return db.currentState;
+      try {
+        await db.disconnect();
+        return { state: "disconnected" as const };
+      } catch (error) {
+        logger.error("IPC db-disconnect error:", error);
+        return db.currentState;
+      }
     });
 
     ipcMain.handle("db-backup", async () => {
-      await db.backup();
-      return { state: "backup-completed" };
+      try {
+        await db.backup();
+        return { state: "backup-completed" as const };
+      } catch (error) {
+        logger.error("IPC db-backup error:", error);
+        throw error;
+      }
     });
 
     ipcMain.handle("db-status", async () => {
-      return db.currentState;
+      try {
+        // If connected but datasource is actually not initialized, correct the state
+        if (
+          db.currentState.state === "connected" &&
+          !db.dataSource?.isInitialized
+        ) {
+          db.broadcastState({
+            ...db.currentState,
+            state: "disconnected",
+            error: "Database connection lost",
+          });
+        }
+
+        // For new connections, check if path is valid
+        if (db.currentState.state === "disconnected") {
+          const dbPath = appConfig.dbPath();
+          if (!dbPath) {
+            return {
+              ...db.currentState,
+              error: "No database path available, please login first",
+            };
+          }
+        }
+
+        return db.currentState;
+      } catch (error) {
+        logger.error("IPC db-status error:", error);
+        return {
+          state: "error",
+          path: appConfig.dbPath(),
+          error: error instanceof Error ? error.message : String(error),
+          autoConnected: false,
+        };
+      }
     });
+
+    logger.info("Database IPC handlers registered");
   },
 };
 

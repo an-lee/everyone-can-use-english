@@ -62,24 +62,38 @@ const initApp = async () => {
   try {
     logger.info("Initializing application");
 
+    // Initialize AppConfig first - this is critical
+    logger.info("Initializing application configuration");
+    const configInitialized = await appConfig.initialize();
+    if (!configInitialized) {
+      logger.error(
+        "Failed to initialize application configuration, but continuing..."
+      );
+    }
+
     // Set up IPC handlers
+    logger.info("Setting up IPC handlers");
     setupIpcHandlers();
 
     // Register database IPC handlers
+    logger.info("Registering database IPC handlers");
     db.registerIpcHandlers();
 
     // Initialize plugin system
+    logger.info("Initializing plugin system");
     await pluginManager.init();
 
     // Activate plugins
+    logger.info("Activating plugins");
     await pluginManager.activatePlugins();
 
     // Create main window
+    logger.info("Creating application window");
     await createWindow();
 
     // Listen for user login/logout events
-    appConfig.on("user:login", async () => {
-      logger.info("User logged in, connecting to database");
+    appConfig.on("user:login", async (userId) => {
+      logger.info(`User logged in (ID: ${userId}), connecting to database`);
       try {
         await db.connect();
       } catch (error) {
@@ -97,11 +111,26 @@ const initApp = async () => {
     });
 
     // Notify plugins that app is ready
+    logger.info("Publishing app:ready event to plugins");
     publishEvent("app:ready");
 
     logger.info("Application initialized successfully");
   } catch (error) {
     logger.error("Failed to initialize application", error);
+    // Try to show error to user if possible
+    const windows = BrowserWindow.getAllWindows();
+    if (windows.length > 0) {
+      windows.forEach((window) => {
+        if (!window.isDestroyed()) {
+          window.webContents.send("app-init-status", {
+            currentStep: "starting",
+            progress: 0,
+            error: error instanceof Error ? error.message : String(error),
+            message: "Fatal error initializing application.",
+          });
+        }
+      });
+    }
   }
 };
 

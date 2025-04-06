@@ -1,8 +1,14 @@
-import { BaseEntity, Entity, Column, Index } from "typeorm";
+import {
+  BaseEntity,
+  Entity,
+  Column,
+  Index,
+  PrimaryGeneratedColumn,
+} from "typeorm";
 
 @Entity("audios")
 export class Audio extends BaseEntity {
-  @Column({ primary: true, type: "uuid", generated: true })
+  @PrimaryGeneratedColumn("uuid")
   id!: string;
 
   @Column({ nullable: true, type: "varchar" })

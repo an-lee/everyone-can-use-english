@@ -89,13 +89,17 @@ class AppConfig extends EventEmitter {
   // Initialize app configuration
   async initialize() {
     try {
+      logger.info("Starting AppConfig initialization");
+
       this.updateInitStatus({
         currentStep: "starting",
         progress: 0,
         message: "Loading application configuration...",
       });
 
-      // Load configuration
+      // Ensure we're properly loaded from the store
+      logger.info(`Configuration loaded from: ${this.store.path}`);
+
       this.updateInitStatus({
         currentStep: "config_loaded",
         progress: 20,
@@ -104,6 +108,7 @@ class AppConfig extends EventEmitter {
 
       // Verify paths
       await this.ensureLibraryPath();
+      logger.info(`Library path verified: ${this.get("libraryPath")}`);
 
       this.updateInitStatus({
         currentStep: "paths_verified",
@@ -114,6 +119,7 @@ class AppConfig extends EventEmitter {
       // Check if user is already logged in
       const user = this.currentUser();
       if (user) {
+        logger.info(`User found: ${user.name || user.id}`);
         this.updateInitStatus({
           currentStep: "user_loaded",
           progress: 80,
@@ -123,6 +129,7 @@ class AppConfig extends EventEmitter {
         // Emit user login event
         this.emit("user:login", user.id);
       } else {
+        logger.info("No authenticated user found");
         this.updateInitStatus({
           currentStep: "user_loaded",
           progress: 80,
@@ -138,24 +145,42 @@ class AppConfig extends EventEmitter {
       });
 
       logger.info("AppConfig initialized successfully");
+      return true;
     } catch (error) {
       logger.error("Failed to initialize AppConfig", error);
       this.updateInitStatus({
+        currentStep: "starting",
+        progress: 0,
         error: error instanceof Error ? error.message : String(error),
         message: "Error initializing application.",
       });
+      return false;
     }
   }
 
   private updateInitStatus(updates: Partial<InitStatus>) {
     this.initStatus = { ...this.initStatus, ...updates };
 
+    logger.debug(
+      `Init status update: ${this.initStatus.currentStep} - ${this.initStatus.message} (${this.initStatus.progress}%)`
+    );
+
     // Broadcast status to all windows
-    BrowserWindow.getAllWindows().forEach((window) => {
-      if (!window.isDestroyed()) {
-        window.webContents.send("app-init-status", this.initStatus);
+    try {
+      const windows = BrowserWindow.getAllWindows();
+      if (windows.length > 0) {
+        windows.forEach((window) => {
+          if (!window.isDestroyed()) {
+            window.webContents.send("app-init-status", this.initStatus);
+          }
+        });
+        logger.debug(`Broadcast init status to ${windows.length} windows`);
+      } else {
+        logger.debug("No windows available to broadcast init status");
       }
-    });
+    } catch (error) {
+      logger.error("Failed to broadcast init status", error);
+    }
   }
 
   getInitStatus() {
@@ -252,61 +277,22 @@ class AppConfig extends EventEmitter {
   }
 
   setupIpcHandlers() {
-    ipcMain.handle(
-      "appConfig:get",
-      (
-        _event: IpcMainInvokeEvent,
-        key: keyof typeof APP_CONFIG_SCHEMA | string
-      ) => {
-        return this.get(key);
-      }
+    ipcMain.handle("appConfig:get", (_event, key) => this.get(key));
+    ipcMain.handle("appConfig:set", (_event, key, value) =>
+      this.set(key, value)
     );
-
-    ipcMain.handle(
-      "appConfig:set",
-      (
-        _event: IpcMainInvokeEvent,
-        key: keyof typeof APP_CONFIG_SCHEMA | string,
-        value: any
-      ) => {
-        this.set(key, value);
-      }
+    ipcMain.handle("appConfig:file", () => this.file());
+    ipcMain.handle("appConfig:libraryPath", () => this.libraryPath());
+    ipcMain.handle("appConfig:currentUser", () => this.currentUser());
+    ipcMain.handle("appConfig:logout", () => this.logout());
+    ipcMain.handle("appConfig:userDataPath", (_event, subPath) =>
+      this.userDataPath(subPath)
     );
+    ipcMain.handle("appConfig:dbPath", () => this.dbPath());
+    ipcMain.handle("appConfig:cachePath", () => this.cachePath());
+    ipcMain.handle("appConfig:initStatus", () => this.getInitStatus());
 
-    ipcMain.handle("appConfig:file", (_event: IpcMainInvokeEvent) => {
-      return this.file();
-    });
-
-    ipcMain.handle("appConfig:libraryPath", (_event: IpcMainInvokeEvent) => {
-      return this.libraryPath();
-    });
-
-    ipcMain.handle("appConfig:currentUser", (_event: IpcMainInvokeEvent) => {
-      return this.currentUser();
-    });
-
-    ipcMain.handle("appConfig:logout", (_event: IpcMainInvokeEvent) => {
-      this.logout();
-    });
-
-    ipcMain.handle(
-      "appConfig:userDataPath",
-      (_event: IpcMainInvokeEvent, subPath: string = "") => {
-        return this.userDataPath(subPath);
-      }
-    );
-
-    ipcMain.handle("appConfig:dbPath", (_event: IpcMainInvokeEvent) => {
-      return this.dbPath();
-    });
-
-    ipcMain.handle("appConfig:cachePath", (_event: IpcMainInvokeEvent) => {
-      return this.cachePath();
-    });
-
-    ipcMain.handle("appConfig:initStatus", (_event: IpcMainInvokeEvent) => {
-      return this.getInitStatus();
-    });
+    logger.info("AppConfig IPC handlers set up");
   }
 }
 

@@ -102,6 +102,7 @@ const App = () => {
   // Listen for database state changes
   useEffect(() => {
     const handleDbStateChange = (state: EnhancedDbState) => {
+      console.log("Database state changed:", state);
       setDbState(state);
     };
 
@@ -110,12 +111,22 @@ const App = () => {
       if (!isAuthenticated() || !window.EnjoyAPI) return;
 
       try {
+        console.log("Checking database status");
         const status = await window.EnjoyAPI.db.status();
+        console.log("Database status:", status);
         setDbState(status);
 
         // If user is authenticated but db isn't connected, try to connect
         if (status.state !== "connected" && status.state !== "connecting") {
-          await window.EnjoyAPI.db.connect();
+          console.log("Connecting to database");
+          try {
+            await window.EnjoyAPI.db.connect();
+          } catch (connectErr) {
+            console.error("Failed to connect to database:", connectErr);
+            // Get the latest status after connection attempt (even if it failed)
+            const latestStatus = await window.EnjoyAPI.db.status();
+            setDbState(latestStatus);
+          }
         }
       } catch (err) {
         console.error("Failed to check database status:", err);
@@ -124,6 +135,7 @@ const App = () => {
 
     // Check initial status when auth state changes
     if (appStatus === "ready") {
+      console.log("App is ready, checking database status");
       checkDbStatus();
     }
 
@@ -205,7 +217,7 @@ const App = () => {
   if (dbLoading) {
     return (
       <div className="flex h-[100svh] w-screen items-center justify-center pt-[var(--menubar-height)]">
-        <AppMenubar isAuthenticated={true} />
+        <AppMenubar isAuthenticated={false} />
         <div className="flex flex-col items-center gap-4">
           <Icon icon="mdi:database" className="h-10 w-10" />
           <div className="text-center">
@@ -222,7 +234,7 @@ const App = () => {
   if (dbError) {
     return (
       <div className="flex h-[100svh] w-screen items-center justify-center pt-[var(--menubar-height)]">
-        <AppMenubar isAuthenticated={true} />
+        <AppMenubar isAuthenticated={false} />
         <div className="flex flex-col items-center gap-4">
           <Icon
             icon="mdi:database-alert"
