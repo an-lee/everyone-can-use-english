@@ -7,7 +7,7 @@ import "./lib/i18n";
 import { routeTree } from "./routeTree.gen";
 import { useAppStore, useAuthStore } from "./store";
 import { Icon } from "@iconify/react";
-import { AppMenubar } from "./components/layout/menubar";
+import { AppMenubar } from "./components/layouts/menubar";
 import { Login } from "./routes/login";
 import { Toaster } from "./components/ui";
 

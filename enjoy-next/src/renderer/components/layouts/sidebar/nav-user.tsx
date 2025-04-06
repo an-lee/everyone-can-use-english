@@ -23,7 +23,7 @@ import { useTranslation } from "react-i18next";
 export function NavUser() {
   const { isMobile } = useSidebar();
   const { logout, currentUser } = useAuthStore();
-  const { t } = useTranslation("components/layout/sidebar");
+  const { t } = useTranslation("components/layouts/sidebar");
 
   return (
     <SidebarMenu className="non-draggable-region">

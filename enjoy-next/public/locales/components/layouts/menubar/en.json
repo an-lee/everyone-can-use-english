@@ -1,4 +1,7 @@
 {
+  "minimize": "Minimize",
+  "maximized": "Maximize",
+  "restore": "Restore",
   "quit": "Quit",
   "cancel": "Cancel",
   "close": "Close",

@@ -1,4 +1,7 @@
 {
+  "minimize": "最小化",
+  "maximized": "最大化",
+  "restore": "恢复",
   "quit": "退出",
   "cancel": "取消",
   "close": "关闭",

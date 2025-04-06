@@ -30,7 +30,7 @@ import {
   SIDEBAR_WIDTH_MOBILE,
   SIDEBAR_WIDTH_ICON,
   SIDEBAR_KEYBOARD_SHORTCUT,
-} from "@renderer/components/layout/config";
+} from "@/renderer/components/layouts/config";
 
 type SidebarContextProps = {
   state: "expanded" | "collapsed";
