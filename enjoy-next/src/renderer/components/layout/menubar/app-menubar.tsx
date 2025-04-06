@@ -22,6 +22,18 @@ export const AppMenubar = (props: { isAuthenticated?: boolean }) => {
   const { isAuthenticated = useAuthStore.getState().isAuthenticated() } = props;
   const system = useSystem();
 
+  const handleMinimize = () => {
+    window.EnjoyAPI.window.minimize();
+  };
+
+  const handleMaximize = () => {
+    window.EnjoyAPI.window.maximize();
+  };
+
+  const handleClose = () => {
+    window.EnjoyAPI.window.close();
+  };
+
   return (
     <Menubar
       style={{ "--menubar-height": MENUBAR_HEIGHT } as React.CSSProperties}
@@ -67,16 +79,17 @@ export const AppMenubar = (props: { isAuthenticated?: boolean }) => {
         </Dialog>
         {system !== "macos" && (
           <>
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" onClick={handleMinimize}>
               <Icon icon="tabler:minus" className="size-6" />
             </Button>
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" onClick={handleMaximize}>
               <Icon icon="tabler:squares" className="size-6" />
             </Button>
             <Button
               variant="ghost"
               size="icon"
               className="non-draggable-region hover:bg-destructive hover:text-primary-foreground rounded-none cursor-pointer"
+              onClick={handleClose}
             >
               <XIcon className="size-6" />
             </Button>

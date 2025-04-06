@@ -12,6 +12,11 @@ export interface EnjoyAPI {
     openExternal: (url: string) => Promise<void>;
     openPath: (path: string) => Promise<void>;
   };
+  window: {
+    minimize: () => Promise<void>;
+    maximize: () => Promise<void>;
+    close: () => Promise<void>;
+  };
   events: {
     on: (channel: string, listener: (...args: any[]) => void) => void;
     off: (channel: string, listener: (...args: any[]) => void) => void;
@@ -29,6 +34,11 @@ contextBridge.exposeInMainWorld("EnjoyAPI", {
     openExternal: (url: string) =>
       ipcRenderer.invoke("shell:openExternal", url),
     openPath: (path: string) => ipcRenderer.invoke("shell:openPath", path),
+  },
+  window: {
+    minimize: () => ipcRenderer.invoke("window:minimize"),
+    maximize: () => ipcRenderer.invoke("window:maximize"),
+    close: () => ipcRenderer.invoke("window:close"),
   },
   plugins: PluginsAPI,
   events: {

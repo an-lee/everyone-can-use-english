@@ -1,7 +1,7 @@
 import { app } from "electron";
 import path from "path";
 import fs from "fs-extra";
-import { IPlugin, PluginLifecycle, PluginManifest } from "@/types/plugin.d";
+import { IPlugin, PluginLifecycle, PluginManifest } from "@main/core/types";
 import log from "@main/services/logger";
 
 const logger = log.scope("plugin-manager");
