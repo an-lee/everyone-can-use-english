@@ -11,18 +11,29 @@ import {
   Dialog,
   DialogTrigger,
   DialogContent,
+  AlertDialogDescription,
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
 } from "@renderer/components/ui";
 import { MENUBAR_HEIGHT } from "@renderer/components/layout/config";
 import { XIcon } from "lucide-react";
 import { useSystem } from "@renderer/hooks/use-system";
-import { useAppStore, useAuthStore } from "@renderer/store";
+import { useAuthStore } from "@renderer/store";
 import { Icon } from "@iconify/react";
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
 export const AppMenubar = (props: { isAuthenticated?: boolean }) => {
   const { isAuthenticated = useAuthStore.getState().isAuthenticated() } = props;
   const system = useSystem();
   const [isMaximized, setIsMaximized] = useState(false);
+  const { t } = useTranslation("components/layout/menubar");
 
   useEffect(() => {
     // Get initial window state
@@ -119,14 +130,31 @@ export const AppMenubar = (props: { isAuthenticated?: boolean }) => {
                 className="size-6"
               />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="non-draggable-region hover:bg-destructive hover:text-primary-foreground rounded-none cursor-pointer"
-              onClick={handleClose}
-            >
-              <XIcon className="size-6" />
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="non-draggable-region hover:bg-destructive hover:text-primary-foreground rounded-none cursor-pointer"
+                >
+                  <XIcon className="size-6" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{t("quit")}</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {t("areYouSureToQuitEnjoyApp")}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleClose}>
+                    {t("quit")}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </>
         )}
       </div>
