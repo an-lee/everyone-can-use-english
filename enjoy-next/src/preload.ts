@@ -4,10 +4,26 @@
 import { contextBridge, ipcRenderer } from "electron";
 import { AppConfigAPI } from "./preload/app-config-api";
 import { PluginEvents, PluginsAPI } from "./preload/plugins-api";
+import { DbAPI } from "./preload/db-api";
+import { AudioAPI } from "./preload/audio-api";
+
 // Define the shape of our exposed API
 export interface EnjoyAPI {
-  appConfig: typeof AppConfigAPI;
+  appConfig: {
+    get: (key: string) => Promise<any>;
+    set: (key: string, value: any) => Promise<any>;
+    file: () => Promise<any>;
+    libraryPath: () => Promise<any>;
+    currentUser: () => Promise<any>;
+    logout: () => Promise<any>;
+    userDataPath: (subPath?: string) => Promise<any>;
+    dbPath: () => Promise<any>;
+    cachePath: () => Promise<any>;
+    initStatus: () => Promise<any>;
+  };
   plugins: typeof PluginsAPI;
+  db: typeof DbAPI;
+  audio: typeof AudioAPI;
   shell: {
     openExternal: (url: string) => Promise<void>;
     openPath: (path: string) => Promise<void>;
@@ -31,11 +47,18 @@ const validChannels = [
   "on-lookup",
   "on-translate",
   "window-state-changed",
+  "db-state-changed",
+  "app-init-status",
 ] as const;
 
 // Expose protected methods that allow the renderer process to use IPC with the main process
 contextBridge.exposeInMainWorld("EnjoyAPI", {
-  appConfig: AppConfigAPI,
+  appConfig: {
+    ...AppConfigAPI,
+    initStatus: () => ipcRenderer.invoke("appConfig:initStatus"),
+  },
+  db: DbAPI,
+  audio: AudioAPI,
   shell: {
     openExternal: (url: string) =>
       ipcRenderer.invoke("shell:openExternal", url),

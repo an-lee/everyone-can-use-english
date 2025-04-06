@@ -1,5 +1,7 @@
 import { ipcRenderer } from "electron";
 
+export type AppConfigAPIType = typeof AppConfigAPI;
+
 export interface AppConfigAPI {
   get: (key: string) => Promise<any>;
   set: (key: string, value: any) => Promise<void>;
@@ -12,7 +14,7 @@ export interface AppConfigAPI {
   cachePath: () => Promise<string>;
 }
 
-export const AppConfigAPI: AppConfigAPI = {
+export const AppConfigAPI = {
   get: (key: string) => ipcRenderer.invoke("appConfig:get", key),
   set: (key: string, value: any) =>
     ipcRenderer.invoke("appConfig:set", key, value),
@@ -20,7 +22,7 @@ export const AppConfigAPI: AppConfigAPI = {
   libraryPath: () => ipcRenderer.invoke("appConfig:libraryPath"),
   currentUser: () => ipcRenderer.invoke("appConfig:currentUser"),
   logout: () => ipcRenderer.invoke("appConfig:logout"),
-  userDataPath: (subPath?: string) =>
+  userDataPath: (subPath: string = "") =>
     ipcRenderer.invoke("appConfig:userDataPath", subPath),
   dbPath: () => ipcRenderer.invoke("appConfig:dbPath"),
   cachePath: () => ipcRenderer.invoke("appConfig:cachePath"),

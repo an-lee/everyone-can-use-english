@@ -3,7 +3,6 @@ import { version } from "../../../package.json";
 
 type AppState = {
   initialized: boolean;
-
   version: string;
   webApiUrl: string;
   libraryPath: string | null;
@@ -46,7 +45,6 @@ export const useAppStore = create<AppState>()((set, get) => ({
         set({ initialized: true });
       } catch (error) {
         console.error("Failed to fetch config from main process:", error);
-      } finally {
       }
     }
   },

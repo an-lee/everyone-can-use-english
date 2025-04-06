@@ -9,6 +9,10 @@ export default defineConfig({
       fileName: () => "[name].js",
       formats: ["es"],
     },
+    rollupOptions: {
+      // External dependencies that shouldn't be bundled
+      external: ["typeorm", "sqlite3"],
+    },
   },
   resolve: {
     alias: {

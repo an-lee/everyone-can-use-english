@@ -7,8 +7,29 @@ import {
   USER_DATA_SUB_PATH,
 } from "@shared/constants";
 import path from "path";
-import { app, ipcMain, IpcMainInvokeEvent } from "electron";
+import { app, ipcMain, IpcMainInvokeEvent, BrowserWindow } from "electron";
 import fs from "fs-extra";
+import { UserType } from "@renderer/api";
+import { EventEmitter } from "events";
+import log from "@main/services/logger";
+
+const logger = log.scope("AppConfig");
+
+// Application initialization steps
+export type InitStep =
+  | "starting"
+  | "config_loaded"
+  | "paths_verified"
+  | "user_loaded"
+  | "ready";
+
+// Initialization status
+export type InitStatus = {
+  currentStep: InitStep;
+  progress: number; // 0-100
+  error: string | null;
+  message: string;
+};
 
 const APP_CONFIG_SCHEMA = {
   libraryPath: {
@@ -49,15 +70,96 @@ const APP_CONFIG_SCHEMA = {
   },
 };
 
-class AppConfig {
+class AppConfig extends EventEmitter {
   private store: any;
+  private initStatus: InitStatus = {
+    currentStep: "starting",
+    progress: 0,
+    error: null,
+    message: "Starting application...",
+  };
 
   constructor() {
+    super();
     this.store = new Store({
       schema: APP_CONFIG_SCHEMA,
     });
+  }
 
-    this.ensureLibraryPath();
+  // Initialize app configuration
+  async initialize() {
+    try {
+      this.updateInitStatus({
+        currentStep: "starting",
+        progress: 0,
+        message: "Loading application configuration...",
+      });
+
+      // Load configuration
+      this.updateInitStatus({
+        currentStep: "config_loaded",
+        progress: 20,
+        message: "Verifying application paths...",
+      });
+
+      // Verify paths
+      await this.ensureLibraryPath();
+
+      this.updateInitStatus({
+        currentStep: "paths_verified",
+        progress: 40,
+        message: "Checking user login status...",
+      });
+
+      // Check if user is already logged in
+      const user = this.currentUser();
+      if (user) {
+        this.updateInitStatus({
+          currentStep: "user_loaded",
+          progress: 80,
+          message: "User authenticated, initializing database...",
+        });
+
+        // Emit user login event
+        this.emit("user:login", user.id);
+      } else {
+        this.updateInitStatus({
+          currentStep: "user_loaded",
+          progress: 80,
+          message: "No user logged in.",
+        });
+      }
+
+      // Initialization complete
+      this.updateInitStatus({
+        currentStep: "ready",
+        progress: 100,
+        message: "Application ready.",
+      });
+
+      logger.info("AppConfig initialized successfully");
+    } catch (error) {
+      logger.error("Failed to initialize AppConfig", error);
+      this.updateInitStatus({
+        error: error instanceof Error ? error.message : String(error),
+        message: "Error initializing application.",
+      });
+    }
+  }
+
+  private updateInitStatus(updates: Partial<InitStatus>) {
+    this.initStatus = { ...this.initStatus, ...updates };
+
+    // Broadcast status to all windows
+    BrowserWindow.getAllWindows().forEach((window) => {
+      if (!window.isDestroyed()) {
+        window.webContents.send("app-init-status", this.initStatus);
+      }
+    });
+  }
+
+  getInitStatus() {
+    return this.initStatus;
   }
 
   get(key: keyof typeof APP_CONFIG_SCHEMA | string) {
@@ -66,6 +168,11 @@ class AppConfig {
 
   set(key: keyof typeof APP_CONFIG_SCHEMA | string, value: any) {
     this.store.set(key, value);
+
+    // Emit events for user login/logout
+    if (key === "user.id" && value) {
+      this.emit("user:login", value);
+    }
   }
 
   file() {
@@ -89,17 +196,24 @@ class AppConfig {
     if (existingSession) return;
 
     this.set("sessions", [...sessions, currentUser]);
+    this.emit("user:logout", currentUser);
+    this.store.delete("user");
   }
 
-  ensureLibraryPath() {
+  async ensureLibraryPath() {
     const libraryPath = this.get("libraryPath");
     if (path.parse(libraryPath).base !== LIBRARY_PATH_SUFFIX) {
       return path.join(libraryPath, LIBRARY_PATH_SUFFIX);
     }
 
-    fs.ensureDirSync(libraryPath);
-    this.set("libraryPath", libraryPath);
-    return libraryPath;
+    try {
+      await fs.ensureDir(libraryPath);
+      this.set("libraryPath", libraryPath);
+      return libraryPath;
+    } catch (error) {
+      logger.error("Failed to ensure library path", error);
+      throw error;
+    }
   }
 
   libraryPath() {
@@ -188,6 +302,10 @@ class AppConfig {
 
     ipcMain.handle("appConfig:cachePath", (_event: IpcMainInvokeEvent) => {
       return this.cachePath();
+    });
+
+    ipcMain.handle("appConfig:initStatus", (_event: IpcMainInvokeEvent) => {
+      return this.getInitStatus();
     });
   }
 }

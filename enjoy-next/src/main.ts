@@ -5,6 +5,8 @@ import log from "@main/services/logger";
 import pluginManager from "@main/core/plugin-manager";
 import { publishEvent } from "@main/core/plugin-context";
 import { setupIpcHandlers } from "@main/core/ipc-handlers";
+import db from "@main/storage";
+import appConfig from "@main/config/app-config";
 
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
 declare const MAIN_WINDOW_VITE_NAME: string;
@@ -63,6 +65,9 @@ const initApp = async () => {
     // Set up IPC handlers
     setupIpcHandlers();
 
+    // Register database IPC handlers
+    db.registerIpcHandlers();
+
     // Initialize plugin system
     await pluginManager.init();
 
@@ -71,6 +76,25 @@ const initApp = async () => {
 
     // Create main window
     await createWindow();
+
+    // Listen for user login/logout events
+    appConfig.on("user:login", async () => {
+      logger.info("User logged in, connecting to database");
+      try {
+        await db.connect();
+      } catch (error) {
+        logger.error("Failed to connect to database after login", error);
+      }
+    });
+
+    appConfig.on("user:logout", async () => {
+      logger.info("User logged out, disconnecting from database");
+      try {
+        await db.disconnect();
+      } catch (error) {
+        logger.error("Failed to disconnect from database after logout", error);
+      }
+    });
 
     // Notify plugins that app is ready
     publishEvent("app:ready");
