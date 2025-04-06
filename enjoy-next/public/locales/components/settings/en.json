@@ -28,5 +28,8 @@
 
   "fontSize": "Font Size",
   "textSettings": "Text Settings",
-  "textSettingsDescription": "Customize text appearance throughout the application"
+  "textSettingsDescription": "Customize text appearance throughout the application",
+
+  "increaseFontSize": "Increase Font Size",
+  "decreaseFontSize": "Decrease Font Size"
 }

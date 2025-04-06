@@ -25,6 +25,7 @@ import {
   TooltipTrigger,
   TooltipContent,
   DialogTitle,
+  DialogDescription,
 } from "@renderer/components/ui";
 import { MENUBAR_HEIGHT } from "@/renderer/components/layouts/config";
 import { XIcon } from "lucide-react";
@@ -124,6 +125,9 @@ export const AppMenubar = (props: { isAuthenticated?: boolean }) => {
             </DialogTrigger>
             <DialogContent className="max-w-screen-md xl:max-w-screen-lg h-5/6 p-0">
               <DialogTitle className="hidden">{t("settings")}</DialogTitle>
+              <DialogDescription className="hidden">
+                {t("settingsDescription")}
+              </DialogDescription>
               <Settings />
             </DialogContent>
           </Dialog>

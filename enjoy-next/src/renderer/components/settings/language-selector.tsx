@@ -7,30 +7,16 @@ import {
   SelectValue,
 } from "@renderer/components/ui/select";
 import { GlobeIcon } from "lucide-react";
-
-type Language = {
-  code: string;
-  name: string;
-};
+import { useSettingsStore } from "@/renderer/store";
 
 export function LanguageSelector() {
-  const { i18n, t } = useTranslation("components/settings");
-
-  const languages: Language[] = [
-    { code: "en", name: "English" },
-    { code: "zh", name: "中文" },
-    { code: "ja", name: "日本語" },
-    // Add more languages as needed
-  ];
-
-  const handleLanguageChange = (languageCode: string) => {
-    i18n.changeLanguage(languageCode);
-  };
+  const { language, setLanguage, languages } = useSettingsStore();
+  const { t } = useTranslation("components/settings");
 
   return (
     <div className="flex items-center">
       <GlobeIcon className="h-4 w-4 mr-2 text-muted-foreground" />
-      <Select value={i18n.language} onValueChange={handleLanguageChange}>
+      <Select value={language} onValueChange={setLanguage}>
         <SelectTrigger className="w-full h-9">
           <SelectValue placeholder={t("selectLanguage")} />
         </SelectTrigger>

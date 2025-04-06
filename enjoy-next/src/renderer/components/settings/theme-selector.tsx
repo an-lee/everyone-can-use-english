@@ -32,7 +32,7 @@ export function ThemeSelector() {
   ];
 
   return (
-    <div className="grid grid-cols-3 gap-1">
+    <div className="grid grid-cols-3 gap-4">
       {themeOptions.map((option) => (
         <Button
           key={option.value}

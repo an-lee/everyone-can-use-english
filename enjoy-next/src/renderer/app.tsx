@@ -10,6 +10,8 @@ import { Icon } from "@iconify/react";
 import { AppMenubar } from "./components/layouts/menubar";
 import { Login } from "./routes/login";
 import { Toaster } from "./components/ui";
+import { useTheme } from "./hooks/use-theme";
+import { useFontSize } from "./hooks/use-font-size";
 
 // Create a new router instance
 const router = createRouter({ routeTree });
@@ -24,6 +26,8 @@ declare module "@tanstack/react-router" {
 const App = () => {
   const { fetchConfig, initialized } = useAppStore();
   const { isAuthenticated, autoLogin } = useAuthStore();
+  useTheme();
+  useFontSize();
 
   useEffect(() => {
     fetchConfig();

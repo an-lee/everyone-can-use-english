@@ -17,7 +17,7 @@
   "theme": "主题",
   "lightTheme": "浅色",
   "darkTheme": "深色",
-  "systemTheme": "跟随系统",
+  "systemTheme": "系统",
   "themeSettings": "主题设置",
   "themeDescription": "更改应用程序的外观",
 
@@ -28,5 +28,8 @@
 
   "fontSize": "字体大小",
   "textSettings": "文本设置",
-  "textSettingsDescription": "自定义应用程序中的文本外观"
+  "textSettingsDescription": "自定义应用程序中的文本外观",
+
+  "increaseFontSize": "增大字体",
+  "decreaseFontSize": "减小字体"
 }
