@@ -1,4 +1,10 @@
-import { ipcMain, BrowserWindow, IpcMainInvokeEvent, shell } from "electron";
+import {
+  ipcMain,
+  BrowserWindow,
+  IpcMainInvokeEvent,
+  shell,
+  app,
+} from "electron";
 import pluginManager from "@main/core/plugin-manager";
 import { executeCommand } from "@main/core/plugin-context";
 import log from "@main/services/logger";
@@ -35,12 +41,47 @@ export const setupIpcHandlers = () => {
       } else {
         window.maximize();
       }
+      // Notify renderer about window state change
+      setTimeout(() => {
+        if (window && !window.isDestroyed()) {
+          window.webContents.send("window-state-changed", window.isMaximized());
+        }
+      }, 100);
     }
   });
 
   ipcMain.handle("window:close", (event) => {
     const window = BrowserWindow.fromWebContents(event.sender);
     if (window) window.close();
+  });
+
+  ipcMain.handle("window:isMaximized", (event) => {
+    const window = BrowserWindow.fromWebContents(event.sender);
+    return window ? window.isMaximized() : false;
+  });
+
+  // Set up window state change listeners for all windows
+  setupWindowStateListeners();
+};
+
+/**
+ * Set up window state change listeners
+ */
+const setupWindowStateListeners = () => {
+  // Listen for new windows being created
+  app.on("browser-window-created" as any, (_: any, window: BrowserWindow) => {
+    // Listen for maximize/unmaximize events
+    window.on("maximize", () => {
+      if (!window.isDestroyed()) {
+        window.webContents.send("window-state-changed", true);
+      }
+    });
+
+    window.on("unmaximize", () => {
+      if (!window.isDestroyed()) {
+        window.webContents.send("window-state-changed", false);
+      }
+    });
   });
 };
 

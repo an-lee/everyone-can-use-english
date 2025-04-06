@@ -17,10 +17,40 @@ import { XIcon } from "lucide-react";
 import { useSystem } from "@renderer/hooks/use-system";
 import { useAppStore, useAuthStore } from "@renderer/store";
 import { Icon } from "@iconify/react";
+import { useState, useEffect } from "react";
 
 export const AppMenubar = (props: { isAuthenticated?: boolean }) => {
   const { isAuthenticated = useAuthStore.getState().isAuthenticated() } = props;
   const system = useSystem();
+  const [isMaximized, setIsMaximized] = useState(false);
+
+  useEffect(() => {
+    // Get initial window state
+    const getWindowState = async () => {
+      try {
+        const maximized = await window.EnjoyAPI.window.isMaximized();
+        setIsMaximized(maximized);
+      } catch (error) {
+        console.error("Failed to get window state:", error);
+      }
+    };
+
+    getWindowState();
+
+    // Listen for window state changes from main process
+    const handleWindowStateChanged = (maximized: boolean) => {
+      setIsMaximized(maximized);
+    };
+
+    window.EnjoyAPI.events.on("window-state-changed", handleWindowStateChanged);
+
+    return () => {
+      window.EnjoyAPI.events.off(
+        "window-state-changed",
+        handleWindowStateChanged
+      );
+    };
+  }, []);
 
   const handleMinimize = () => {
     window.EnjoyAPI.window.minimize();
@@ -28,6 +58,7 @@ export const AppMenubar = (props: { isAuthenticated?: boolean }) => {
 
   const handleMaximize = () => {
     window.EnjoyAPI.window.maximize();
+    // The state will be updated via the window-state-changed event
   };
 
   const handleClose = () => {
@@ -83,7 +114,10 @@ export const AppMenubar = (props: { isAuthenticated?: boolean }) => {
               <Icon icon="tabler:minus" className="size-6" />
             </Button>
             <Button variant="ghost" size="icon" onClick={handleMaximize}>
-              <Icon icon="tabler:squares" className="size-6" />
+              <Icon
+                icon={isMaximized ? "tabler:squares" : "tabler:rectangle"}
+                className="size-6"
+              />
             </Button>
             <Button
               variant="ghost"

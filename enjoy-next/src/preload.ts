@@ -16,6 +16,7 @@ export interface EnjoyAPI {
     minimize: () => Promise<void>;
     maximize: () => Promise<void>;
     close: () => Promise<void>;
+    isMaximized: () => Promise<boolean>;
   };
   events: {
     on: (channel: string, listener: (...args: any[]) => void) => void;
@@ -25,7 +26,12 @@ export interface EnjoyAPI {
 }
 
 // Allowed IPC channels for events
-const validChannels = [...PluginEvents, "on-lookup", "on-translate"] as const;
+const validChannels = [
+  ...PluginEvents,
+  "on-lookup",
+  "on-translate",
+  "window-state-changed",
+] as const;
 
 // Expose protected methods that allow the renderer process to use IPC with the main process
 contextBridge.exposeInMainWorld("EnjoyAPI", {
@@ -39,6 +45,7 @@ contextBridge.exposeInMainWorld("EnjoyAPI", {
     minimize: () => ipcRenderer.invoke("window:minimize"),
     maximize: () => ipcRenderer.invoke("window:maximize"),
     close: () => ipcRenderer.invoke("window:close"),
+    isMaximized: () => ipcRenderer.invoke("window:isMaximized"),
   },
   plugins: PluginsAPI,
   events: {
