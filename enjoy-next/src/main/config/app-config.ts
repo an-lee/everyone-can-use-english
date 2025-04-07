@@ -207,7 +207,29 @@ class AppConfig {
   }
 
   public login(user: UserType): void {
-    this.set("user", user);
+    // First validate the user object
+    if (!user.id) {
+      throw new Error("User id is required");
+    }
+
+    logger.info(`Setting user: ${user.id}`);
+
+    // Store the full user object
+    this.store.set("user", {
+      id: user.id,
+      name: user.name || `User ${user.id}`,
+      avatarUrl: user.avatarUrl || null,
+      accessToken: user.accessToken || null,
+    });
+
+    // Update state and emit
+    const currentState = this.state$.getValue();
+    this.state$.next({
+      ...currentState,
+      user: this.store.get("user"),
+    });
+
+    logger.info(`User ${user.id} logged in successfully`);
   }
 
   public logout(): void {

@@ -7,7 +7,7 @@ import appConfig from "@main/config/app-config";
 import { AppDataSource } from "@main/storage/data-source";
 import { IpcChannels } from "@shared/ipc/ipc-channels";
 
-const logger = log.scope("Storage");
+const logger = log.scope("DB");
 
 // Retry configuration
 const RETRY_DELAYS = [1000, 2000, 3000, 5000, 8000]; // Fibonacci-like sequence
@@ -32,6 +32,7 @@ export const db = {
   retryCount: 0,
   retryTimer: null as NodeJS.Timeout | null,
   ipcHandlersRegistered: false,
+  isInitialized: false,
   currentState: {
     state: "disconnected",
     path: null,
@@ -85,6 +86,19 @@ export const db = {
         });
         db.isConnecting = false;
         return;
+      }
+
+      // Ensure the current user is set in app config before proceeding
+      const currentUser = appConfig.currentUser();
+      if (!currentUser) {
+        throw new Error(
+          "No user logged in. Please log in before connecting to the database."
+        );
+      }
+
+      // We only need user.id for the database connection
+      if (!currentUser.id) {
+        throw new Error("User ID is required for database connection.");
       }
 
       const dbPath = appConfig.dbPath();
@@ -185,7 +199,21 @@ export const db = {
 
     try {
       if (db.dataSource?.isInitialized) {
-        await db.dataSource.destroy();
+        try {
+          await db.dataSource.destroy();
+        } catch (err) {
+          // If error is "Database handle is closed", just log it and continue
+          if (
+            err instanceof Error &&
+            err.message.includes("Database handle is closed")
+          ) {
+            logger.warn("Database was already closed:", err.message);
+          } else {
+            // For other errors, rethrow
+            throw err;
+          }
+        }
+
         db.dataSource = null;
 
         // Reset retry count
@@ -229,45 +257,56 @@ export const db = {
     // through the files in src/main/core/ipc/modules/
     logger.info("Database IPC handlers are managed by the IPC registry");
 
-    // Set up event listeners for login/logout
+    // Set up event listeners for login/logout based on user.id changes
+    let lastUserId: number | null = null;
+
     appConfig.getUser$().subscribe(async (user) => {
-      if (user) {
-        // User logged in
-        logger.info(`User ${user.id} logged in, connecting to database`);
-        try {
-          db.autoConnected = true;
-          await db.connect({ retry: true });
-        } catch (error) {
-          logger.error("Failed to connect to database after login", error);
-        }
-      } else {
-        // User logged out
-        logger.info("User logged out, disconnecting from database");
-        try {
-          db.autoConnected = false;
-          db.cancelRetry();
-          await db.disconnect();
-          db.broadcastState({
-            state: "disconnected",
-            path: null,
-            error: null,
-            autoConnected: false,
-          });
-        } catch (error) {
-          logger.error(
-            "Failed to disconnect from database after logout",
-            error
-          );
-          db.broadcastState({
-            state: "error",
-            path: appConfig.dbPath(),
-            error: error instanceof Error ? error.message : String(error),
-            autoConnected: false,
-          });
+      const userId = user?.id ? Number(user.id) : null;
+
+      // Only take action if user.id has changed
+      if (userId !== lastUserId) {
+        logger.debug(`User ID changed: ${lastUserId} -> ${userId}`);
+        lastUserId = userId;
+
+        if (userId) {
+          // User logged in
+          logger.info(`User ${userId} logged in, connecting to database`);
+          try {
+            db.autoConnected = true;
+            await db.connect({ retry: true });
+          } catch (error) {
+            logger.error("Failed to connect to database after login", error);
+          }
+        } else {
+          // User logged out
+          logger.info("User logged out, disconnecting from database");
+          try {
+            db.autoConnected = false;
+            db.cancelRetry();
+            await db.disconnect();
+            db.broadcastState({
+              state: "disconnected",
+              path: null,
+              error: null,
+              autoConnected: false,
+            });
+          } catch (error) {
+            logger.error(
+              "Failed to disconnect from database after logout",
+              error
+            );
+            db.broadcastState({
+              state: "error",
+              path: appConfig.dbPath(),
+              error: error instanceof Error ? error.message : String(error),
+              autoConnected: false,
+            });
+          }
         }
       }
     });
 
+    db.isInitialized = true;
     logger.info("Database module initialized");
   },
 

@@ -19,11 +19,15 @@ export class DbInitPhase implements InitPhase {
     logger.info("Initializing database system");
 
     try {
-      // Call the database initialization method
-      // This will set up event listeners but not connect to DB yet
-      db.init();
-
-      logger.info("Database system initialized successfully");
+      // Check if database module is already initialized
+      if (!db.isInitialized) {
+        // Call the database initialization method
+        // This will set up event listeners but not connect to DB yet
+        db.init();
+        logger.info("Database system initialized successfully");
+      } else {
+        logger.info("Database system already initialized, skipping");
+      }
     } catch (error) {
       logger.error("Failed to initialize database system:", error);
       throw error;

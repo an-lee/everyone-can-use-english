@@ -45,9 +45,28 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ currentUser, nonce: null, logingMethod: null });
     // Sync to main process
     if (window.EnjoyAPI) {
-      window.EnjoyAPI.appConfig.set("user.id", currentUser.id);
-      window.EnjoyAPI.appConfig.set("user.name", currentUser.name);
-      window.EnjoyAPI.appConfig.set("user.avatarUrl", currentUser.avatarUrl);
+      // Set the user object in appConfig
+      // The backend config handler will handle setting needed fields
+      window.EnjoyAPI.appConfig.set("user", currentUser);
+
+      // Explicitly connect to database if needed
+      window.EnjoyAPI.db
+        .status()
+        .then((status: any) => {
+          if (status.state !== "connected") {
+            console.log("Connecting to database after login");
+            window.EnjoyAPI.db.connect().catch((err: Error) => {
+              console.error("Error connecting to database after login:", err);
+            });
+          }
+        })
+        .catch((err: Error) => {
+          console.error("Error checking db status:", err);
+          // Try connecting anyway
+          window.EnjoyAPI.db.connect().catch((err: Error) => {
+            console.error("Error connecting to database after login:", err);
+          });
+        });
     }
   },
 
@@ -56,7 +75,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (!currentUser) return;
 
     if (window.EnjoyAPI) {
-      // First check if there's an active database connection
+      // No need to disconnect database manually - it will be handled by the
+      // backend when the user state changes
+      /*
       window.EnjoyAPI.db
         .status()
         .then((status) => {
@@ -70,6 +91,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           }
         })
         .catch((err) => console.error("Error checking DB status:", err));
+      */
 
       // Proceed with logout
       console.log("Logging out user:", currentUser.id);
