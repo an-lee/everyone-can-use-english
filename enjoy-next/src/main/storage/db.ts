@@ -229,46 +229,41 @@ export const db = {
     db.registerIpcHandlers();
 
     // Set up event listeners for login/logout
-    appConfig.on("user:login", async (userId) => {
-      logger.info(`User ${userId} logged in, connecting to database`);
-      try {
-        db.autoConnected = true;
-        await db.connect({ retry: true });
-      } catch (error) {
-        logger.error("Failed to connect to database after login", error);
-      }
-    });
-
-    appConfig.on("user:logout", async (user) => {
-      logger.info(`User ${user?.id} logged out, disconnecting from database`);
-      try {
-        // Make sure to set autoConnected to false first to prevent auto-reconnect attempts
-        db.autoConnected = false;
-
-        // Cancel any pending retry attempts
-        db.cancelRetry();
-
-        // Disconnect from database
-        await db.disconnect();
-
-        // Ensure state is updated even if disconnect doesn't throw an error but fails silently
-        db.broadcastState({
-          state: "disconnected",
-          path: null,
-          error: null,
-          autoConnected: false,
-        });
-
-        logger.info("Database disconnected after user logout");
-      } catch (error) {
-        logger.error("Failed to disconnect from database after logout", error);
-        // Update state even after error
-        db.broadcastState({
-          state: "error",
-          path: appConfig.dbPath(),
-          error: error instanceof Error ? error.message : String(error),
-          autoConnected: false,
-        });
+    appConfig.getUser$().subscribe(async (user) => {
+      if (user) {
+        // User logged in
+        logger.info(`User ${user.id} logged in, connecting to database`);
+        try {
+          db.autoConnected = true;
+          await db.connect({ retry: true });
+        } catch (error) {
+          logger.error("Failed to connect to database after login", error);
+        }
+      } else {
+        // User logged out
+        logger.info("User logged out, disconnecting from database");
+        try {
+          db.autoConnected = false;
+          db.cancelRetry();
+          await db.disconnect();
+          db.broadcastState({
+            state: "disconnected",
+            path: null,
+            error: null,
+            autoConnected: false,
+          });
+        } catch (error) {
+          logger.error(
+            "Failed to disconnect from database after logout",
+            error
+          );
+          db.broadcastState({
+            state: "error",
+            path: appConfig.dbPath(),
+            error: error instanceof Error ? error.message : String(error),
+            autoConnected: false,
+          });
+        }
       }
     });
 

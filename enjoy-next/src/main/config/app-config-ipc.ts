@@ -1,5 +1,5 @@
 import { BaseIpcModule, IpcMethod } from "@main/core/ipc/base-ipc-module";
-import appConfig from "./app-config";
+import appConfig, { AppConfigState } from "@main/config/app-config";
 import log from "@main/services/logger";
 
 const logger = log.scope("AppConfigIpc");
@@ -14,12 +14,12 @@ export class AppConfigIpcModule extends BaseIpcModule {
 
   @IpcMethod()
   get(_event: any, key: string): any {
-    return appConfig.get(key);
+    return appConfig.get(key as keyof AppConfigState);
   }
 
   @IpcMethod()
   set(_event: any, key: string, value: any): void {
-    appConfig.set(key, value);
+    appConfig.set(key as keyof AppConfigState, value);
   }
 
   @IpcMethod()

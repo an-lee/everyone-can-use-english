@@ -1,7 +1,7 @@
 import log from "@main/services/logger";
 import { v4 as uuidv4 } from "uuid";
 import { initObservables } from "./init-observables";
-import { filter, takeUntil, Subject } from "rxjs";
+import { takeUntil, Subject } from "rxjs";
 
 const logger = log.scope("InitHooks");
 
