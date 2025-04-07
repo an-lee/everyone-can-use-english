@@ -28,42 +28,63 @@ declare module "@tanstack/react-router" {
 
 const App = () => {
   const { dbState } = useDbStore();
-  const { appStatus, initStatus } = useAppStore();
+  const { appState } = useAppStore();
 
   useTheme();
   useFontSize();
 
-  // App is still initializing
-  if (appStatus === "initializing") {
-    return <InitializingView initStatus={initStatus} />;
-  }
+  // Handle different app states
+  switch (appState.status) {
+    case "initializing":
+      return <InitializingView progress={appState.progress} />;
 
-  // Error during initialization
-  if (appStatus === "error") {
-    return <ErrorView initStatus={initStatus} />;
-  }
+    case "initialization_error":
+      return (
+        <ErrorView
+          initStatus={{
+            currentStep: appState.progress.step,
+            progress: appState.progress.progress,
+            message: appState.progress.message,
+            error: appState.error,
+          }}
+        />
+      );
 
-  // Not logged in
-  if (appStatus === "login") {
-    return <LoginView />;
-  }
+    case "login":
+      return <LoginView />;
 
-  if (dbState.state === "connecting") {
-    return <ConnectingDatabaseView />;
-  }
+    case "ready":
+      // Check database state
+      if (dbState.state === "connecting") {
+        return <ConnectingDatabaseView />;
+      }
 
-  if (dbState.state === "error") {
-    return (
-      <DatabaseErrorView
-        dbError={dbState.error}
-        retryCount={dbState.retryCount}
-        retryDelay={dbState.retryDelay}
-      />
-    );
-  }
+      if (dbState.state === "error") {
+        return (
+          <DatabaseErrorView
+            dbError={dbState.error}
+            retryCount={dbState.retryCount}
+            retryDelay={dbState.retryDelay}
+          />
+        );
+      }
 
-  // Everything is ready, show the app
-  return <RouterProvider router={router} />;
+      // Everything is ready, show the app
+      return <RouterProvider router={router} />;
+
+    default:
+      // This should never happen, but TypeScript wants us to handle it
+      return (
+        <ErrorView
+          initStatus={{
+            currentStep: "unknown",
+            progress: 0,
+            message: "Unknown application state",
+            error: "Application reached an invalid state",
+          }}
+        />
+      );
+  }
 };
 
 // Render the app

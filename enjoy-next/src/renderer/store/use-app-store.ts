@@ -2,18 +2,8 @@ import { create } from "zustand";
 import { version } from "../../../package.json";
 import { useAuthStore } from "./use-auth-store";
 
-export type AppStatusType = "initializing" | "login" | "ready" | "error";
-
-export type InitStatus = {
-  currentStep: string;
-  progress: number;
-  error: string | null;
-  message: string;
-};
-
-type AppState = {
-  // Basic app info
-  initialized: boolean;
+// App configuration types
+interface AppConfig {
   version: string;
   webApiUrl: string;
   libraryPath: string | null;
@@ -21,43 +11,79 @@ type AppState = {
     enabled: boolean;
     url: string;
   };
+}
 
-  // App status
-  appStatus: AppStatusType;
-  initStatus: InitStatus;
+// App initialization types
+export interface InitializationProgress {
+  step: string;
+  progress: number;
+  message: string;
+}
 
-  // Actions
-  fetchConfig: () => Promise<void>;
-  setAppStatus: (status: AppStatusType) => void;
-  setInitStatus: (status: InitStatus) => void;
-  handleInitStatus: (status: InitStatus) => void;
-  checkAuthAndSetStatus: () => Promise<void>;
+// App state machine types
+export type AppStateType =
+  | { status: "initializing"; progress: InitializationProgress }
+  | {
+      status: "initialization_error";
+      error: string;
+      progress: InitializationProgress;
+    }
+  | { status: "login" }
+  | { status: "ready" };
+
+type AppState = {
+  // Config state
+  config: AppConfig;
+  configLoaded: boolean;
+
+  // App state
+  appState: AppStateType;
+
+  // Actions - Config
+  loadConfig: () => Promise<void>;
+
+  // Actions - State transitions
+  setInitializing: (progress: InitializationProgress) => void;
+  setInitializationError: (
+    error: string,
+    progress: InitializationProgress
+  ) => void;
+  setLoginRequired: () => void;
+  setReady: () => void;
+
+  // Complex actions
+  handleInitProgress: (
+    progress: InitializationProgress & { error: string | null }
+  ) => void;
+  checkAuthAndUpdateState: () => Promise<void>;
 };
 
 /**
  * App store
  *
- * This store is used to store the app Info and status.
+ * This store handles application configuration and state machine.
  */
 export const useAppStore = create<AppState>()((set, get) => ({
-  // Basic app info
-  initialized: false,
-  version,
-  webApiUrl: "",
-  libraryPath: null,
-  proxy: undefined,
+  // Config state
+  config: {
+    version,
+    webApiUrl: "",
+    libraryPath: null,
+  },
+  configLoaded: false,
 
-  // App status
-  appStatus: "initializing",
-  initStatus: {
-    currentStep: "starting",
-    progress: 0,
-    error: null,
-    message: "Starting application...",
+  // Initial app state
+  appState: {
+    status: "initializing",
+    progress: {
+      step: "starting",
+      progress: 0,
+      message: "Starting application...",
+    },
   },
 
-  // Actions
-  fetchConfig: async () => {
+  // Actions - Config
+  loadConfig: async () => {
     if (window.EnjoyAPI) {
       try {
         // Fetch webApiUrl
@@ -70,69 +96,125 @@ export const useAppStore = create<AppState>()((set, get) => ({
         const proxy = await window.EnjoyAPI.appConfig.get("proxy");
 
         set({
-          libraryPath,
-          webApiUrl,
-          proxy,
+          config: {
+            version,
+            webApiUrl,
+            libraryPath,
+            proxy,
+          },
+          configLoaded: true,
         });
-        set({ initialized: true });
       } catch (error) {
         console.error("Failed to fetch config from main process:", error);
+
+        // Create default progress
+        const defaultProgress = {
+          step: "config",
+          progress: 0,
+          message: "Loading configuration...",
+        };
+
+        // Get current state and handle differently based on type
+        const currentState = get().appState;
+
+        if (
+          currentState.status === "initializing" ||
+          currentState.status === "initialization_error"
+        ) {
+          // We already have progress data in these states
+          set({
+            appState: {
+              status: "initialization_error",
+              error: "Failed to load application configuration",
+              progress: currentState.progress,
+            },
+          });
+        } else {
+          // Other states don't have progress, use default
+          set({
+            appState: {
+              status: "initialization_error",
+              error: "Failed to load application configuration",
+              progress: defaultProgress,
+            },
+          });
+        }
       }
     }
   },
 
-  setAppStatus: (appStatus: AppStatusType) => {
-    set({ appStatus });
+  // State machine transitions
+  setInitializing: (progress) => {
+    set({ appState: { status: "initializing", progress } });
   },
 
-  setInitStatus: (initStatus: InitStatus) => {
-    set({ initStatus });
+  setInitializationError: (error, progress) => {
+    set({ appState: { status: "initialization_error", error, progress } });
   },
 
-  handleInitStatus: (status: InitStatus) => {
-    set({ initStatus: status });
+  setLoginRequired: () => {
+    set({ appState: { status: "login" } });
+  },
 
-    if (status.error) {
-      set({ appStatus: "error" });
-    } else if (status.currentStep === "ready") {
-      // If app is ready, check authentication status
-      get().checkAuthAndSetStatus();
+  setReady: () => {
+    set({ appState: { status: "ready" } });
+  },
+
+  // Complex actions
+  handleInitProgress: (data) => {
+    const { error, ...progress } = data;
+
+    if (error) {
+      get().setInitializationError(error, progress);
+    } else if (progress.step === "ready") {
+      // If initialization is complete, check authentication
+      get().checkAuthAndUpdateState();
+    } else {
+      get().setInitializing(progress);
     }
   },
 
-  checkAuthAndSetStatus: async () => {
-    const { initStatus } = get();
-    if (initStatus.currentStep !== "ready") return;
-
+  checkAuthAndUpdateState: async () => {
     const { isAuthenticated, autoLogin } = useAuthStore.getState();
 
-    // If auto login was not called yet, call it
+    // If user is not logged in, try auto-login
     if (!isAuthenticated()) {
       await autoLogin();
     }
 
-    // Set app status based on auth state
+    // Set app state based on authentication status
     if (isAuthenticated()) {
-      set({ appStatus: "ready" });
+      get().setReady();
     } else {
-      set({ appStatus: "login" });
+      get().setLoginRequired();
     }
   },
 }));
 
-// Initialize the store by fetching config from main process
+// Initialize the store
 if (typeof window !== "undefined") {
   window.addEventListener("DOMContentLoaded", () => {
-    useAppStore.getState().fetchConfig();
+    // Load app configuration
+    useAppStore.getState().loadConfig();
 
-    // Set up listener for app initialization status
+    // Set up listener for initialization status
     if (window.EnjoyAPI) {
-      window.EnjoyAPI.initializer.getStatus().then((status: InitStatus) => {
-        useAppStore.getState().handleInitStatus(status);
+      window.EnjoyAPI.initializer.getStatus().then((status: any) => {
+        useAppStore.getState().handleInitProgress({
+          step: status.currentStep,
+          progress: status.progress,
+          message: status.message,
+          error: status.error,
+        });
       });
 
-      window.EnjoyAPI.events.on("app-init-status", (status: InitStatus) => {
-        useAppStore.getState().handleInitStatus(status);
+      window.EnjoyAPI.events.on("app-init-status", (status: any) => {
+        useAppStore.getState().handleInitProgress({
+          step: status.currentStep,
+          progress: status.progress,
+          message: status.message,
+          error: status.error,
+        });
       });
     }
 
@@ -140,7 +222,12 @@ if (typeof window !== "undefined") {
     useAuthStore.subscribe((state, prevState) => {
       // Only run when auth state changes
       if (state.currentUser?.id !== prevState.currentUser?.id) {
-        useAppStore.getState().checkAuthAndSetStatus();
+        const { appState, checkAuthAndUpdateState } = useAppStore.getState();
+
+        // Only update state if we're in login state or ready state
+        if (appState.status === "login" || appState.status === "ready") {
+          checkAuthAndUpdateState();
+        }
       }
     });
   });
