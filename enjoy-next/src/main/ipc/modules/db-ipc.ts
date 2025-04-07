@@ -5,6 +5,7 @@ import appConfig from "@/main/core/app/config";
 import PreloadApiGenerator, {
   ServiceHandlerMetadata,
 } from "../preload/preload-generator";
+import { log } from "@main/core";
 
 // Define the types locally instead of importing from @preload/db-api
 export type DbConnectionState =
@@ -53,40 +54,50 @@ export function createIpcHandlers<
 
   // Extract method names from the service
   const methodNames = Object.getOwnPropertyNames(service).filter(
-    (name) => typeof service[name] === "function" && !name.startsWith("_")
+    (name) =>
+      typeof service[name as keyof typeof service] === "function" &&
+      !name.startsWith("_")
   );
 
   // Generate metadata for preload API generation
   const metadata: ServiceHandlerMetadata = {
     name: entityName,
-    channelPrefix,
+    channelPrefix: channelPrefix,
+    parentModule: "db", // Specify db as the parent module
     methods: [],
   };
 
   // Create a handler for each method
   for (const methodName of methodNames) {
-    if (typeof service[methodName] !== "function") {
+    if (typeof service[methodName as keyof typeof service] !== "function") {
       continue;
     }
 
     // Create the handler function
     handlers[methodName] = async (...args: any[]) => {
       try {
-        return await service[methodName](...args);
+        // Check if database is connected before executing the method
+        if (!db.dataSource?.isInitialized) {
+          const dbState = db.currentState.state;
+          throw new Error(
+            `Database is not connected (current state: ${dbState}). Please connect to the database first.`
+          );
+        }
+
+        return await service[methodName as keyof typeof service](...args);
       } catch (error: any) {
         // Create a standardized error response
         const message = error instanceof Error ? error.message : String(error);
         throw {
           code: error.code || "DB_ERROR",
           message,
-          method: `db:${channelPrefix}${capitalize(methodName)}`,
+          method: `db:${channelPrefix}:${methodName}`,
           timestamp: new Date().toISOString(),
         };
       }
     };
 
     // Add metadata for this method
-    // In a real implementation you'd extract parameter types through reflection
     metadata.methods.push({
       name: methodName,
       returnType: "any", // This would be more specific in a real implementation
@@ -96,6 +107,13 @@ export function createIpcHandlers<
 
   // Register the metadata for preload API generation
   PreloadApiGenerator.registerServiceHandler(metadata);
+
+  // Log registration for debugging
+  log
+    .scope("ipc-db")
+    .info(
+      `Registered service handler: ${entityName} with ${metadata.methods.length} methods under db.${channelPrefix}`
+    );
 
   return handlers;
 }
@@ -113,9 +131,38 @@ function capitalize(str: string): string {
 export class DbIpcModule extends BaseIpcModule {
   private registeredEntityHandlers: Set<string> = new Set();
   private registeredServices: Map<string, any> = new Map();
+  private entityHandlersGenerated: boolean = false;
 
   constructor() {
     super("Database", "db");
+
+    // Generate entity handlers for preload API during initialization
+    this.generateEntityHandlersForPreload().catch((err) => {
+      this.logger.error("Failed to generate entity handlers for preload:", err);
+    });
+
+    // Also register entity handlers so they're available even before DB connects
+    this.registerEntityHandlers().catch((err) => {
+      this.logger.error("Failed to register entity handlers:", err);
+    });
+  }
+
+  /**
+   * Register handlers - overridden to ensure entity handlers are generated
+   */
+  registerHandlers(): void {
+    // If entity handlers haven't been generated yet, do it now
+    if (!this.entityHandlersGenerated) {
+      this.generateEntityHandlersForPreload().catch((err) => {
+        this.logger.error(
+          "Failed to generate entity handlers during handler registration:",
+          err
+        );
+      });
+    }
+
+    // Call parent method to register normal handlers
+    super.registerHandlers();
   }
 
   /**
@@ -161,8 +208,9 @@ export class DbIpcModule extends BaseIpcModule {
   })
   async disconnect(): Promise<DbState> {
     try {
-      // Unregister entity handlers before disconnecting
-      this.unregisterEntityHandlers();
+      // Don't unregister entity handlers when disconnecting
+      // This allows calls to succeed even when database is disconnected
+      // They will just return appropriate errors
 
       await db.disconnect();
       return { state: "disconnected" as const, path: null, error: null };
@@ -285,25 +333,165 @@ export class DbIpcModule extends BaseIpcModule {
   }
 
   /**
+   * Generate entity handlers metadata for preload API generation
+   * This is called during initialization to ensure all API types are available
+   * even before the database is connected
+   */
+  async generateEntityHandlersForPreload(): Promise<void> {
+    this.logger.info("Generating entity handlers for preload API");
+
+    try {
+      // Generate preload API definitions for audio service
+      await this.generateAudioServicePreload();
+
+      // Add more services here as needed
+
+      this.entityHandlersGenerated = true;
+      this.logger.info("Entity handlers generated for preload API");
+    } catch (error) {
+      this.logger.error(
+        "Failed to generate entity handlers for preload:",
+        error
+      );
+    }
+  }
+
+  /**
+   * Generate Audio service preload API
+   */
+  private async generateAudioServicePreload(): Promise<void> {
+    try {
+      // Import the AudioService
+      const { AudioService } = await import(
+        "@main/storage/services/audio-service"
+      );
+
+      // Extract methods for service registration
+      const methodNames = Object.getOwnPropertyNames(AudioService).filter(
+        (name) =>
+          typeof AudioService[name as keyof typeof AudioService] ===
+            "function" && !name.startsWith("_")
+      );
+
+      // Create metadata for API generation with better type information
+      const metadata: ServiceHandlerMetadata = {
+        name: "Audio",
+        channelPrefix: "audio", // Audio entity prefix
+        parentModule: "db", // Parent is db
+        methods: [
+          {
+            name: "findAll",
+            returnType:
+              "Promise<{ items: any[]; total: number; page: number; limit: number; totalPages: number; }>",
+            description:
+              "Find all audio records with optional pagination and search",
+            parameters: [
+              {
+                name: "options",
+                type: "{ page?: number; limit?: number; search?: string }",
+                required: false,
+              },
+            ],
+          },
+          {
+            name: "findById",
+            returnType: "Promise<any>",
+            description: "Find audio by ID",
+            parameters: [
+              {
+                name: "id",
+                type: "string",
+                required: true,
+              },
+            ],
+          },
+          {
+            name: "findByMd5",
+            returnType: "Promise<any>",
+            description: "Find audio by MD5 hash",
+            parameters: [
+              {
+                name: "md5",
+                type: "string",
+                required: true,
+              },
+            ],
+          },
+          {
+            name: "create",
+            returnType: "Promise<any>",
+            description: "Create a new audio record",
+            parameters: [
+              {
+                name: "data",
+                type: "any",
+                required: true,
+              },
+            ],
+          },
+          {
+            name: "update",
+            returnType: "Promise<any>",
+            description: "Update an existing audio record",
+            parameters: [
+              {
+                name: "id",
+                type: "string",
+                required: true,
+              },
+              {
+                name: "data",
+                type: "any",
+                required: true,
+              },
+            ],
+          },
+          {
+            name: "delete",
+            returnType: "Promise<boolean>",
+            description: "Delete an audio record",
+            parameters: [
+              {
+                name: "id",
+                type: "string",
+                required: true,
+              },
+            ],
+          },
+        ],
+      };
+
+      // Register the metadata
+      PreloadApiGenerator.registerServiceHandler(metadata);
+
+      this.logger.debug(
+        `Generated Audio service preload API with ${metadata.methods.length} methods`
+      );
+    } catch (error) {
+      this.logger.error("Failed to generate Audio service preload API:", error);
+    }
+  }
+
+  /**
    * Register entity handlers for this module
    * These are loaded dynamically when the database is connected
    */
   async registerEntityHandlers(): Promise<void> {
-    if (!db.dataSource?.isInitialized) {
-      this.logger.warn(
-        "Attempted to register entity handlers while database is disconnected"
-      );
-      return;
-    }
-
     this.logger.info("Loading entity handlers");
 
     try {
-      // Clean up any existing registrations
-      this.unregisterEntityHandlers();
+      // Only register if not already registered
+      if (this.registeredEntityHandlers.size > 0) {
+        this.logger.info(
+          "Entity handlers already registered, skipping registration"
+        );
+        return;
+      }
 
       // Register the Audio service first (direct import for simplicity)
       await this.registerAudioService();
+
+      // Add more services here as needed
     } catch (error) {
       this.logger.error("Failed to register entity handlers:", error);
     }
@@ -321,6 +509,9 @@ export class DbIpcModule extends BaseIpcModule {
 
       // Register it
       this.registerServiceHandlers("Audio", AudioService, "audio");
+      this.logger.info(
+        "Audio service registered successfully with db:audio:* handlers"
+      );
     } catch (error) {
       this.logger.error("Failed to register Audio service:", error);
     }
@@ -341,7 +532,16 @@ export class DbIpcModule extends BaseIpcModule {
 
     // Register each handler with IPC
     for (const [methodName, handler] of Object.entries(handlers)) {
-      const channelName = `db:${channelPrefix}${capitalize(methodName)}`;
+      // Use the hierarchical db:entity:method format (db:audio:findAll)
+      const channelName = `db:${channelPrefix}:${methodName}`;
+
+      // Check if this handler is already registered
+      if (this.registeredEntityHandlers.has(channelName)) {
+        this.logger.debug(
+          `Handler already registered for ${channelName}, skipping`
+        );
+        continue;
+      }
 
       ipcMain.handle(channelName, (event, ...args) => handler(...args));
       this.registeredEntityHandlers.add(channelName);
@@ -370,8 +570,8 @@ export class DbIpcModule extends BaseIpcModule {
     this.registeredEntityHandlers.clear();
     this.registeredServices.clear();
 
-    // Clear the preload generator service handlers
-    PreloadApiGenerator.clearServiceHandlers();
+    // Don't clear preload API definitions as they're needed for type generation
+    // PreloadApiGenerator.clearServiceHandlers();
 
     this.logger.info("Entity handlers unregistered");
   }

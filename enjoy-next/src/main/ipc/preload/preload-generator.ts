@@ -11,6 +11,7 @@ const logger = log.scope("PreloadGenerator");
 export interface ServiceHandlerMetadata {
   name: string;
   channelPrefix: string;
+  parentModule?: string; // Add parent module option for nesting
   methods: {
     name: string;
     parameters?: {
@@ -35,8 +36,28 @@ export class PreloadApiGenerator {
    * Register metadata for a service-based handler
    */
   static registerServiceHandler(metadata: ServiceHandlerMetadata): void {
-    this.serviceHandlers.push(metadata);
-    logger.info(`Registered service handler metadata for: ${metadata.name}`);
+    // Check if this service is already registered to avoid duplicates
+    const existingServiceIndex = this.serviceHandlers.findIndex(
+      (s) =>
+        s.name === metadata.name && s.channelPrefix === metadata.channelPrefix
+    );
+
+    if (existingServiceIndex !== -1) {
+      // Replace existing service with updated one
+      this.serviceHandlers[existingServiceIndex] = metadata;
+      logger.info(`Updated service handler metadata for: ${metadata.name}`);
+    } else {
+      // Add new service
+      this.serviceHandlers.push(metadata);
+      logger.info(
+        `Registered service handler metadata for: ${metadata.name} with parent ${metadata.parentModule || "none"}`
+      );
+    }
+
+    // Log the number of registered services
+    logger.info(
+      `Total registered service handlers: ${this.serviceHandlers.length}`
+    );
   }
 
   /**
@@ -64,6 +85,16 @@ export class PreloadApiGenerator {
       moduleGroups.get(method.module)!.push(method);
     }
 
+    // Log registered services for debugging
+    logger.info(
+      `Generating preload API with ${this.serviceHandlers.length} service handlers registered`
+    );
+    for (const service of this.serviceHandlers) {
+      logger.info(
+        `Service: ${service.name}, Prefix: ${service.channelPrefix}, Parent: ${service.parentModule || "none"}`
+      );
+    }
+
     let code = `// Auto-generated preload API for Electron IPC
 // DO NOT EDIT DIRECTLY - Generated on ${new Date().toISOString()}
 import { ipcRenderer } from 'electron';
@@ -75,6 +106,16 @@ export interface DbState {
 }
 
 `;
+
+    // Organize service handlers by parent module
+    const servicesByParent = new Map<string, ServiceHandlerMetadata[]>();
+    for (const service of this.serviceHandlers) {
+      const parentKey = service.parentModule || "root";
+      if (!servicesByParent.has(parentKey)) {
+        servicesByParent.set(parentKey, []);
+      }
+      servicesByParent.get(parentKey)!.push(service);
+    }
 
     // Generate the main interface
     code += `export interface EnjoyAPI {\n`;
@@ -91,6 +132,7 @@ export interface DbState {
 
       code += `  ${camelizedPrefix}: {\n`;
 
+      // Add core methods for this module
       for (const method of methods) {
         const methodName = this.camelize(method.name);
         const params = this.generateMethodParams(
@@ -101,11 +143,36 @@ export interface DbState {
         code += `    ${methodName}: ${params} => Promise<${returnType}>;\n`;
       }
 
+      // Add nested service interfaces if this module has any services
+      const moduleServices = servicesByParent.get(camelizedPrefix) || [];
+      if (moduleServices.length > 0) {
+        for (const service of moduleServices) {
+          // Get service name (namespace)
+          const serviceName = this.camelize(
+            service.channelPrefix.split(":").pop() || ""
+          );
+
+          // Add service nested object
+          code += `    ${serviceName}: {\n`;
+
+          for (const method of service.methods) {
+            const methodName = this.camelize(method.name);
+            const params = this.generateMethodParams(method.parameters || []);
+            const returnType = method.returnType || "any";
+
+            code += `      ${methodName}: ${params} => Promise<${returnType}>;\n`;
+          }
+
+          code += `    };\n`;
+        }
+      }
+
       code += `  };\n`;
     }
 
-    // Add service-based interfaces
-    for (const service of this.serviceHandlers) {
+    // Add standalone service-based interfaces (those without a parent module)
+    const rootServices = servicesByParent.get("root") || [];
+    for (const service of rootServices) {
       // Camelize the channel prefix
       const camelizedPrefix = this.camelize(service.channelPrefix);
       code += `  ${camelizedPrefix}: {\n`;
@@ -134,6 +201,7 @@ export interface DbState {
       code += `// ${moduleName} API\n`;
       code += `export const ${this.capitalize(camelizedPrefix)}API = {\n`;
 
+      // Main module methods
       for (const method of methods) {
         const methodName = this.camelize(method.name);
         const channel = method.channel;
@@ -149,11 +217,39 @@ export interface DbState {
         code += `,\n`;
       }
 
+      // Add nested service implementations if this module has any services
+      const moduleServices = servicesByParent.get(camelizedPrefix) || [];
+      if (moduleServices.length > 0) {
+        for (const service of moduleServices) {
+          // Get service name (namespace)
+          const serviceName = this.camelize(
+            service.channelPrefix.split(":").pop() || ""
+          );
+
+          // Add nested service object
+          code += `  ${serviceName}: {\n`;
+
+          for (const method of service.methods) {
+            const methodName = this.camelize(method.name);
+            // Build the full channel name: parentModule:servicePrefix:methodName
+            const channel = `${service.parentModule}:${service.channelPrefix}:${methodName}`;
+            const params = this.generateMethodParams(method.parameters || []);
+            const paramNames = this.extractParamNames(method.parameters || []);
+
+            code += `    ${methodName}: ${params} => `;
+            code += `ipcRenderer.invoke('${channel}'${paramNames.length > 0 ? ", " + paramNames.join(", ") : ""})`;
+            code += `,\n`;
+          }
+
+          code += `  },\n`;
+        }
+      }
+
       code += `};\n\n`;
     }
 
-    // Generate implementations for service-based APIs
-    for (const service of this.serviceHandlers) {
+    // Generate implementations for standalone service-based APIs (those without a parent)
+    for (const service of rootServices) {
       // Camelize the channel prefix for variable names
       const camelizedPrefix = this.camelize(service.channelPrefix);
 
@@ -162,7 +258,6 @@ export interface DbState {
 
       for (const method of service.methods) {
         const methodName = this.camelize(method.name);
-        // Use the original channel format structure but with camelized method name
         const channel = `${service.channelPrefix}:${methodName}`;
         const params = this.generateMethodParams(method.parameters || []);
         const paramNames = this.extractParamNames(method.parameters || []);

@@ -32,6 +32,10 @@ export const setupIpcHandlers = async () => {
     shellIpcModule,
   ]);
 
+  // Explicitly generate entity handlers for preload
+  await dbIpcModule.generateEntityHandlersForPreload();
+  logger.info("Entity handlers generated for preload API");
+
   // Generate preload API if needed
   if (!app.isPackaged) {
     // Use consistent path with preload-api-manager.ts
@@ -42,6 +46,7 @@ export const setupIpcHandlers = async () => {
       "preload-api.ts"
     );
 
+    // Generate the preload API
     await PreloadApiGenerator.generatePreloadApi(outputPath);
     logger.info(`Generated preload API at ${outputPath}`);
   }

@@ -199,7 +199,7 @@ if (typeof window !== "undefined") {
 
     // Set up listener for initialization status
     if (window.EnjoyAPI) {
-      window.EnjoyAPI.initializer.getStatus().then((status: any) => {
+      window.EnjoyAPI.initializer.status().then((status: any) => {
         useAppStore.getState().handleInitProgress({
           step: status.currentStep,
           progress: status.progress,
