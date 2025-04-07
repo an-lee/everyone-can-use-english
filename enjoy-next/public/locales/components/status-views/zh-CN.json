@@ -1,0 +1,11 @@
+{
+  "connectingToDatabase": "连接到数据库...",
+  "pleaseWait": "请稍候",
+  "databaseError": "数据库错误",
+  "retryConnection": "重试连接",
+  "errorInitializingApplication": "初始化应用程序时出错",
+  "retry": "重试",
+  "agreeTo": "点击继续，代表您将同意我们的",
+  "termsOfService": "服务条款",
+  "privacyPolicy": "隐私政策"
+}

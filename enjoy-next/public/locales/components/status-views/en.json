@@ -1,0 +1,11 @@
+{
+  "connectingToDatabase": "Connecting to database...",
+  "pleaseWait": "Please wait",
+  "databaseError": "Database Error",
+  "retryConnection": "Retry Connection",
+  "errorInitializingApplication": "Error initializing application",
+  "retry": "Retry",
+  "agreeTo": "By clicking continue, you agree to our",
+  "termsOfService": "Terms of Service",
+  "privacyPolicy": "Privacy Policy"
+}
