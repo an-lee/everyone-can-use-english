@@ -5,8 +5,8 @@ import {
   shell,
   app,
 } from "electron";
-import pluginManager from "@main/core/plugin-manager";
-import { executeCommand } from "@main/core/plugin-context";
+import pluginManager from "@/main/core/plugin/plugin-manager";
+import { executeCommand } from "@/main/core/plugin/plugin-context";
 import log from "@main/services/logger";
 import appConfig from "@main/config/app-config";
 const logger = log.scope("ipc-handlers");

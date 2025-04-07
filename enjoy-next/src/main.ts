@@ -3,7 +3,7 @@ import path from "node:path";
 import started from "electron-squirrel-startup";
 import log from "@main/services/logger";
 import { setupIpcHandlers } from "@main/core/ipc-handlers";
-import { appInitializer } from "@main/core/app-initializer";
+import { appInitializer } from "@/main/core/initializer/app-initializer";
 
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
 declare const MAIN_WINDOW_VITE_NAME: string;

@@ -118,4 +118,12 @@ export interface PluginContext {
    * Get a service by name
    */
   getService<T>(name: string): T | undefined;
+
+  /**
+   * Wait for a specific initialization phase to complete
+   * @param phaseId The ID of the phase to wait for
+   * @param timeoutMs Optional timeout in milliseconds
+   * @returns Promise that resolves when the phase completes or rejects on timeout
+   */
+  waitForPhase(phaseId: string, timeoutMs?: number): Promise<boolean>;
 }

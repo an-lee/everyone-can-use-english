@@ -1,4 +1,4 @@
-import { BasePlugin } from "../../main/core/base-plugin";
+import { BasePlugin } from "../../main/core/plugin/base-plugin";
 import { PluginContext, PluginManifest } from "../../types/plugin";
 import { dialog } from "electron";
 

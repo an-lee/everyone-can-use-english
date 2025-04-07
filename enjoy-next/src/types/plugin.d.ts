@@ -1,3 +1,5 @@
+import { InitHookType } from "@/main/core/initializer/init-hooks";
+
 export enum PluginLifecycle {
   UNLOADED = "unloaded",
   LOADED = "loaded",
@@ -88,6 +90,12 @@ export interface IPlugin {
   setConfig<T>(key: string, value: T): void;
 }
 
+// Define hook function types for the context
+export type InitHookFunction =
+  | (() => Promise<void> | void)
+  | ((phaseId?: string) => Promise<void> | void)
+  | ((phaseId: string, error?: Error) => Promise<void> | void);
+
 export interface PluginContext {
   /**
    * Register a command that can be invoked by the user or other extensions.
@@ -112,6 +120,7 @@ export interface PluginContext {
     description: string;
     dependencies: string[];
     execute: () => Promise<void>;
+    timeout?: number;
   }): void;
 
   /**
@@ -119,6 +128,32 @@ export interface PluginContext {
    * @param phaseName The name of the phase to unregister
    */
   unregisterInitPhase(phaseName: string): void;
+
+  /**
+   * Register a hook to be executed at a specific point in the initialization process.
+   * @param hookType The type of hook to register
+   * @param callback The hook callback function
+   * @param order Optional execution order (lower numbers run first)
+   * @returns The hook ID that can be used to unregister the hook
+   */
+  registerInitHook(
+    hookType: InitHookType,
+    callback: InitHookFunction,
+    order?: number
+  ): string;
+
+  /**
+   * Unregister a previously registered initialization hook.
+   * @param hookId The ID of the hook to unregister
+   * @returns True if the hook was found and unregistered
+   */
+  unregisterInitHook(hookId: string): boolean;
+
+  /**
+   * Get the available hook types.
+   * @returns The InitHookType enum
+   */
+  getInitHookTypes(): typeof InitHookType;
 
   /**
    * Get all registered initialization phases.
@@ -152,4 +187,23 @@ export interface PluginContext {
    * @returns The service instance, or undefined if not found
    */
   getService<T>(name: string): T | undefined;
+
+  /**
+   * Register a hook to be executed when a phase times out.
+   * @param phaseId The phase ID to monitor for timeouts, or undefined for all phases
+   * @param callback The function to call when a timeout occurs
+   * @returns The hook ID that can be used to unregister the hook
+   */
+  registerPhaseTimeoutHandler(
+    phaseId: string | undefined,
+    callback: (phaseId: string, timeout: number) => Promise<void> | void
+  ): string;
+
+  /**
+   * Wait for a specific phase to complete
+   * @param phaseId The phase ID to wait for
+   * @param timeoutMs Optional timeout in milliseconds
+   * @returns Promise resolving to true if phase completed, rejects on timeout
+   */
+  waitForPhase(phaseId: string, timeoutMs?: number): Promise<boolean>;
 }

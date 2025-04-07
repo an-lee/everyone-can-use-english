@@ -1,8 +1,8 @@
 import log from "@main/services/logger";
 import appConfig from "@main/config/app-config";
 import db from "@main/storage";
-import pluginManager from "@main/core/plugin-manager";
-import { publishEvent } from "@main/core/plugin-context";
+import pluginManager from "@/main/core/plugin/plugin-manager";
+import { publishEvent } from "@/main/core/plugin/plugin-context";
 
 // Configure logger
 const logger = log.scope("PhaseRegistry");
@@ -14,6 +14,7 @@ export type InitPhase = {
   description: string;
   dependencies: string[];
   execute: () => Promise<void>;
+  timeout?: number; // Optional timeout in milliseconds
 };
 
 class PhaseRegistry {
