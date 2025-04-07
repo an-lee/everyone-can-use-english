@@ -50,24 +50,40 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // The backend config handler will handle setting needed fields
       window.EnjoyAPI.appConfig.set("user", currentUser);
 
-      // Explicitly connect to database if needed
+      // Only explicitly connect to database if autoConnected is false
+      // This prevents duplicate connections, as the main process already
+      // handles connection when user changes
       const { getStatus, connect } = useDbStore.getState();
       getStatus()
         .then(() => {
           const { dbState } = useDbStore.getState();
-          if (dbState.state !== "connected") {
-            console.log("Connecting to database after login");
+          console.log(
+            `[Auth] DB state after login: ${dbState.state}, autoConnected: ${dbState.autoConnected}`
+          );
+          // Only connect if state is not connected AND not connecting AND autoConnected is false
+          if (
+            dbState.state !== "connected" &&
+            dbState.state !== "connecting" &&
+            dbState.autoConnected === false
+          ) {
+            console.log("Connecting to database after login (manual connect)");
             connect().catch((err: Error) => {
               console.error("Error connecting to database after login:", err);
             });
+          } else {
+            console.log(
+              `Not connecting to database: ${
+                dbState.state === "connected"
+                  ? "already connected"
+                  : dbState.state === "connecting"
+                    ? "connection in progress"
+                    : "autoConnected is true"
+              }`
+            );
           }
         })
         .catch((err: Error) => {
           console.error("Error checking db status:", err);
-          // Try connecting anyway
-          connect().catch((err: Error) => {
-            console.error("Error connecting to database after login:", err);
-          });
         });
     }
   },

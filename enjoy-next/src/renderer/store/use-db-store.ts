@@ -108,22 +108,43 @@ export const useDbStore = create<DbStore>()((set, get) => ({
 
   checkAndConnectIfNeeded: async () => {
     const { isAuthenticated } = useAuthStore.getState();
-    const { appStatus } = useAppStore.getState();
+    const { appState } = useAppStore.getState();
     const { getStatus, connect } = get();
 
-    if (!isAuthenticated() || appStatus !== "ready") return;
+    if (!isAuthenticated() || appState.status !== "ready") return;
 
     try {
+      // Add a small delay to allow main process to update state
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       // Get current database status
       await getStatus();
       const currentState = get().dbState;
 
-      // If user is authenticated but db isn't connected, try to connect
+      console.log(
+        `[DB Store] Checking connection: state=${currentState.state}, autoConnected=${currentState.autoConnected}`
+      );
+
+      // Only connect if not already connected, not connecting, and not auto-connecting
       if (
         currentState.state !== "connected" &&
-        currentState.state !== "connecting"
+        currentState.state !== "connecting" &&
+        currentState.autoConnected !== true
       ) {
+        console.log(
+          "Manually connecting to database from renderer (autoConnected=false)"
+        );
         await connect();
+      } else {
+        console.log(
+          `Not connecting to database: ${
+            currentState.state === "connected"
+              ? "already connected"
+              : currentState.state === "connecting"
+                ? "connection in progress"
+                : "autoConnected is true"
+          }`
+        );
       }
     } catch (err) {
       console.error("Failed to check and connect to database:", err);
@@ -146,9 +167,8 @@ if (typeof window !== "undefined") {
       // Listen for app status changes
       useAppStore.subscribe((state, prevState) => {
         if (
-          state.appStatus === "ready" &&
-          (state.appStatus !== prevState.appStatus ||
-            state.initStatus.currentStep !== prevState.initStatus.currentStep)
+          state.appState.status === "ready" &&
+          state.appState.status !== prevState.appState.status
         ) {
           useDbStore.getState().checkAndConnectIfNeeded();
         }
@@ -156,8 +176,50 @@ if (typeof window !== "undefined") {
 
       // Listen for auth state changes
       useAuthStore.subscribe((state, prevState) => {
-        if (state.currentUser?.id !== prevState.currentUser?.id) {
-          useDbStore.getState().checkAndConnectIfNeeded();
+        // Only attempt connection if user logged in AND we're not in an autoConnect mode
+        // This prevents duplicate connections with the main process
+        if (
+          state.currentUser?.id !== prevState.currentUser?.id &&
+          state.currentUser !== null
+        ) {
+          console.log(
+            "Auth state changed in renderer, waiting before checking DB connection"
+          );
+
+          // Add a delay to allow main process to connect first
+          setTimeout(() => {
+            // Check database status first
+            useDbStore
+              .getState()
+              .getStatus()
+              .then(() => {
+                const { dbState } = useDbStore.getState();
+
+                console.log(
+                  `[Auth Subscription] DB state check: ${dbState.state}, autoConnected: ${dbState.autoConnected}`
+                );
+
+                // Only continue if not already connected/connecting and not auto-connected
+                if (
+                  dbState.state !== "connected" &&
+                  dbState.state !== "connecting" &&
+                  dbState.autoConnected !== true
+                ) {
+                  console.log("Checking if manual DB connection needed");
+                  useDbStore.getState().checkAndConnectIfNeeded();
+                } else {
+                  console.log(
+                    `No manual connection needed: ${
+                      dbState.state === "connected"
+                        ? "already connected"
+                        : dbState.state === "connecting"
+                          ? "connection in progress"
+                          : "autoConnected is true"
+                    }`
+                  );
+                }
+              });
+          }, 500); // 500ms delay to let main process connect first
         }
       });
     }
