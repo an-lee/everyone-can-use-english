@@ -4,6 +4,8 @@ import fs from "fs-extra";
 import { PluginContext, PluginManifest } from "@/types/plugin";
 import log from "@main/services/logger";
 import { EventEmitter } from "events";
+import { PluginInitAPI } from "./plugin-init-api";
+import { InitPhase } from "./phase-registry";
 
 const logger = log.scope("plugin-context");
 const eventBus = new EventEmitter();
@@ -79,6 +81,22 @@ export function createPluginContext(
           manifest.contributes?.views?.panel?.find((v) => v.id === id) ||
           {}),
       });
+    },
+
+    registerInitPhase(phase: Omit<InitPhase, "id">): void {
+      PluginInitAPI.registerPhase(pluginId, phase);
+    },
+
+    unregisterInitPhase(phaseName: string): void {
+      PluginInitAPI.unregisterPhase(pluginId, phaseName);
+    },
+
+    getInitPhases(): Array<{
+      id: string;
+      name: string;
+      dependencies: string[];
+    }> {
+      return PluginInitAPI.getPhases();
     },
 
     subscribe(event: string, callback: (...args: any[]) => any): void {

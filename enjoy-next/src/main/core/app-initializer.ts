@@ -1,21 +1,9 @@
 import { BrowserWindow, ipcMain } from "electron";
 import log from "@main/services/logger";
-import appConfig from "@main/config/app-config";
-import db from "@main/storage";
-import pluginManager from "@main/core/plugin-manager";
-import { publishEvent } from "@main/core/plugin-context";
+import { phaseRegistry, InitPhase } from "./phase-registry";
 
 // Configure logger
 const logger = log.scope("AppInitializer");
-
-// Definition of initialization phases
-export type InitPhase = {
-  id: string;
-  name: string;
-  description: string;
-  dependencies: string[];
-  execute: () => Promise<void>;
-};
 
 // Initialization state
 export type InitState = {
@@ -28,7 +16,6 @@ export type InitState = {
 };
 
 export class AppInitializer {
-  private phases: InitPhase[] = [];
   private state: InitState = {
     status: "pending",
     currentPhase: null,
@@ -40,68 +27,7 @@ export class AppInitializer {
   private ipcHandlersRegistered: boolean = false;
 
   constructor() {
-    // Register default initialization phases
-    this.registerPhase({
-      id: "config",
-      name: "Configuration",
-      description: "Loading application configuration",
-      dependencies: [],
-      execute: async () => {
-        await appConfig.initialize();
-      },
-    });
-
-    this.registerPhase({
-      id: "plugin_system",
-      name: "Plugin System",
-      description: "Initializing plugin system",
-      dependencies: ["config"],
-      execute: async () => {
-        await pluginManager.init();
-      },
-    });
-
-    this.registerPhase({
-      id: "plugins_activation",
-      name: "Plugins Activation",
-      description: "Activating plugins",
-      dependencies: ["plugin_system"],
-      execute: async () => {
-        await pluginManager.activatePlugins();
-      },
-    });
-
-    this.registerPhase({
-      id: "database",
-      name: "Database",
-      description: "Setting up database connection",
-      dependencies: ["config"],
-      execute: async () => {
-        db.init();
-        // Database actual connection happens when user logs in
-      },
-    });
-
-    this.registerPhase({
-      id: "app_ready",
-      name: "Application Ready",
-      description: "Publishing application ready event",
-      dependencies: ["plugin_system", "plugins_activation", "database"],
-      execute: async () => {
-        publishEvent("app:ready");
-      },
-    });
-  }
-
-  // Register a new initialization phase
-  registerPhase(phase: InitPhase): void {
-    // Check if phase with same id already exists
-    const existingIndex = this.phases.findIndex((p) => p.id === phase.id);
-    if (existingIndex >= 0) {
-      this.phases[existingIndex] = phase;
-    } else {
-      this.phases.push(phase);
-    }
+    // No need to register phases here anymore - they're registered in the PhaseRegistry
   }
 
   // Get the current initialization state
@@ -141,9 +67,10 @@ export class AppInitializer {
     this.state = { ...this.state, ...updates };
 
     // Calculate progress based on completed phases
-    if (this.phases.length > 0) {
+    const phases = phaseRegistry.getPhases();
+    if (phases.length > 0) {
       this.state.progress = Math.round(
-        (this.state.completedPhases.length / this.phases.length) * 100
+        (this.state.completedPhases.length / phases.length) * 100
       );
     }
 
@@ -166,13 +93,15 @@ export class AppInitializer {
 
   // Get phases that are ready to execute (all dependencies satisfied)
   private getReadyPhases(): InitPhase[] {
-    return this.phases.filter(
-      (phase) =>
-        !this.state.completedPhases.includes(phase.id) &&
-        phase.dependencies.every((dep) =>
-          this.state.completedPhases.includes(dep)
-        )
-    );
+    return phaseRegistry
+      .getPhases()
+      .filter(
+        (phase) =>
+          !this.state.completedPhases.includes(phase.id) &&
+          phase.dependencies.every((dep) =>
+            this.state.completedPhases.includes(dep)
+          )
+      );
   }
 
   // Execute a specific phase
@@ -203,6 +132,14 @@ export class AppInitializer {
 
   // Start the initialization process
   async initialize(): Promise<void> {
+    // Check for dependency cycles before starting
+    const cycles = phaseRegistry.detectCycles();
+    if (cycles.length > 0) {
+      throw new Error(
+        `Circular dependencies detected in phases: ${cycles.join(", ")}`
+      );
+    }
+
     // Register IPC handlers before starting initialization
     this.registerIpcHandlers();
 
@@ -221,22 +158,23 @@ export class AppInitializer {
     });
 
     try {
+      const allPhases = phaseRegistry.getPhases();
       // Process phases in dependency order until all are completed
       while (true) {
         const readyPhases = this.getReadyPhases();
         if (readyPhases.length === 0) {
           // Check if all phases have been completed
-          if (this.state.completedPhases.length === this.phases.length) {
+          if (this.state.completedPhases.length === allPhases.length) {
             break;
           }
 
           // Check for circular dependencies
-          const remaining = this.phases.filter(
+          const remaining = allPhases.filter(
             (p) => !this.state.completedPhases.includes(p.id)
           );
           if (remaining.length > 0) {
             throw new Error(
-              `Circular dependency detected or missing dependency. Remaining phases: ${remaining.map((p) => p.id).join(", ")}`
+              `Unable to resolve dependencies for remaining phases: ${remaining.map((p) => p.id).join(", ")}`
             );
           }
         }

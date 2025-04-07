@@ -90,32 +90,66 @@ export interface IPlugin {
 
 export interface PluginContext {
   /**
-   * Register a command that can be invoked by the user
+   * Register a command that can be invoked by the user or other extensions.
+   * @param id The command ID
+   * @param callback The command implementation
    */
   registerCommand(id: string, callback: (...args: any[]) => any): void;
 
   /**
-   * Register a view that can be shown in the sidebar or panels
+   * Register a view component that can be displayed in the UI.
+   * @param id The view ID
+   * @param component The view component
    */
   registerView(id: string, component: any): void;
 
   /**
-   * Subscribe to an event
+   * Register an initialization phase for the application.
+   * @param phase The phase definition without an ID (will be auto-generated)
+   */
+  registerInitPhase(phase: {
+    name: string;
+    description: string;
+    dependencies: string[];
+    execute: () => Promise<void>;
+  }): void;
+
+  /**
+   * Unregister a previously registered initialization phase.
+   * @param phaseName The name of the phase to unregister
+   */
+  unregisterInitPhase(phaseName: string): void;
+
+  /**
+   * Get all registered initialization phases.
+   * @returns Array of phase information
+   */
+  getInitPhases(): Array<{ id: string; name: string; dependencies: string[] }>;
+
+  /**
+   * Subscribe to an event.
+   * @param event The event name
+   * @param callback The event handler
    */
   subscribe(event: string, callback: (...args: any[]) => any): void;
 
   /**
-   * Publish an event
+   * Publish an event.
+   * @param event The event name
+   * @param args The event arguments
    */
   publish(event: string, ...args: any[]): void;
 
   /**
-   * Get plugin storage directory
+   * Get the storage path for this plugin.
+   * @returns The storage path
    */
   getStoragePath(): string;
 
   /**
-   * Get a service by name
+   * Get a service provided by the application.
+   * @param name The service name
+   * @returns The service instance, or undefined if not found
    */
   getService<T>(name: string): T | undefined;
 }
