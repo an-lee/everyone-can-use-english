@@ -16,12 +16,28 @@ const CONNECTION_TIMEOUT = 10000; // 10 seconds timeout for connection
 
 // Database state type
 export type DbState = {
-  state: "disconnected" | "connecting" | "connected" | "error";
+  state:
+    | "disconnected"
+    | "connecting"
+    | "connected"
+    | "error"
+    | "locked"
+    | "reconnecting";
   path: string | null;
   error: string | null;
   autoConnected: boolean;
   retryCount?: number;
   retryDelay?: number;
+  lastOperation?: string;
+  connectionTime?: number;
+  stats?: {
+    connectionDuration?: number;
+    operationCount?: number;
+    lastError?: {
+      message: string;
+      time: number;
+    } | null;
+  };
 };
 
 // Database module
@@ -33,6 +49,13 @@ export const db = {
   retryTimer: null as NodeJS.Timeout | null,
   ipcHandlersRegistered: false,
   isInitialized: false,
+  connectionStartTime: 0,
+  operationCount: 0,
+  pingInterval: null as NodeJS.Timeout | null,
+  lastError: null as Error | null,
+  lastErrorTime: 0,
+  sessionId: "",
+  lastOperation: "init",
   currentState: {
     state: "disconnected",
     path: null,
@@ -42,10 +65,26 @@ export const db = {
 
   // Broadcast database state to all windows
   broadcastState: (state: DbState) => {
+    // Enhanced state change detection - focus on the most critical fields
+    const currentState = db.currentState;
+
+    // Only broadcast if there's an actual meaningful change
+    const isStateChange = currentState.state !== state.state;
+    const isErrorChange = currentState.error !== state.error;
+    const isPathChange = currentState.path !== state.path;
+
+    // Skip if this is just a metadata update but the core state is unchanged
+    if (!isStateChange && !isErrorChange && !isPathChange) {
+      return;
+    }
+
     // Update current state
     db.currentState = state;
 
     // Broadcast to all windows
+    logger.debug(
+      `Broadcasting state change: ${currentState.state} → ${state.state}`
+    );
     BrowserWindow.getAllWindows().forEach((window) => {
       if (!window.isDestroyed()) {
         window.webContents.send(IpcChannels.DB.STATE_CHANGED, state);
@@ -141,15 +180,106 @@ export const db = {
       // Reset retry count on successful connection
       db.retryCount = 0;
 
-      logger.info("Database connection established");
+      // Record connection time and reset operation count
+      db.connectionStartTime = Date.now();
+      db.operationCount = 0;
+
+      // Generate a new session ID
+      db.sessionId = `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+
+      logger.info(`Database connection established (Session: ${db.sessionId})`);
+
+      // Set up ping to keep connection alive
+      if (db.pingInterval) {
+        clearInterval(db.pingInterval);
+      }
+
+      db.pingInterval = setInterval(() => {
+        if (db.dataSource?.isInitialized) {
+          db.dataSource
+            .query("SELECT 1")
+            .then(() => {
+              logger.debug(
+                `Database ping successful (Session: ${db.sessionId})`
+              );
+            })
+            .catch((err) => {
+              logger.warn(
+                `Database ping failed (Session: ${db.sessionId}):`,
+                err
+              );
+              // If ping fails, update state to reflect issue
+              db.broadcastState({
+                ...db.currentState,
+                state: "reconnecting",
+                error: `Connection check failed: ${err.message}`,
+                lastOperation: "ping",
+              });
+            });
+        } else {
+          // Clear interval if database is no longer connected
+          if (db.pingInterval) {
+            clearInterval(db.pingInterval);
+            db.pingInterval = null;
+          }
+        }
+      }, 300000); // Every 5 minutes
+
       db.broadcastState({
         state: "connected",
         path: dbPath,
         error: null,
         autoConnected: db.autoConnected,
+        connectionTime: db.connectionStartTime,
+        stats: {
+          connectionDuration: 0,
+          operationCount: 0,
+          lastError: db.lastError
+            ? {
+                message: db.lastError.message,
+                time: db.lastErrorTime,
+              }
+            : null,
+        },
       });
     } catch (err) {
-      logger.error("Database connection error:", err);
+      logger.error(
+        `Database connection error (Session: ${db.sessionId}):`,
+        err
+      );
+
+      // Record the error
+      db.lastError = err instanceof Error ? err : new Error(String(err));
+      db.lastErrorTime = Date.now();
+
+      // Special handling for common errors
+      const errorMessage = String(err);
+      if (errorMessage.includes("database is locked")) {
+        logger.warn("Database lock detected, will try reconnection");
+        db.broadcastState({
+          state: "locked",
+          path: appConfig.dbPath(),
+          error: `Database is locked: ${errorMessage}`,
+          autoConnected: db.autoConnected,
+          retryCount: db.retryCount,
+          retryDelay:
+            db.retryCount < MAX_RETRIES ? RETRY_DELAYS[db.retryCount] : 0,
+          lastOperation: "connect",
+          stats: {
+            lastError: {
+              message: errorMessage,
+              time: db.lastErrorTime,
+            },
+          },
+        });
+
+        // Schedule a reconnection
+        if (shouldRetry && db.autoConnected) {
+          setTimeout(() => db.reconnect(), 3000);
+        }
+
+        throw err;
+      }
 
       // Implement retry mechanism with exponential backoff
       if (shouldRetry && db.autoConnected && db.retryCount < MAX_RETRIES) {
@@ -157,7 +287,7 @@ export const db = {
         db.retryCount++;
 
         logger.info(
-          `Retrying database connection in ${retryDelay}ms (attempt ${db.retryCount})`
+          `Retrying database connection in ${retryDelay}ms (attempt ${db.retryCount}, Session: ${db.sessionId})`
         );
 
         db.broadcastState({
@@ -167,6 +297,13 @@ export const db = {
           autoConnected: db.autoConnected,
           retryCount: db.retryCount,
           retryDelay: retryDelay,
+          lastOperation: "connect",
+          stats: {
+            lastError: {
+              message: err instanceof Error ? err.message : String(err),
+              time: db.lastErrorTime,
+            },
+          },
         });
 
         // Schedule retry
@@ -180,6 +317,13 @@ export const db = {
           path: appConfig.dbPath(),
           error: err instanceof Error ? err.message : String(err),
           autoConnected: db.autoConnected,
+          lastOperation: "connect",
+          stats: {
+            lastError: {
+              message: err instanceof Error ? err.message : String(err),
+              time: db.lastErrorTime,
+            },
+          },
         });
       }
 
@@ -197,10 +341,20 @@ export const db = {
       db.retryTimer = null;
     }
 
+    // Clear ping interval
+    if (db.pingInterval) {
+      clearInterval(db.pingInterval);
+      db.pingInterval = null;
+    }
+
     try {
       if (db.dataSource?.isInitialized) {
         try {
+          const disconnectStart = Date.now();
           await db.dataSource.destroy();
+          logger.debug(
+            `Database disconnection completed in ${Date.now() - disconnectStart}ms`
+          );
         } catch (err) {
           // If error is "Database handle is closed", just log it and continue
           if (
@@ -216,16 +370,33 @@ export const db = {
 
         db.dataSource = null;
 
-        // Reset retry count
+        // Reset counters and timers
         db.retryCount = 0;
+        db.connectionStartTime = 0;
+        db.operationCount = 0;
 
-        logger.info("Database connection closed");
+        logger.info(`Database connection closed (Session: ${db.sessionId})`);
+
         db.broadcastState({
           state: "disconnected",
           path: null,
           error: null,
           autoConnected: false,
+          lastOperation: "disconnect",
+          stats: {
+            connectionDuration: 0,
+            operationCount: 0,
+            lastError: db.lastError
+              ? {
+                  message: db.lastError.message,
+                  time: db.lastErrorTime,
+                }
+              : null,
+          },
         });
+
+        // Clear session ID after disconnect completes
+        db.sessionId = "";
       } else {
         // Make sure we also broadcast state even if datasource wasn't initialized
         logger.info("No active database connection to close");
@@ -234,15 +405,30 @@ export const db = {
           path: null,
           error: null,
           autoConnected: false,
+          lastOperation: "disconnect",
         });
       }
     } catch (err) {
-      logger.error("Database disconnection error:", err);
+      // Record the error
+      db.lastError = err instanceof Error ? err : new Error(String(err));
+      db.lastErrorTime = Date.now();
+
+      logger.error(
+        `Database disconnection error (Session: ${db.sessionId}):`,
+        err
+      );
       db.broadcastState({
         state: "error",
         path: appConfig.dbPath(),
         error: err instanceof Error ? err.message : String(err),
         autoConnected: db.autoConnected,
+        lastOperation: "disconnect",
+        stats: {
+          lastError: {
+            message: err instanceof Error ? err.message : String(err),
+            time: db.lastErrorTime,
+          },
+        },
       });
       throw err;
     }
@@ -250,7 +436,19 @@ export const db = {
 
   // Initialize the database module
   init: () => {
+    // Ensure db is initialized only once
+    if (db.isInitialized) {
+      logger.warn("Database already initialized, skipping");
+      return;
+    }
+
     logger.info("Initializing database module");
+
+    // Generate a new session ID for the module
+    db.sessionId = `init-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    logger.debug(
+      `Database module initialized with session ID: ${db.sessionId}`
+    );
 
     // We don't need to explicitly register IPC handlers here anymore
     // They are automatically discovered and registered by the IPC registry
@@ -284,12 +482,6 @@ export const db = {
             db.autoConnected = false;
             db.cancelRetry();
             await db.disconnect();
-            db.broadcastState({
-              state: "disconnected",
-              path: null,
-              error: null,
-              autoConnected: false,
-            });
           } catch (error) {
             logger.error(
               "Failed to disconnect from database after logout",
@@ -362,6 +554,105 @@ export const db = {
     fs.copySync(dbPath, backupFilePath);
 
     logger.info(`Backup created at ${backupFilePath}`);
+  },
+
+  // Reconnect to the database after an error
+  reconnect: async () => {
+    logger.info(`Attempting database reconnection (Session: ${db.sessionId})`);
+
+    // Update state
+    db.broadcastState({
+      ...db.currentState,
+      state: "reconnecting",
+      lastOperation: "reconnect",
+    });
+
+    // If database is currently connected, disconnect first
+    if (db.dataSource?.isInitialized) {
+      try {
+        await db.disconnect();
+      } catch (error) {
+        logger.warn("Error during reconnection disconnect:", error);
+      }
+    }
+
+    // Clear any retry timer
+    if (db.retryTimer) {
+      clearTimeout(db.retryTimer);
+      db.retryTimer = null;
+    }
+
+    // Attempt to reconnect
+    try {
+      await db.connect({ retry: true });
+      logger.info(
+        `Database reconnection successful (Session: ${db.sessionId})`
+      );
+    } catch (error) {
+      logger.error(
+        `Database reconnection failed (Session: ${db.sessionId}):`,
+        error
+      );
+      // Error handling is done in the connect method
+    }
+  },
+
+  // Run database migrations
+  migrate: async () => {
+    if (!db.dataSource?.isInitialized) {
+      throw new Error(
+        "Database not connected. Connect to database before running migrations."
+      );
+    }
+
+    logger.info(`Running database migrations (Session: ${db.sessionId})`);
+    db.broadcastState({
+      ...db.currentState,
+      lastOperation: "migrate",
+    });
+
+    try {
+      const startTime = Date.now();
+
+      // Run migrations
+      await db.dataSource.runMigrations();
+
+      const duration = Date.now() - startTime;
+      logger.info(
+        `Database migrations completed in ${duration}ms (Session: ${db.sessionId})`
+      );
+
+      db.broadcastState({
+        ...db.currentState,
+        lastOperation: "migrate",
+      });
+
+      return { success: true, duration };
+    } catch (error) {
+      // Record the error
+      db.lastError = error instanceof Error ? error : new Error(String(error));
+      db.lastErrorTime = Date.now();
+
+      logger.error(
+        `Database migration error (Session: ${db.sessionId}):`,
+        error
+      );
+
+      db.broadcastState({
+        ...db.currentState,
+        state: "error",
+        error: error instanceof Error ? error.message : String(error),
+        lastOperation: "migrate",
+        stats: {
+          lastError: {
+            message: error instanceof Error ? error.message : String(error),
+            time: db.lastErrorTime,
+          },
+        },
+      });
+
+      throw error;
+    }
   },
 };
 

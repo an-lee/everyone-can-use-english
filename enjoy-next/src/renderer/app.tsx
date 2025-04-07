@@ -1,4 +1,4 @@
-import { StrictMode, useEffect, useState } from "react";
+import { StrictMode, useEffect, useState, useRef } from "react";
 import ReactDOM from "react-dom/client";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 import "./lib/i18n";
@@ -12,8 +12,6 @@ import { Login } from "./routes/login";
 import { Toaster } from "./components/ui";
 import { useTheme } from "./hooks/use-theme";
 import { useFontSize } from "./hooks/use-font-size";
-import { DbState } from "../preload/db-api";
-import { InitStatus } from "../preload/app-initializer-api";
 
 // Maximum retry attempts for database connection
 const MAX_RETRIES = 5;
@@ -28,16 +26,47 @@ declare module "@tanstack/react-router" {
   }
 }
 
-// Update DbState to include retry properties
-interface EnhancedDbState extends DbState {
+// Define the types here instead of importing from @preload files
+type DbConnectionState =
+  | "disconnected"
+  | "connecting"
+  | "connected"
+  | "error"
+  | "locked"
+  | "reconnecting";
+
+type InitStatus = {
+  currentStep: string;
+  progress: number;
+  error: string | null;
+  message: string;
+};
+
+interface DbState {
+  state: DbConnectionState;
+  path: string | null;
+  error: string | null;
+  autoConnected?: boolean;
   retryCount?: number;
   retryDelay?: number;
+  lastOperation?: string;
+  connectionTime?: number;
+  stats?: {
+    connectionDuration?: number;
+    operationCount?: number;
+    lastError?: {
+      message: string;
+      time: number;
+    } | null;
+  };
 }
+
+// Extend DbState with any additional properties needed
+interface EnhancedDbState extends DbState {}
 
 type AppStatusType = "initializing" | "login" | "ready" | "error";
 
 const App = () => {
-  const { initialized } = useAppStore();
   const { isAuthenticated, autoLogin } = useAuthStore();
   const [appStatus, setAppStatus] = useState<AppStatusType>("initializing");
   const [initStatus, setInitStatus] = useState<InitStatus>({
@@ -52,6 +81,9 @@ const App = () => {
     error: null,
     autoConnected: false,
   });
+
+  // Ref to track the last database state for logging purposes
+  const dbStateRef = useRef<string | null>("disconnected");
 
   useTheme();
   useFontSize();
@@ -96,13 +128,8 @@ const App = () => {
       } else {
         setAppStatus("login");
 
-        // When user logs out, ensure db state is checked
-        if (window.EnjoyAPI && dbState.state === "connected") {
-          window.EnjoyAPI.db.status().then((status) => {
-            setDbState(status);
-            console.log("DB status after logout:", status);
-          });
-        }
+        // No need to manually check database state after logout
+        // The db-state-changed event will handle this
       }
     }
   }, [isAuthenticated(), initStatus.currentStep]);
@@ -110,7 +137,15 @@ const App = () => {
   // Listen for database state changes
   useEffect(() => {
     const handleDbStateChange = (state: EnhancedDbState) => {
-      console.log("Database state changed:", state);
+      // Only log if the state has changed from the last known state
+      if (dbStateRef.current !== state.state) {
+        console.log(
+          `Database state changed: ${dbStateRef.current} → ${state.state}`,
+          state
+        );
+        dbStateRef.current = state.state;
+      }
+
       setDbState(state);
     };
 
@@ -158,7 +193,7 @@ const App = () => {
         window.EnjoyAPI.events.off("db-state-changed", handleDbStateChange);
       }
     };
-  }, [isAuthenticated(), appStatus]);
+  }, [appStatus]);
 
   // App is still initializing
   if (appStatus === "initializing") {

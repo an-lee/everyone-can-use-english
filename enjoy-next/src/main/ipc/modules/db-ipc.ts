@@ -11,13 +11,30 @@ export type DbConnectionState =
   | "disconnected"
   | "connecting"
   | "connected"
-  | "error";
+  | "error"
+  | "locked"
+  | "reconnecting";
 
+/**
+ * Database state type definition
+ */
 export type DbState = {
   state: DbConnectionState;
   path: string | null;
   error: string | null;
   autoConnected?: boolean;
+  retryCount?: number;
+  retryDelay?: number;
+  lastOperation?: string;
+  connectionTime?: number;
+  stats?: {
+    connectionDuration?: number;
+    operationCount?: number;
+    lastError?: {
+      message: string;
+      time: number;
+    } | null;
+  };
 };
 
 /**
@@ -191,6 +208,12 @@ export class DbIpcModule extends BaseIpcModule {
   })
   async status(): Promise<DbState> {
     try {
+      // Track operation for metrics
+      db.lastOperation = "status";
+      db.operationCount = (db.operationCount || 0) + 1;
+
+      const startTime = Date.now();
+
       // If connected but datasource is actually not initialized, correct the state
       if (
         db.currentState.state === "connected" &&
@@ -200,6 +223,7 @@ export class DbIpcModule extends BaseIpcModule {
           ...db.currentState,
           state: "disconnected",
           error: "Database connection lost",
+          lastOperation: "status",
         });
       }
 
@@ -210,18 +234,52 @@ export class DbIpcModule extends BaseIpcModule {
           return {
             ...db.currentState,
             error: "No database path available, please login first",
+            lastOperation: "status",
           };
         }
       }
 
-      return db.currentState;
+      // Calculate connection duration for connected databases
+      let enhancedState = { ...db.currentState };
+
+      if (db.currentState.state === "connected" && db.connectionStartTime > 0) {
+        enhancedState.stats = {
+          connectionDuration: Date.now() - db.connectionStartTime,
+          operationCount: db.operationCount || 0,
+          lastError: db.lastError
+            ? {
+                message: db.lastError.message,
+                time: db.lastErrorTime,
+              }
+            : null,
+        };
+      }
+
+      // Add operation timing
+      this.logger.debug(
+        `Status check completed in ${Date.now() - startTime}ms`
+      );
+      enhancedState.lastOperation = "status";
+
+      return enhancedState;
     } catch (error) {
+      // Record the error
+      db.lastError = error instanceof Error ? error : new Error(String(error));
+      db.lastErrorTime = Date.now();
+
       this.logger.error("IPC db:status error:", error);
       return {
         state: "error",
         path: appConfig.dbPath(),
         error: error instanceof Error ? error.message : String(error),
         autoConnected: false,
+        lastOperation: "status",
+        stats: {
+          lastError: {
+            message: error instanceof Error ? error.message : String(error),
+            time: db.lastErrorTime,
+          },
+        },
       };
     }
   }
@@ -316,6 +374,33 @@ export class DbIpcModule extends BaseIpcModule {
     PreloadApiGenerator.clearServiceHandlers();
 
     this.logger.info("Entity handlers unregistered");
+  }
+
+  /**
+   * Run database migrations
+   * @returns Migration result
+   */
+  @IpcMethod({
+    description: "Run database migrations",
+    errorHandling: "standard",
+    returns: {
+      type: "object",
+      description: "Migration result",
+    },
+  })
+  async migrate(): Promise<{ success: boolean; duration: number }> {
+    if (!db.dataSource?.isInitialized) {
+      throw new Error(
+        "Database not connected. Please connect to database first."
+      );
+    }
+
+    try {
+      return await db.migrate();
+    } catch (error) {
+      this.logger.error("IPC db:migrate error:", error);
+      throw error;
+    }
   }
 }
 

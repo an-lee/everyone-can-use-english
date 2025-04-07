@@ -83,6 +83,7 @@ export const IpcChannels = {
     CONNECT: "db:connect",
     DISCONNECT: "db:disconnect",
     BACKUP: "db:backup",
+    MIGRATE: "db:migrate",
     STATUS: "db:status",
     STATE_CHANGED: "db-state-changed",
 

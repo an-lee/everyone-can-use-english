@@ -49,6 +49,7 @@ contextBridge.exposeInMainWorld("EnjoyAPI", {
     connect: () => ipcRenderer.invoke("db:connect"),
     disconnect: () => ipcRenderer.invoke("db:disconnect"),
     backup: () => ipcRenderer.invoke("db:backup"),
+    migrate: () => ipcRenderer.invoke("db:migrate"),
     status: () => ipcRenderer.invoke("db:status"),
   },
 
