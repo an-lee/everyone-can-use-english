@@ -50,8 +50,8 @@ export const IpcChannels = {
 
   // Plugin channels
   PLUGINS: {
-    GET: "plugins:get",
-    EXECUTE_COMMAND: "command:execute",
+    GET_ALL: "plugin:getAll",
+    EXECUTE_COMMAND: "plugin:executeCommand",
   },
 
   // App initializer channels

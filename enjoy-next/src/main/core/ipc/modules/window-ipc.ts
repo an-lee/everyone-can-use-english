@@ -53,7 +53,7 @@ export class WindowIpcModule extends BaseIpcModule {
   /**
    * Set up window state change listeners for all windows
    */
-  setupWindowStateListeners(): void {
+  registerWindowStateListeners(): void {
     this.logger.info("Setting up window state listeners");
 
     // Get existing windows
