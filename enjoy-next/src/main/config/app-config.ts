@@ -7,7 +7,7 @@ import {
   USER_DATA_SUB_PATH,
 } from "@shared/constants";
 import path from "path";
-import { app, ipcMain } from "electron";
+import { app } from "electron";
 import fs from "fs-extra";
 import { UserType } from "@renderer/api";
 import { EventEmitter } from "events";
@@ -57,7 +57,6 @@ const APP_CONFIG_SCHEMA = {
 class AppConfig extends EventEmitter {
   private store: any;
   private isInitialized: boolean = false;
-  private ipcHandlersRegistered: boolean = false;
 
   constructor() {
     super();
@@ -80,9 +79,6 @@ class AppConfig extends EventEmitter {
       // Verify paths
       await this.ensureLibraryPath();
       logger.info(`Library path verified: ${this.get("libraryPath")}`);
-
-      // Setup IPC handlers only once
-      this.setupIpcHandlers();
 
       // Check if user is already logged in
       const user = this.currentUser();
@@ -199,34 +195,26 @@ class AppConfig extends EventEmitter {
     return tmpDir;
   }
 
+  /**
+   * @deprecated Use appConfigIpcModule.registerHandlers() instead
+   */
   setupIpcHandlers() {
-    // Only register handlers once
-    if (this.ipcHandlersRegistered) {
-      logger.debug("AppConfig IPC handlers already registered, skipping");
-      return;
-    }
+    logger.warn(
+      "AppConfig.setupIpcHandlers is deprecated. Use appConfigIpcModule.registerHandlers() instead."
+    );
 
-    try {
-      ipcMain.handle("appConfig:get", (_event, key) => this.get(key));
-      ipcMain.handle("appConfig:set", (_event, key, value) =>
-        this.set(key, value)
-      );
-      ipcMain.handle("appConfig:file", () => this.file());
-      ipcMain.handle("appConfig:libraryPath", () => this.libraryPath());
-      ipcMain.handle("appConfig:currentUser", () => this.currentUser());
-      ipcMain.handle("appConfig:logout", () => this.logout());
-      ipcMain.handle("appConfig:userDataPath", (_event, subPath) =>
-        this.userDataPath(subPath)
-      );
-      ipcMain.handle("appConfig:dbPath", () => this.dbPath());
-      ipcMain.handle("appConfig:cachePath", () => this.cachePath());
-
-      this.ipcHandlersRegistered = true;
-      logger.info("AppConfig IPC handlers set up");
-    } catch (error) {
-      logger.error("Failed to register AppConfig IPC handlers", error);
-      // Don't set ipcHandlersRegistered to true if there was an error
-    }
+    // Import and register the new AppConfig IPC module
+    import("./app-config-ipc")
+      .then(({ default: appConfigIpcModule }) => {
+        appConfigIpcModule.registerHandlers();
+        logger.info("AppConfig IPC handlers set up via the new module");
+      })
+      .catch((error) => {
+        logger.error(
+          "Failed to register AppConfig IPC handlers via new module",
+          error
+        );
+      });
   }
 }
 

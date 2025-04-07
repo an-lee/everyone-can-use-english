@@ -1,96 +1,52 @@
-import {
-  ipcMain,
-  BrowserWindow,
-  IpcMainInvokeEvent,
-  shell,
-  app,
-} from "electron";
-import pluginManager from "@/main/core/plugin/plugin-manager";
-import { executeCommand } from "@/main/core/plugin/plugin-context";
+import { app } from "electron";
 import log from "@main/services/logger";
-import appConfig from "@main/config/app-config";
+import ipcRegistry from "./ipc/ipc-registry";
+import windowIpcModule from "./ipc/modules/window-ipc";
+import { IpcChannels } from "@shared/ipc/ipc-channels";
+
 const logger = log.scope("ipc-handlers");
 
 /**
- * Set up all IPC handlers
+ * Set up all IPC handlers for the application
  */
-export const setupIpcHandlers = () => {
-  appConfig.setupIpcHandlers();
+export const setupIpcHandlers = async () => {
+  logger.info("Setting up IPC handlers");
+
+  // Setup app configuration handlers
+  const { default: appConfigIpcModule } = await import(
+    "@main/config/app-config-ipc"
+  );
+  appConfigIpcModule.registerHandlers();
+
+  // Setup shell handlers
+  ipcRegistry.register(IpcChannels.SHELL.OPEN_EXTERNAL, (_event, url) => {
+    return import("electron").then(({ shell }) => shell.openExternal(url));
+  });
+
+  ipcRegistry.register(IpcChannels.SHELL.OPEN_PATH, (_event, path) => {
+    return import("electron").then(({ shell }) => shell.openPath(path));
+  });
+
+  // Setup window handlers
+  windowIpcModule.registerHandlers();
+  windowIpcModule.setupWindowStateListeners();
+
+  // Setup plugin handlers - this will be refactored to its own module later
   setupPluginIpcHandlers();
 
-  // Shell
-  ipcMain.handle("shell:openExternal", (_event, url) => {
-    shell.openExternal(url);
-  });
-
-  ipcMain.handle("shell:openPath", (_event, path) => {
-    shell.openPath(path);
-  });
-
-  // Window control
-  ipcMain.handle("window:minimize", (event) => {
-    const window = BrowserWindow.fromWebContents(event.sender);
-    if (window) window.minimize();
-  });
-
-  ipcMain.handle("window:maximize", (event) => {
-    const window = BrowserWindow.fromWebContents(event.sender);
-    if (window) {
-      if (window.isMaximized()) {
-        window.unmaximize();
-      } else {
-        window.maximize();
-      }
-      // Notify renderer about window state change
-      setTimeout(() => {
-        if (window && !window.isDestroyed()) {
-          window.webContents.send("window-state-changed", window.isMaximized());
-        }
-      }, 100);
-    }
-  });
-
-  ipcMain.handle("window:close", (event) => {
-    const window = BrowserWindow.fromWebContents(event.sender);
-    if (window) window.close();
-  });
-
-  ipcMain.handle("window:isMaximized", (event) => {
-    const window = BrowserWindow.fromWebContents(event.sender);
-    return window ? window.isMaximized() : false;
-  });
-
-  // Set up window state change listeners for all windows
-  setupWindowStateListeners();
-};
-
-/**
- * Set up window state change listeners
- */
-const setupWindowStateListeners = () => {
-  // Listen for new windows being created
-  app.on("browser-window-created" as any, (_: any, window: BrowserWindow) => {
-    // Listen for maximize/unmaximize events
-    window.on("maximize", () => {
-      if (!window.isDestroyed()) {
-        window.webContents.send("window-state-changed", true);
-      }
-    });
-
-    window.on("unmaximize", () => {
-      if (!window.isDestroyed()) {
-        window.webContents.send("window-state-changed", false);
-      }
-    });
-  });
+  logger.info("IPC handlers setup complete");
 };
 
 /**
  * Set up all IPC handlers for plugin system
+ * TODO: Refactor to a plugin IPC module
  */
 const setupPluginIpcHandlers = () => {
   // Get all plugins
-  ipcMain.handle("plugins:get", async () => {
+  ipcRegistry.register(IpcChannels.PLUGINS.GET, async () => {
+    const { default: pluginManager } = await import(
+      "@/main/core/plugin/plugin-manager"
+    );
     const plugins = pluginManager.getAllPlugins();
     return plugins.map((plugin) => ({
       id: plugin.id,
@@ -105,11 +61,14 @@ const setupPluginIpcHandlers = () => {
   });
 
   // Execute a command
-  ipcMain.handle(
-    "command:execute",
-    async (_event: IpcMainInvokeEvent, commandId: string, ...args: any[]) => {
+  ipcRegistry.register(
+    IpcChannels.PLUGINS.EXECUTE_COMMAND,
+    async (_event, commandId, ...args) => {
       logger.info(`Executing command: ${commandId}`);
       try {
+        const { executeCommand } = await import(
+          "@/main/core/plugin/plugin-context"
+        );
         return await executeCommand(commandId, ...args);
       } catch (error) {
         logger.error(`Error executing command ${commandId}`, error);
@@ -123,10 +82,12 @@ const setupPluginIpcHandlers = () => {
  * Send event to all renderer windows
  */
 export function sendToAllWindows(channel: string, ...args: any[]) {
-  BrowserWindow.getAllWindows().forEach((window) => {
-    if (window.webContents) {
-      window.webContents.send(channel, ...args);
-    }
+  import("electron").then(({ BrowserWindow }) => {
+    BrowserWindow.getAllWindows().forEach((window) => {
+      if (window.webContents) {
+        window.webContents.send(channel, ...args);
+      }
+    });
   });
 }
 
@@ -134,8 +95,10 @@ export function sendToAllWindows(channel: string, ...args: any[]) {
  * Send event to main window
  */
 export function sendToMainWindow(channel: string, ...args: any[]) {
-  const windows = BrowserWindow.getAllWindows();
-  if (windows.length > 0) {
-    windows[0].webContents.send(channel, ...args);
-  }
+  import("electron").then(({ BrowserWindow }) => {
+    const windows = BrowserWindow.getAllWindows();
+    if (windows.length > 0) {
+      windows[0].webContents.send(channel, ...args);
+    }
+  });
 }
