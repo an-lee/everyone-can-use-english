@@ -1,8 +1,8 @@
 import path from "path";
 import fs from "fs";
 import { app } from "electron";
-import log from "@/main/core/utils/logger";
-import PreloadApiGenerator from "./preload-generator";
+import { log } from "@main/core";
+import { PreloadApiGenerator } from "./preload-generator";
 
 const logger = log.scope("PreloadApiManager");
 

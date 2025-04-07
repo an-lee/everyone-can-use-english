@@ -1,5 +1,5 @@
 import { BrowserWindow, IpcMainInvokeEvent, app } from "electron";
-import { BaseIpcModule, IpcMethod } from "@main/ipc/base-ipc-module";
+import { BaseIpcModule, IpcMethod } from "@/main/ipc/modules/base-ipc-module";
 import { IpcChannels } from "@shared/ipc/ipc-channels";
 
 /**

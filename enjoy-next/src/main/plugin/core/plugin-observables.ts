@@ -2,13 +2,11 @@ import {
   Subject,
   BehaviorSubject,
   Observable,
-  map,
   filter,
   distinctUntilChanged,
   share,
-  scan,
 } from "rxjs";
-import log from "@main/core/utils/logger";
+import { log } from "@main/core/utils";
 
 const logger = log.scope("PluginObservables");
 

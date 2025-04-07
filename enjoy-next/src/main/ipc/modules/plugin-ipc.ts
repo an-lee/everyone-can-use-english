@@ -1,4 +1,4 @@
-import { BaseIpcModule, IpcMethod } from "@main/ipc/base-ipc-module";
+import { BaseIpcModule, IpcMethod } from "@/main/ipc/modules/base-ipc-module";
 import pluginManager from "@/main/plugin/manager/plugin-manager";
 
 export class PluginIpcModule extends BaseIpcModule {

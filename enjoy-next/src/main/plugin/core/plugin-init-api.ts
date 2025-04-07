@@ -1,4 +1,4 @@
-import log from "@/main/core/utils/logger";
+import { log } from "@main/core/utils";
 import {
   initHooks,
   InitPhase,

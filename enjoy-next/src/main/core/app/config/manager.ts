@@ -12,7 +12,7 @@ import {
 } from "./store";
 import path from "path";
 import fs from "fs-extra";
-import log from "@/main/core/utils/logger";
+import { log } from "@main/core/utils";
 
 const logger = log.scope("AppConfig");
 

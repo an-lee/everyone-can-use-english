@@ -10,7 +10,7 @@ import {
   USER_DATA_SUB_PATH,
 } from "@shared/constants";
 import { APP_CONFIG_SCHEMA, AppConfigState } from "./types";
-import log from "@/main/core/utils/logger";
+import { log } from "@main/core/utils";
 
 const logger = log.scope("AppConfig");
 

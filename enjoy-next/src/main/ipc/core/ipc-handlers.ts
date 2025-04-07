@@ -1,8 +1,8 @@
-import log from "@/main/core/utils/logger";
+import { log } from "@main/core";
 import path from "path";
 import { fileURLToPath } from "url";
-import ipcRegistry from "@main/ipc/ipc-registry";
-import PreloadApiGenerator from "@main/ipc/preload-generator";
+import { ipcRegistry } from "@main/ipc/core";
+import { PreloadApiGenerator } from "@main/ipc/preload";
 
 // Import all IPC modules directly
 import {

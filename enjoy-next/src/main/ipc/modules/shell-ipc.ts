@@ -1,5 +1,5 @@
 import { shell } from "electron";
-import { BaseIpcModule, IpcMethod } from "@main/ipc/base-ipc-module";
+import { BaseIpcModule, IpcMethod } from "@/main/ipc/modules/base-ipc-module";
 import { IpcMainInvokeEvent } from "electron";
 
 export class ShellIpcModule extends BaseIpcModule {

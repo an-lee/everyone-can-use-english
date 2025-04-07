@@ -83,4 +83,5 @@ const log = {
   debug: (message: string, ...meta: any[]) => logger.debug(message, ...meta),
 };
 
+export { log };
 export default log;

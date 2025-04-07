@@ -1,10 +1,10 @@
-import { BaseIpcModule, IpcMethod } from "@main/ipc/base-ipc-module";
+import { BaseIpcModule, IpcMethod } from "@/main/ipc/modules/base-ipc-module";
 import { ipcMain } from "electron";
 import { db } from "@main/storage/db";
 import appConfig from "@/main/core/app/config";
 import PreloadApiGenerator, {
   ServiceHandlerMetadata,
-} from "../preload-generator";
+} from "../preload/preload-generator";
 
 // Define the types locally instead of importing from @preload/db-api
 export type DbConnectionState =

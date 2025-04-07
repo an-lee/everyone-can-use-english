@@ -1,7 +1,7 @@
-import ipcRegistry from "./ipc-registry";
+import { ipcRegistry } from "@main/ipc/core";
 import fs from "fs";
 import path from "path";
-import log from "@/main/core/utils/logger";
+import { log } from "@main/core";
 
 const logger = log.scope("PreloadGenerator");
 

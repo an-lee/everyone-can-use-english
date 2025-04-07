@@ -1,8 +1,8 @@
-import { InitPhase } from "@/main/core/app/initialization/phase-registry";
-import log from "@/main/core/utils/logger";
+import { InitPhase } from "@main/core/app/initialization/registry";
+import { log } from "@main/core/utils";
 import path from "path";
 import { fileURLToPath } from "url";
-import { setupIpcHandlers } from "@main/ipc/ipc-handlers";
+import { setupIpcHandlers } from "@main/ipc/core";
 
 // Configure logger
 const logger = log.scope("IpcSetupPhase");
@@ -37,7 +37,7 @@ export class IpcSetupPhase implements InitPhase {
         );
 
         const { default: PreloadApiGenerator } = await import(
-          "@main/ipc/preload-generator"
+          "@/main/ipc/preload/preload-generator"
         );
         await PreloadApiGenerator.generatePreloadApi(outputPath);
         logger.info(`Generated preload API at ${outputPath}`);

@@ -1,5 +1,5 @@
 import { phaseRegistry, InitPhase } from "@main/core/app/initialization";
-import log from "@main/core/utils/logger";
+import { log } from "@main/core/utils";
 
 const logger = log.scope("PluginPhaseAdapter");
 

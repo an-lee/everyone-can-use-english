@@ -1,7 +1,7 @@
 import { ipcMain } from "electron";
 import { IpcHandler, IpcHandlerRegistration } from "@shared/ipc/ipc-channels";
-import log from "@/main/core/utils/logger";
-import { BaseIpcModule } from "./base-ipc-module";
+import { log } from "@main/core";
+import { BaseIpcModule } from "../modules/base-ipc-module";
 
 const logger = log.scope("IpcRegistry");
 
@@ -212,6 +212,4 @@ class IpcRegistry {
 }
 
 // Singleton instance
-const ipcRegistry = new IpcRegistry();
-
-export default ipcRegistry;
+export const ipcRegistry = new IpcRegistry();
