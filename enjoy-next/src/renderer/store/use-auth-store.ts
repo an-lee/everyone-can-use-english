@@ -50,35 +50,32 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // The backend config handler will handle setting needed fields
       window.EnjoyAPI.appConfig.set("user", currentUser);
 
-      // Only explicitly connect to database if autoConnected is false
+      // Only explicitly connect to database if needed
       // This prevents duplicate connections, as the main process already
       // handles connection when user changes
-      const { getStatus, connect } = useDbStore.getState();
+      const { getStatus } = useDbStore.getState();
       getStatus()
         .then(() => {
-          const { dbState } = useDbStore.getState();
+          const {
+            dbState,
+            shouldManuallyConnect,
+            getConnectionStatusReason,
+            connect,
+          } = useDbStore.getState();
+
           console.log(
             `[Auth] DB state after login: ${dbState.state}, autoConnected: ${dbState.autoConnected}`
           );
-          // Only connect if state is not connected AND not connecting AND autoConnected is false
-          if (
-            dbState.state !== "connected" &&
-            dbState.state !== "connecting" &&
-            dbState.autoConnected === false
-          ) {
+
+          // Use the helper method to check if we need to connect
+          if (shouldManuallyConnect(dbState)) {
             console.log("Connecting to database after login (manual connect)");
             connect().catch((err: Error) => {
               console.error("Error connecting to database after login:", err);
             });
           } else {
             console.log(
-              `Not connecting to database: ${
-                dbState.state === "connected"
-                  ? "already connected"
-                  : dbState.state === "connecting"
-                    ? "connection in progress"
-                    : "autoConnected is true"
-              }`
+              `Not connecting to database: ${getConnectionStatusReason(dbState)}`
             );
           }
         })

@@ -2,6 +2,34 @@ import { create } from "zustand";
 import { useAppStore } from "./use-app-store";
 import { useAuthStore } from "./use-auth-store";
 
+/**
+ * DATABASE CONNECTION COORDINATION PATTERN
+ *
+ * This codebase uses a specific pattern to coordinate database connections between
+ * the main Electron process and the renderer process:
+ *
+ * 1. Main Process Responsibility:
+ *    - Primary owner of the database connection
+ *    - Automatically connects when user is set in appConfig
+ *    - Sets autoConnected=true flag when it's handling connections
+ *    - Broadcasts connection state changes to all windows
+ *
+ * 2. Renderer Process Responsibility:
+ *    - Receives and displays database state from main process
+ *    - Only attempts manual connections when:
+ *      a. Database is not already connected or connecting
+ *      b. The autoConnected flag is not true (main process isn't handling it)
+ *    - Uses delays when checking state after auth changes to prevent race conditions
+ *
+ * 3. Connection Decision Logic:
+ *    - Encapsulated in shouldManuallyConnect() helper method
+ *    - Centralized to ensure consistent behavior across the app
+ *    - Prevents duplicate connection attempts
+ *
+ * This approach prevents the race conditions that can occur when both processes
+ * try to connect to the database simultaneously, especially after login events.
+ */
+
 // Define the types
 type DbConnectionState =
   | "disconnected"
@@ -40,10 +68,11 @@ type DbStore = {
   getStatus: () => Promise<void>;
   resetState: () => void;
   checkAndConnectIfNeeded: () => Promise<void>;
-};
 
-// Maximum retry attempts for database connection
-const MAX_RETRIES = 5;
+  // Helper methods
+  shouldManuallyConnect: (dbState: DbState) => boolean;
+  getConnectionStatusReason: (dbState: DbState) => string;
+};
 
 /**
  * Database store
@@ -56,6 +85,31 @@ export const useDbStore = create<DbStore>()((set, get) => ({
     state: "disconnected",
     path: null,
     error: null,
+  },
+
+  // Helper methods
+  shouldManuallyConnect: (dbState: DbState): boolean => {
+    // Only connect if:
+    // 1. Not already connected
+    // 2. Not in the process of connecting
+    // 3. Not auto-connected by the main process
+    return (
+      dbState.state !== "connected" &&
+      dbState.state !== "connecting" &&
+      dbState.autoConnected !== true
+    );
+  },
+
+  getConnectionStatusReason: (dbState: DbState): string => {
+    if (dbState.state === "connected") {
+      return "already connected";
+    } else if (dbState.state === "connecting") {
+      return "connection in progress";
+    } else if (dbState.autoConnected === true) {
+      return "autoConnected is true";
+    } else {
+      return "manual connection required";
+    }
   },
 
   // Actions
@@ -109,7 +163,12 @@ export const useDbStore = create<DbStore>()((set, get) => ({
   checkAndConnectIfNeeded: async () => {
     const { isAuthenticated } = useAuthStore.getState();
     const { appState } = useAppStore.getState();
-    const { getStatus, connect } = get();
+    const {
+      getStatus,
+      connect,
+      shouldManuallyConnect,
+      getConnectionStatusReason,
+    } = get();
 
     if (!isAuthenticated() || appState.status !== "ready") return;
 
@@ -125,25 +184,15 @@ export const useDbStore = create<DbStore>()((set, get) => ({
         `[DB Store] Checking connection: state=${currentState.state}, autoConnected=${currentState.autoConnected}`
       );
 
-      // Only connect if not already connected, not connecting, and not auto-connecting
-      if (
-        currentState.state !== "connected" &&
-        currentState.state !== "connecting" &&
-        currentState.autoConnected !== true
-      ) {
+      // Check if we should manually connect
+      if (shouldManuallyConnect(currentState)) {
         console.log(
           "Manually connecting to database from renderer (autoConnected=false)"
         );
         await connect();
       } else {
         console.log(
-          `Not connecting to database: ${
-            currentState.state === "connected"
-              ? "already connected"
-              : currentState.state === "connecting"
-                ? "connection in progress"
-                : "autoConnected is true"
-          }`
+          `Not connecting to database: ${getConnectionStatusReason(currentState)}`
         );
       }
     } catch (err) {
@@ -176,8 +225,7 @@ if (typeof window !== "undefined") {
 
       // Listen for auth state changes
       useAuthStore.subscribe((state, prevState) => {
-        // Only attempt connection if user logged in AND we're not in an autoConnect mode
-        // This prevents duplicate connections with the main process
+        // Only attempt connection if user logged in
         if (
           state.currentUser?.id !== prevState.currentUser?.id &&
           state.currentUser !== null
@@ -193,29 +241,23 @@ if (typeof window !== "undefined") {
               .getState()
               .getStatus()
               .then(() => {
-                const { dbState } = useDbStore.getState();
+                const {
+                  dbState,
+                  shouldManuallyConnect,
+                  getConnectionStatusReason,
+                } = useDbStore.getState();
 
                 console.log(
                   `[Auth Subscription] DB state check: ${dbState.state}, autoConnected: ${dbState.autoConnected}`
                 );
 
-                // Only continue if not already connected/connecting and not auto-connected
-                if (
-                  dbState.state !== "connected" &&
-                  dbState.state !== "connecting" &&
-                  dbState.autoConnected !== true
-                ) {
+                // Only continue if we should manually connect
+                if (shouldManuallyConnect(dbState)) {
                   console.log("Checking if manual DB connection needed");
                   useDbStore.getState().checkAndConnectIfNeeded();
                 } else {
                   console.log(
-                    `No manual connection needed: ${
-                      dbState.state === "connected"
-                        ? "already connected"
-                        : dbState.state === "connecting"
-                          ? "connection in progress"
-                          : "autoConnected is true"
-                    }`
+                    `No manual connection needed: ${getConnectionStatusReason(dbState)}`
                   );
                 }
               });
