@@ -1,4 +1,4 @@
-import log from "@main/services/logger";
+import log from "@/main/core/utils/logger";
 
 const logger = log.scope("IpcErrorHandler");
 

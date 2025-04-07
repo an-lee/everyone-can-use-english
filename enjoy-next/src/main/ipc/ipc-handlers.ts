@@ -1,4 +1,4 @@
-import log from "@main/services/logger";
+import log from "@/main/core/utils/logger";
 import path from "path";
 import { fileURLToPath } from "url";
 import ipcRegistry from "@main/ipc/ipc-registry";

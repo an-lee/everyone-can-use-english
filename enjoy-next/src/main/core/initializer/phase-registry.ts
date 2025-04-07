@@ -1,5 +1,5 @@
-import log from "@main/services/logger";
-import appConfig from "@main/core/app-config";
+import log from "@/main/core/utils/logger";
+import appConfig from "@/main/core/app/config/app-config";
 import db from "@main/storage";
 
 // Configure logger

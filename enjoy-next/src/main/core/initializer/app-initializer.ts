@@ -1,5 +1,5 @@
 import { BrowserWindow } from "electron";
-import log from "@main/services/logger";
+import log from "@/main/core/utils/logger";
 import {
   phaseRegistry,
   InitPhase,

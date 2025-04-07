@@ -1,5 +1,5 @@
 import { InitPhase } from "@main/core/initializer/phase-registry";
-import log from "@main/services/logger";
+import log from "@/main/core/utils/logger";
 import { db } from "@main/storage/db";
 
 // Configure logger

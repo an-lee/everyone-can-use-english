@@ -2,7 +2,7 @@ import { app } from "electron";
 import path from "path";
 import fs from "fs-extra";
 import { PluginContext, PluginManifest } from "@/types/plugin";
-import log from "@main/services/logger";
+import log from "@/main/core/utils/logger";
 import { PluginInitAPI } from "./plugin-init-api";
 import { pluginPhaseAdapter } from "./plugin-phase-adapter";
 import { InitPhase } from "@main/core/initializer/phase-registry";

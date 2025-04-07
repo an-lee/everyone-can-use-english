@@ -1,4 +1,4 @@
-import log from "@main/services/logger";
+import log from "@/main/core/utils/logger";
 import { InitPhase } from "@main/core/initializer/phase-registry";
 import { pluginPhaseAdapter } from "./plugin-phase-adapter";
 import { initObservables } from "@main/core/initializer/init-observables";

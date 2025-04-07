@@ -11,7 +11,7 @@ import { app } from "electron";
 import fs from "fs-extra";
 import { UserType } from "@renderer/api";
 import { BehaviorSubject, Observable, distinctUntilChanged, map } from "rxjs";
-import log from "@main/services/logger";
+import log from "@/main/core/utils/logger";
 
 const logger = log.scope("AppConfig");
 

@@ -1,12 +1,8 @@
 import { app } from "electron";
 import path from "path";
 import fs from "fs-extra";
-import {
-  IPlugin,
-  PluginLifecycle,
-  PluginManifest,
-} from "@/main/core/plugin/types";
-import log from "@main/services/logger";
+import { IPlugin, PluginLifecycle, PluginManifest } from "@/types/plugin";
+import log from "@main/core/utils/logger";
 import { pluginObservables } from "./plugin-observables";
 import { createPluginContext, PluginContextCleanup } from "./plugin-context";
 import { Subscription } from "rxjs";

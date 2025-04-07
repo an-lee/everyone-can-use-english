@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { IpcHandler } from "@shared/ipc/ipc-channels";
 import ipcRegistry from "./ipc-registry";
-import log from "@main/services/logger";
+import log from "@/main/core/utils/logger";
 
 /**
  * Metadata for an IPC method

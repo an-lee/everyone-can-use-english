@@ -1,6 +1,4 @@
-import { app, BrowserWindow } from "electron";
-import path from "path";
-import log from "@main/services/logger";
+import log from "@/main/core/utils/logger";
 import appInitializer from "@main/core/initializer/app-initializer";
 import { registerInitializerPhases } from "@main/core/initializer/register-phases";
 import { registerPluginSystemPhases } from "@main/core/initializer/register-plugin-phases";

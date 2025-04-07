@@ -1,5 +1,5 @@
 import { InitPhase } from "@main/core/initializer/phase-registry";
-import log from "@main/services/logger";
+import log from "@/main/core/utils/logger";
 import path from "path";
 import { fileURLToPath } from "url";
 import { setupIpcHandlers } from "@main/ipc/ipc-handlers";

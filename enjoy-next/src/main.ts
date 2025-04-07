@@ -1,7 +1,7 @@
 import { app, BrowserWindow } from "electron";
 import path from "node:path";
 import started from "electron-squirrel-startup";
-import log from "@main/services/logger";
+import log from "@/main/core/utils/logger";
 import { mainAppLoader } from "@main/core/main-app-loader";
 
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;

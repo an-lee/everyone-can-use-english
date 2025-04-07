@@ -1,6 +1,6 @@
 import { ipcMain } from "electron";
 import { IpcHandler, IpcHandlerRegistration } from "@shared/ipc/ipc-channels";
-import log from "@main/services/logger";
+import log from "@/main/core/utils/logger";
 import { BaseIpcModule } from "./base-ipc-module";
 
 const logger = log.scope("IpcRegistry");

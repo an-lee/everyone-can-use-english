@@ -1,7 +1,7 @@
 import { phaseRegistry } from "@main/core/initializer/phase-registry";
 import pluginManager from "@main/plugin/plugin-manager";
 import { publishEvent } from "@main/plugin/plugin-context";
-import log from "@main/services/logger";
+import log from "@/main/core/utils/logger";
 
 const logger = log.scope("RegisterPluginPhases");
 

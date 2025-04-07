@@ -2,7 +2,7 @@ import {
   phaseRegistry,
   InitPhase,
 } from "@main/core/initializer/phase-registry";
-import log from "@main/services/logger";
+import log from "@/main/core/utils/logger";
 
 const logger = log.scope("PluginPhaseAdapter");
 
