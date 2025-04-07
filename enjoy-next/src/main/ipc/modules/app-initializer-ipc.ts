@@ -1,5 +1,5 @@
 import { BaseIpcModule, IpcMethod } from "@main/ipc/base-ipc-module";
-import appInitializer from "@main/core/initializer/app-initializer";
+import appInitializer from "@/main/core/app/initialization/app-initializer";
 import log from "@/main/core/utils/logger";
 
 // Configure logger

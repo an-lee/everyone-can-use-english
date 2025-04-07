@@ -1,3 +1,9 @@
+import {
+  HookFunction,
+  InitHookType,
+} from "../core/app/initialization/lifecycle/init-hooks";
+import { InitPhase } from "../core/app/initialization/registry/phase-registry";
+
 export enum PluginLifecycle {
   UNLOADED = "unloaded",
   LOADED = "loaded",
@@ -98,6 +104,48 @@ export interface PluginContext {
    * Register a view that can be shown in the sidebar or panels
    */
   registerView(id: string, component: any): void;
+
+  /**
+   * Register a initialization phase that can be used by the plugin
+   */
+  registerInitPhase(phase: InitPhase): void;
+
+  /**
+   * Unregister a phase that can be used by the plugin
+   */
+  unregisterInitPhase(phaseId: string): void;
+
+  /**
+   * Get all initialization phases that can be used by the plugin
+   */
+  getInitPhases(): Array<{
+    id: string;
+    name: string;
+    dependencies: string[];
+  }>;
+
+  /**
+   * Register a hook that can be used by the plugin
+   */
+  registerInitHook(hookType: InitHookType, callback: HookFunction): void;
+
+  /**
+   * Unregister a hook that can be used by the plugin
+   */
+  unregisterInitHook(hookId: string): void;
+
+  /**
+   * Get all hook types that can be used by the plugin
+   */
+  getInitHookTypes(): typeof InitHookType;
+
+  /**
+   * Register a phase timeout handler that can be used by the plugin
+   */
+  registerPhaseTimeoutHandler(
+    phaseId: string | undefined,
+    callback: (phaseId: string, timeout: number) => Promise<void> | void
+  ): void;
 
   /**
    * Subscribe to an event

@@ -1,9 +1,9 @@
 import { BrowserWindow } from "electron";
-import log from "@/main/core/utils/logger";
+import log from "@main/core/utils/logger";
 import {
   phaseRegistry,
   InitPhase,
-} from "@main/core/initializer/phase-registry";
+} from "@main/core/app/initialization/registry/phase-registry";
 import {
   from,
   firstValueFrom,
@@ -16,7 +16,7 @@ import {
   catchError,
   toArray,
 } from "rxjs";
-import { initObservables } from "@main/core/initializer/init-observables";
+import { initObservables } from "@main/core/app/initialization/lifecycle/init-observables";
 
 // Configure logger
 const logger = log.scope("AppInitializer");

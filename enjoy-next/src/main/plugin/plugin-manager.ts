@@ -1,7 +1,7 @@
 import { app } from "electron";
 import path from "path";
 import fs from "fs-extra";
-import { IPlugin, PluginLifecycle, PluginManifest } from "@/types/plugin";
+import { IPlugin, PluginLifecycle, PluginManifest } from "@main/plugin/types";
 import log from "@main/core/utils/logger";
 import { pluginObservables } from "./plugin-observables";
 import { createPluginContext, PluginContextCleanup } from "./plugin-context";

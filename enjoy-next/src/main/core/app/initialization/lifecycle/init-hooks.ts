@@ -1,6 +1,6 @@
-import log from "@/main/core/utils/logger";
+import log from "@main/core/utils/logger";
 import { v4 as uuidv4 } from "uuid";
-import { initObservables } from "./init-observables";
+import { initObservables } from "@main/core/app/initialization/lifecycle/init-observables";
 import { takeUntil, Subject } from "rxjs";
 
 const logger = log.scope("InitHooks");

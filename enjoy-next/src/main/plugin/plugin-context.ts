@@ -1,13 +1,16 @@
 import { app } from "electron";
 import path from "path";
 import fs from "fs-extra";
-import { PluginContext, PluginManifest } from "@/types/plugin";
-import log from "@/main/core/utils/logger";
-import { PluginInitAPI } from "./plugin-init-api";
-import { pluginPhaseAdapter } from "./plugin-phase-adapter";
-import { InitPhase } from "@main/core/initializer/phase-registry";
+import { PluginContext, PluginManifest } from "@main/plugin/types";
+import log from "@main/core/utils/logger";
+import { PluginInitAPI } from "@main/plugin/plugin-init-api";
+import { pluginPhaseAdapter } from "@main/plugin/plugin-phase-adapter";
+import { InitPhase } from "@main/core/app/initialization/registry/phase-registry";
 import { pluginObservables } from "@main/plugin/plugin-observables";
-import { InitHookType, HookFunction } from "@main/core/initializer/init-hooks";
+import {
+  InitHookType,
+  HookFunction,
+} from "@main/core/app/initialization/lifecycle/init-hooks";
 import { Subject, Subscription } from "rxjs";
 
 const logger = log.scope("plugin-context");
@@ -157,7 +160,7 @@ export function createPluginContext(
     registerPhaseTimeoutHandler(
       phaseId: string | undefined,
       callback: (phaseId: string, timeout: number) => Promise<void> | void
-    ): string {
+    ) {
       const wrappedCallback = (id: string, timeout: number) => {
         if (!phaseId || id === phaseId) {
           return callback(id, timeout);

@@ -1,8 +1,8 @@
-import log from "@/main/core/utils/logger";
-import appInitializer from "@main/core/initializer/app-initializer";
-import { registerInitializerPhases } from "@main/core/initializer/register-phases";
-import { registerPluginSystemPhases } from "@main/core/initializer/register-plugin-phases";
-import { phaseRegistry } from "@main/core/initializer/phase-registry";
+import log from "@main/core/utils/logger";
+import appInitializer from "@main/core/app/initialization/app-initializer";
+import { registerInitializerPhases } from "@main/core/app/initialization/registry/register-phases";
+import { registerPluginSystemPhases } from "@main/core/app/initialization/registry/register-plugin-phases";
+import { phaseRegistry } from "@main/core/app/initialization/registry/phase-registry";
 
 // Configure logger
 const logger = log.scope("MainAppLoader");

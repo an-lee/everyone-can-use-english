@@ -1,7 +1,7 @@
 import {
   phaseRegistry,
   InitPhase,
-} from "@main/core/initializer/phase-registry";
+} from "@/main/core/app/initialization/registry/phase-registry";
 import log from "@/main/core/utils/logger";
 
 const logger = log.scope("PluginPhaseAdapter");
@@ -63,7 +63,7 @@ class PluginPhaseAdapter {
   getPluginPhases(pluginId: string): InitPhase[] {
     return phaseRegistry
       .getPhases()
-      .filter((phase) => phase.id.startsWith(`plugin:${pluginId}:`));
+      .filter((phase: InitPhase) => phase.id.startsWith(`plugin:${pluginId}:`));
   }
 
   /**
