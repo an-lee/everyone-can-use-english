@@ -1,6 +1,5 @@
 import { shell } from "electron";
-import { BaseIpcModule } from "../base-ipc-module";
-import { IpcMethod } from "../base-ipc-module";
+import { BaseIpcModule, IpcMethod } from "@main/ipc/base-ipc-module";
 import { IpcMainInvokeEvent } from "electron";
 
 export class ShellIpcModule extends BaseIpcModule {
@@ -52,6 +51,4 @@ export class ShellIpcModule extends BaseIpcModule {
 }
 
 // Singleton instance
-const shellIpcModule = new ShellIpcModule();
-
-export default shellIpcModule;
+export const shellIpcModule = new ShellIpcModule();

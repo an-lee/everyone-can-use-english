@@ -2,8 +2,7 @@ import { InitPhase } from "@main/core/plugin/phase-registry";
 import log from "@main/services/logger";
 import path from "path";
 import { fileURLToPath } from "url";
-import ipcRegistry from "@main/ipc/ipc-registry";
-import { setupIpcHandlers } from "@main/core/ipc-handlers";
+import { setupIpcHandlers } from "@main/ipc/ipc-handlers";
 
 // Configure logger
 const logger = log.scope("IpcSetupPhase");

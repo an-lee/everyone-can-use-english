@@ -1,8 +1,6 @@
 import { ipcMain } from "electron";
 import { IpcHandler, IpcHandlerRegistration } from "@shared/ipc/ipc-channels";
 import log from "@main/services/logger";
-import path from "path";
-import fs from "fs";
 import { BaseIpcModule } from "./base-ipc-module";
 
 const logger = log.scope("IpcRegistry");
@@ -85,85 +83,15 @@ class IpcRegistry {
   /**
    * Register a module instance
    */
-  addModule(module: BaseIpcModule): void {
-    const moduleName = module.getModuleName();
-    this.modules.set(moduleName, module);
-    module.registerHandlers();
-    logger.info(`Added module: ${moduleName}`);
-  }
-
-  /**
-   * Auto-discover and register all IPC modules in a directory
-   *
-   * @param dirPath Path to directory containing IPC modules
-   * @param recursive Whether to search recursively
-   */
-  async discoverAndRegisterModules(
-    dirPath: string,
-    recursive: boolean = true
-  ): Promise<void> {
-    logger.info(`Discovering IPC modules in: ${dirPath}`);
-    const files = await this.getFiles(dirPath, recursive);
-    const ipcModuleFiles = files.filter(
-      (file) => file.endsWith("-ipc.js") || file.endsWith("-ipc.ts")
-    );
-
-    logger.info(`Found ${ipcModuleFiles.length} potential IPC module files`);
-
-    for (const file of ipcModuleFiles) {
-      try {
-        const modulePath = file.replace(/\\/g, "/");
-        // Use dynamic import to load the module
-        const moduleExport = await import(modulePath);
-
-        // Most modules export a default instance
-        if (
-          moduleExport.default &&
-          moduleExport.default instanceof BaseIpcModule
-        ) {
-          this.addModule(moduleExport.default);
-        }
-        // Some might export a class that needs instantiation
-        else {
-          // Look for exported classes that extend BaseIpcModule
-          for (const [key, value] of Object.entries(moduleExport)) {
-            if (
-              key.endsWith("IpcModule") &&
-              typeof value === "function" &&
-              Object.getPrototypeOf(value.prototype) === BaseIpcModule.prototype
-            ) {
-              const ModuleClass = value as new () => BaseIpcModule;
-              const instance = new ModuleClass();
-              this.addModule(instance);
-              break;
-            }
-          }
-        }
-      } catch (error) {
-        logger.error(`Failed to load IPC module from ${file}:`, error);
-      }
+  addModule(module: BaseIpcModule | BaseIpcModule[]): void {
+    if (Array.isArray(module)) {
+      module.forEach((m) => this.addModule(m));
+    } else {
+      const moduleName = module.getModuleName();
+      this.modules.set(moduleName, module);
+      module.registerHandlers();
+      logger.info(`Added module: ${moduleName}`);
     }
-
-    logger.info(`Registered ${this.modules.size} IPC modules`);
-  }
-
-  /**
-   * Get all files in a directory, optionally recursively
-   */
-  private async getFiles(dir: string, recursive: boolean): Promise<string[]> {
-    const entries = await fs.promises.readdir(dir, { withFileTypes: true });
-
-    const files = await Promise.all(
-      entries.map(async (entry) => {
-        const res = path.resolve(dir, entry.name);
-        if (entry.isDirectory() && recursive) {
-          return await this.getFiles(res, recursive);
-        }
-        return res;
-      })
-    );
-
-    return files.flat();
   }
 
   /**

@@ -1,4 +1,4 @@
-import { BaseIpcModule, IpcMethod } from "@main/core/ipc/base-ipc-module";
+import { BaseIpcModule, IpcMethod } from "@main/ipc/base-ipc-module";
 import appInitializer from "@main/core/initializer/app-initializer";
 import log from "@main/services/logger";
 
@@ -28,4 +28,3 @@ export class AppInitializerIpcModule extends BaseIpcModule {
 
 // Create and export singleton instance
 export const appInitializerIpcModule = new AppInitializerIpcModule();
-export default appInitializerIpcModule;

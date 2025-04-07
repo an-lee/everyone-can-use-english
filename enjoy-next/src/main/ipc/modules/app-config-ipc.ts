@@ -1,4 +1,4 @@
-import { BaseIpcModule, IpcMethod } from "@main/core/ipc/base-ipc-module";
+import { BaseIpcModule, IpcMethod } from "@main/ipc/base-ipc-module";
 import appConfig, { AppConfigState } from "@main/config/app-config";
 import log from "@main/services/logger";
 
@@ -141,6 +141,4 @@ export class AppConfigIpcModule extends BaseIpcModule {
 }
 
 // Singleton instance
-const appConfigIpcModule = new AppConfigIpcModule();
-
-export default appConfigIpcModule;
+export const appConfigIpcModule = new AppConfigIpcModule();

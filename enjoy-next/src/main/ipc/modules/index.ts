@@ -5,6 +5,11 @@
 
 // Import and re-export all IPC modules
 export * from "./app-initializer-ipc";
+export * from "./app-config-ipc";
+export * from "./db-ipc";
+export * from "./plugin-ipc";
+export * from "./window-ipc";
+export * from "./shell-ipc";
 
 // Add other IPC modules as they are created
 // export * from "./audio-ipc";

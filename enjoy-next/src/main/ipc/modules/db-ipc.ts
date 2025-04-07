@@ -1,9 +1,7 @@
-import { BaseIpcModule, IpcMethod } from "@main/core/ipc/base-ipc-module";
+import { BaseIpcModule, IpcMethod } from "@main/ipc/base-ipc-module";
 import { ipcMain } from "electron";
 import { db } from "@main/storage/db";
 import appConfig from "@main/config/app-config";
-import path from "path";
-import fs from "fs";
 import PreloadApiGenerator, {
   ServiceHandlerMetadata,
 } from "../preload-generator";
@@ -248,9 +246,6 @@ export class DbIpcModule extends BaseIpcModule {
 
       // Register the Audio service first (direct import for simplicity)
       await this.registerAudioService();
-
-      // Load entity services from storage domain
-      await this.discoverAndRegisterEntityServices();
     } catch (error) {
       this.logger.error("Failed to register entity handlers:", error);
     }
@@ -271,15 +266,6 @@ export class DbIpcModule extends BaseIpcModule {
     } catch (error) {
       this.logger.error("Failed to register Audio service:", error);
     }
-  }
-
-  /**
-   * Discover and register entity services from the storage domain
-   */
-  private async discoverAndRegisterEntityServices(): Promise<void> {
-    // This would scan for all service files in the storage domain
-    // For now, we'll focus on the direct registration of AudioService
-    this.logger.info("Service discovery would happen here");
   }
 
   /**
@@ -313,28 +299,6 @@ export class DbIpcModule extends BaseIpcModule {
   }
 
   /**
-   * Get all files in a directory, optionally recursively
-   */
-  private async getFiles(
-    dir: string,
-    recursive: boolean = false
-  ): Promise<string[]> {
-    const entries = await fs.promises.readdir(dir, { withFileTypes: true });
-
-    const files = await Promise.all(
-      entries.map(async (entry) => {
-        const res = path.resolve(dir, entry.name);
-        if (entry.isDirectory() && recursive) {
-          return await this.getFiles(res, recursive);
-        }
-        return res;
-      })
-    );
-
-    return files.flat();
-  }
-
-  /**
    * Unregister entity handlers
    */
   unregisterEntityHandlers(): void {
@@ -356,6 +320,4 @@ export class DbIpcModule extends BaseIpcModule {
 }
 
 // Singleton instance
-const dbIpcModule = new DbIpcModule();
-
-export default dbIpcModule;
+export const dbIpcModule = new DbIpcModule();

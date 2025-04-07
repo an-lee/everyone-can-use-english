@@ -6,7 +6,7 @@ This directory contains the architecture for handling IPC (Inter-Process Communi
 
 The IPC architecture follows these principles:
 
-1. **Discoverability**: IPC modules are auto-discovered through naming conventions
+1. **Explicit Registration**: IPC modules are explicitly imported and registered
 2. **Standardization**: Common patterns for defining handlers with metadata
 3. **Type Safety**: Strong TypeScript typing throughout the pipeline
 4. **Error Handling**: Consistent error handling across all IPC calls
@@ -122,15 +122,15 @@ This approach keeps business logic in service classes and generates IPC handlers
 
 ## Adding a New IPC Module
 
-1. Create a new file in `src/main/core/ipc/modules` named `your-feature-ipc.ts`
+1. Create a new file in `src/main/ipc/modules` named `your-feature-ipc.ts`
 2. Extend `BaseIpcModule` and decorate methods with `@IpcMethod`
 3. Export a singleton instance as default
-4. The module will be auto-discovered and registered
+4. Import and add your module to `ipc-handlers.ts` to register it
 
-Example:
+Example module file:
 
 ```typescript
-import { BaseIpcModule, IpcMethod } from "@main/core/ipc/base-ipc-module";
+import { BaseIpcModule, IpcMethod } from "@main/ipc/base-ipc-module";
 
 export class MyFeatureIpcModule extends BaseIpcModule {
   constructor() {
@@ -151,6 +151,41 @@ export class MyFeatureIpcModule extends BaseIpcModule {
 
 const myFeatureIpcModule = new MyFeatureIpcModule();
 export default myFeatureIpcModule;
+```
+
+Then update `src/main/core/ipc-handlers.ts`:
+
+```typescript
+// Import existing modules
+import appConfigIpcModule from "@main/ipc/modules/app-config-ipc";
+import appInitializerIpcModule from "@main/ipc/modules/app-initializer-ipc";
+// ... other modules ...
+
+// Import your new module
+import myFeatureIpcModule from "@main/ipc/modules/your-feature-ipc";
+
+// ... existing setup code ...
+
+export const setupIpcHandlers = async () => {
+  logger.info("Setting up IPC handlers");
+
+  // Register modules
+  ipcRegistry.addModule(appConfigIpcModule);
+  ipcRegistry.addModule(appInitializerIpcModule);
+  // ... other modules ...
+  
+  // Register your new module
+  ipcRegistry.addModule(myFeatureIpcModule);
+  
+  // ... rest of the function ...
+};
+```
+
+Also, add your module to the barrel file in `src/main/ipc/modules/index.ts`:
+
+```typescript
+// ... existing exports ...
+export * from "./your-feature-ipc";
 ```
 
 ## Adding a Database Entity Service

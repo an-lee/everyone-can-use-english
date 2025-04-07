@@ -4,6 +4,16 @@ import { fileURLToPath } from "url";
 import ipcRegistry from "@main/ipc/ipc-registry";
 import PreloadApiGenerator from "@main/ipc/preload-generator";
 
+// Import all IPC modules directly
+import {
+  appConfigIpcModule,
+  appInitializerIpcModule,
+  dbIpcModule,
+  pluginIpcModule,
+  windowIpcModule,
+  shellIpcModule,
+} from "@main/ipc/modules";
+
 const logger = log.scope("ipc-handlers");
 
 /**
@@ -12,15 +22,20 @@ const logger = log.scope("ipc-handlers");
 export const setupIpcHandlers = async () => {
   logger.info("Setting up IPC handlers");
 
-  // Auto-discover and register all IPC modules
-  // Convert import.meta.url to a file path for ES modules compatibility
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
-  const modulesDir = path.join(__dirname, "../");
-  await ipcRegistry.discoverAndRegisterModules(modulesDir, true);
+  // Register modules directly
+  ipcRegistry.addModule([
+    appConfigIpcModule,
+    appInitializerIpcModule,
+    dbIpcModule,
+    pluginIpcModule,
+    windowIpcModule,
+    shellIpcModule,
+  ]);
 
   // Generate preload API if needed
   if (process.env.GENERATE_PRELOAD_API === "true") {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
     const outputPath = path.join(__dirname, "../../generated/preload-api.ts");
     await PreloadApiGenerator.generatePreloadApi(outputPath);
     logger.info(`Generated preload API at ${outputPath}`);

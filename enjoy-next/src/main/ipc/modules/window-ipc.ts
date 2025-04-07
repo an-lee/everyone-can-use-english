@@ -1,5 +1,5 @@
 import { BrowserWindow, IpcMainInvokeEvent, app } from "electron";
-import { BaseIpcModule, IpcMethod } from "../base-ipc-module";
+import { BaseIpcModule, IpcMethod } from "@main/ipc/base-ipc-module";
 import { IpcChannels } from "@shared/ipc/ipc-channels";
 
 /**
@@ -116,6 +116,4 @@ export class WindowIpcModule extends BaseIpcModule {
 }
 
 // Singleton instance
-const windowIpcModule = new WindowIpcModule();
-
-export default windowIpcModule;
+export const windowIpcModule = new WindowIpcModule();
