@@ -1,5 +1,6 @@
 import log from "@main/services/logger";
 import path from "path";
+import { fileURLToPath } from "url";
 import ipcRegistry from "@main/ipc/ipc-registry";
 import PreloadApiGenerator from "@main/ipc/preload-generator";
 
@@ -12,6 +13,9 @@ export const setupIpcHandlers = async () => {
   logger.info("Setting up IPC handlers");
 
   // Auto-discover and register all IPC modules
+  // Convert import.meta.url to a file path for ES modules compatibility
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
   const modulesDir = path.join(__dirname, "../");
   await ipcRegistry.discoverAndRegisterModules(modulesDir, true);
 

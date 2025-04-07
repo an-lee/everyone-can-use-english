@@ -1,6 +1,7 @@
 import { InitPhase } from "@main/core/plugin/phase-registry";
 import log from "@main/services/logger";
 import path from "path";
+import { fileURLToPath } from "url";
 import ipcRegistry from "@main/ipc/ipc-registry";
 import { setupIpcHandlers } from "@main/core/ipc-handlers";
 
@@ -8,47 +9,42 @@ import { setupIpcHandlers } from "@main/core/ipc-handlers";
 const logger = log.scope("IpcSetupPhase");
 
 /**
- * Initialization phase that sets up the IPC system
+ * Phase to set up the IPC system
  */
 export class IpcSetupPhase implements InitPhase {
-  readonly id = "ipc-setup";
-  readonly name = "IPC System Setup";
-  readonly description =
-    "Sets up the IPC system for inter-process communication";
-  readonly dependencies: string[] = []; // No dependencies, this is an early phase
-  readonly timeout = 5000; // 5 seconds timeout
+  id = "ipc-setup";
+  name = "IPC System Setup";
+  description = "Sets up the IPC system for inter-process communication";
+  dependencies = []; // No dependencies
+  timeout = 10000; // 10 seconds
 
+  /**
+   * Set up the IPC system
+   */
   async execute(): Promise<void> {
     logger.info("Setting up IPC system");
 
     try {
-      // Use the centralized setup function
+      // Set up IPC handlers
       await setupIpcHandlers();
 
-      // Log registered modules
-      const modules = ipcRegistry.getModuleNames();
-      logger.info(
-        `IPC system initialized with ${modules.length} modules: ${modules.join(", ")}`
-      );
-
-      // Generate preload API if in development mode
+      // Generate preload API in development mode if needed
       if (process.env.NODE_ENV === "development") {
-        try {
-          const { default: PreloadApiGenerator } = await import(
-            "@main/ipc/preload-generator"
-          );
+        const __filename = fileURLToPath(import.meta.url);
+        const __dirname = path.dirname(__filename);
+        const outputPath = path.join(
+          __dirname,
+          "../../../../generated/preload-api.ts"
+        );
 
-          const outputPath = path.join(
-            __dirname,
-            "../../../../generated/preload-api.ts"
-          );
-          await PreloadApiGenerator.generatePreloadApi(outputPath);
-          logger.info(`Generated preload API at ${outputPath}`);
-        } catch (error) {
-          logger.warn("Failed to generate preload API:", error);
-          // Non-fatal error, continue initialization
-        }
+        const { default: PreloadApiGenerator } = await import(
+          "@main/ipc/preload-generator"
+        );
+        await PreloadApiGenerator.generatePreloadApi(outputPath);
+        logger.info(`Generated preload API at ${outputPath}`);
       }
+
+      logger.info("IPC system setup completed successfully");
     } catch (error) {
       logger.error("Failed to set up IPC system:", error);
       throw error;
@@ -56,5 +52,6 @@ export class IpcSetupPhase implements InitPhase {
   }
 }
 
-// Export the phase
-export default new IpcSetupPhase();
+// Singleton instance
+export const ipcSetupPhase = new IpcSetupPhase();
+export default ipcSetupPhase;
