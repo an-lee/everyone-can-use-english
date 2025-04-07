@@ -1,6 +1,5 @@
 import path from "path";
 import fs from "fs";
-import { app } from "electron";
 import { log } from "@main/core";
 import { PreloadApiGenerator } from "./preload-generator";
 
@@ -30,7 +29,7 @@ export class PreloadApiManager {
   static async generatePreloadApi(): Promise<void> {
     try {
       // First, determine the path of the generated API
-      const outputDir = path.join(app.getPath("userData"), "generated");
+      const outputDir = path.join(process.cwd(), "src", "generated");
       if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir, { recursive: true });
       }
@@ -44,16 +43,8 @@ export class PreloadApiManager {
 
       // Also generate a copy in the source directory for type checking/IDE support
       if (process.env.NODE_ENV === "development") {
-        const sourceDir = path.join(__dirname, "../../../generated");
-        if (!fs.existsSync(sourceDir)) {
-          fs.mkdirSync(sourceDir, { recursive: true });
-        }
-
-        const sourceFilePath = path.join(sourceDir, "preload-api.ts");
-        fs.copyFileSync(this.generatedApiPath, sourceFilePath);
-        logger.info(
-          `Copied preload API to source directory: ${sourceFilePath}`
-        );
+        // No need to copy since we're already generating in the source
+        logger.info(`Preload API generated directly in source directory`);
       }
     } catch (error) {
       logger.error("Error generating preload API:", error);

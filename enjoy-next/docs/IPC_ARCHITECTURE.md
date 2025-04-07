@@ -68,10 +68,85 @@ The `IpcRegistry` manages all IPC modules:
 
 The system includes components to create TypeScript interfaces and implementations for the preload API:
 
-- `PreloadApiManager`: Manages preload API registration
+- `PreloadApiManager`: Manages preload API registration and lifecycle
+  - Initializes the API generation system
+  - Determines where to output the generated files
+  - Maintains development vs production environment differences
+  - Handles cleanup when the application is shutting down
+
 - `PreloadApiGenerator`: Generates type-safe preload API interfaces and implementations
-- Updates when new modules are registered
-- Supports both decorator-based and service-based APIs
+  - Collects metadata from IPC modules and service handlers
+  - Generates TypeScript interfaces and implementation code
+  - Supports both decorator-based and service-based API registration
+  - Creates API that is accessible in the renderer process
+
+The generation process works as follows:
+
+1. The `PreloadApiManager` initializes the system and calls `generatePreloadApi()`
+2. The `PreloadApiGenerator` collects all registered metadata from:
+   - IPC modules through the registry (decorator-based)
+   - Explicitly registered service handlers (service-based)
+3. The generator creates TypeScript code with:
+   - The main `EnjoyAPI` interface with all modules and methods
+   - Individual module-specific API objects
+   - Implementation code that maps to IPC channels
+4. The generated code is written to both:
+   - The user data directory for runtime use
+   - The source code directory for development and type checking (in development mode)
+
+Example of generated preload API:
+
+```typescript
+// Auto-generated preload API for Electron IPC
+// DO NOT EDIT DIRECTLY - Generated on 2023-04-07T10:08:00.000Z
+import { ipcRenderer } from 'electron';
+
+export interface EnjoyAPI {
+  app: {
+    getConfig: () => Promise<AppConfig>;
+    updateConfig: (config: Partial<AppConfig>) => Promise<AppConfig>;
+  };
+  
+  db: {
+    connect: () => Promise<DbState>;
+    disconnect: () => Promise<DbState>;
+    backup: () => Promise<{ state: "backup-completed" }>;
+    status: () => Promise<DbState>;
+  };
+  
+  // Service-based entity handlers
+  bookmark: {
+    findAll: (options?: { page?: number; limit?: number }) => Promise<PaginatedResult<Bookmark>>;
+    findById: (id: string) => Promise<Bookmark>;
+    create: (data: BookmarkCreateDto) => Promise<Bookmark>;
+    update: (id: string, data: Partial<BookmarkUpdateDto>) => Promise<Bookmark>;
+    delete: (id: string) => Promise<boolean>;
+  };
+}
+
+// App API
+export const AppAPI = {
+  getConfig: () => ipcRenderer.invoke('app:getConfig'),
+  updateConfig: (config) => ipcRenderer.invoke('app:updateConfig', config),
+};
+
+// Database API
+export const DbAPI = {
+  connect: () => ipcRenderer.invoke('db:connect'),
+  disconnect: () => ipcRenderer.invoke('db:disconnect'),
+  backup: () => ipcRenderer.invoke('db:backup'),
+  status: () => ipcRenderer.invoke('db:status'),
+};
+
+// Bookmark API
+export const BookmarkAPI = {
+  findAll: (options) => ipcRenderer.invoke('db:bookmarkFindAll', options),
+  findById: (id) => ipcRenderer.invoke('db:bookmarkFindById', id),
+  create: (data) => ipcRenderer.invoke('db:bookmarkCreate', data),
+  update: (id, data) => ipcRenderer.invoke('db:bookmarkUpdate', id, data),
+  delete: (id) => ipcRenderer.invoke('db:bookmarkDelete', id),
+};
+```
 
 ### Error Handling
 
@@ -89,6 +164,32 @@ The `createIpcHandlers` utility converts service objects to IPC handlers:
 - Automatically generates metadata for preload API generation
 - Provides standardized error handling
 - Maintains consistent channel naming conventions
+
+Example usage of `createIpcHandlers`:
+
+```typescript
+// Register a service with the IPC system
+function registerBookmarkService() {
+  const { BookmarkService } = await import("@main/storage/services/bookmark-service");
+  
+  // Create IPC handlers from the service
+  const handlers = createIpcHandlers("Bookmark", BookmarkService, "bookmark");
+  
+  // Register each handler with the IPC system
+  for (const [methodName, handler] of Object.entries(handlers)) {
+    const channel = `db:bookmark${capitalize(methodName)}`;
+    ipcMain.handle(channel, handler);
+    registeredEntityHandlers.add(channel);
+  }
+}
+```
+
+This automatically:
+
+1. Creates IPC handlers for each method in the BookmarkService
+2. Registers metadata with the PreloadApiGenerator
+3. Formats channels as `db:bookmark{MethodName}`
+4. Adds standardized error handling for all methods
 
 ### Database Entity Handlers
 
@@ -245,21 +346,48 @@ private async registerBookmarkService(): Promise<void> {
 
 ## Preload API Usage
 
-The generated preload API can be imported and used in renderer code:
+The generated preload API can be imported and used in renderer code. The API is exposed through the preload script and available as `window.EnjoyAPI` in the renderer process.
+
+For module-based APIs:
 
 ```typescript
-import { MyFeatureAPI } from 'generated/preload-api';
+// Direct window access
+const config = await window.EnjoyAPI.app.getConfig();
 
-// Use the API
-const data = await MyFeatureAPI.getData();
+// Or using imported API objects (recommended for better type checking)
+import { AppAPI } from 'generated/preload-api';
+
+const config = await AppAPI.getConfig();
+await AppAPI.updateConfig({ theme: 'dark' });
 ```
 
-For database entity APIs, the channels are prefixed with db:
+For database entity APIs, which are created using the service-based approach:
 
 ```typescript
-// Using a database entity API
-const bookmarks = await window.EnjoyAPI.db.bookmarkFindAll({ page: 1, limit: 10 });
+// Using a database entity API directly
+const bookmarks = await window.EnjoyAPI.bookmark.findAll({ page: 1, limit: 10 });
+
+// Or using the imported API objects
+import { BookmarkAPI } from 'generated/preload-api';
+
+// Create a new bookmark
+const newBookmark = await BookmarkAPI.create({
+  title: "Important Link",
+  url: "https://example.com",
+  tags: ["important", "example"]
+});
+
+// Get a bookmark by ID
+const bookmark = await BookmarkAPI.findById("some-id");
+
+// Update a bookmark
+await BookmarkAPI.update("some-id", { title: "Updated Title" });
+
+// Delete a bookmark
+await BookmarkAPI.delete("some-id");
 ```
+
+The generated API provides full type safety, intellisense support, and consistent error handling across all IPC calls.
 
 ## Best Practices
 

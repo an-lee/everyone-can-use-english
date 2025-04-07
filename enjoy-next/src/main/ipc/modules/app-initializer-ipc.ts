@@ -1,6 +1,5 @@
-import { BaseIpcModule, IpcMethod } from "@/main/ipc/modules/base-ipc-module";
-import appInitializer from "@/main/core/app/initialization/app-initializer";
-import log from "@/main/core/utils/logger";
+import { BaseIpcModule, IpcMethod } from "@main/ipc/modules/base-ipc-module";
+import { appInitializer, log } from "@main/core";
 
 // Configure logger
 const logger = log.scope("AppInitializerIpc");

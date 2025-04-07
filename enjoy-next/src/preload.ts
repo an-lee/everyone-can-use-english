@@ -5,8 +5,7 @@ import { contextBridge, ipcRenderer } from "electron";
 
 // Import EnjoyAPI from auto-generated file
 // In development, you would use a path like:
-// import { EnjoyAPI } from './generated/preload-api';
-// For this example, we'll continue to use the manual implementation
+import { EnjoyAPI } from "./generated/preload-api";
 
 // Define allowed IPC event channels
 const validChannels = [

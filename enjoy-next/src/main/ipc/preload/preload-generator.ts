@@ -68,6 +68,12 @@ export class PreloadApiGenerator {
 // DO NOT EDIT DIRECTLY - Generated on ${new Date().toISOString()}
 import { ipcRenderer } from 'electron';
 
+// Define necessary types
+export interface DbState {
+  state: string;
+  message?: string;
+}
+
 `;
 
     // Generate the main interface
@@ -80,11 +86,13 @@ import { ipcRenderer } from 'electron';
 
       // Get channel prefix from first method
       const channelPrefix = methods[0].channel.split(":")[0];
+      // Camelize the channel prefix
+      const camelizedPrefix = this.camelize(channelPrefix);
 
-      code += `  ${channelPrefix}: {\n`;
+      code += `  ${camelizedPrefix}: {\n`;
 
       for (const method of methods) {
-        const methodName = method.name;
+        const methodName = this.camelize(method.name);
         const params = this.generateMethodParams(
           method.metadata.parameters || []
         );
@@ -98,11 +106,14 @@ import { ipcRenderer } from 'electron';
 
     // Add service-based interfaces
     for (const service of this.serviceHandlers) {
-      code += `  ${service.channelPrefix}: {\n`;
+      // Camelize the channel prefix
+      const camelizedPrefix = this.camelize(service.channelPrefix);
+      code += `  ${camelizedPrefix}: {\n`;
 
       for (const method of service.methods) {
+        const methodName = this.camelize(method.name);
         const params = this.generateMethodParams(method.parameters || []);
-        code += `    ${method.name}: ${params} => Promise<${method.returnType}>;\n`;
+        code += `    ${methodName}: ${params} => Promise<${method.returnType}>;\n`;
       }
 
       code += `  };\n`;
@@ -117,12 +128,14 @@ import { ipcRenderer } from 'electron';
 
       // Get channel prefix from first method
       const channelPrefix = methods[0].channel.split(":")[0];
+      // Camelize the channel prefix for variable names
+      const camelizedPrefix = this.camelize(channelPrefix);
 
       code += `// ${moduleName} API\n`;
-      code += `export const ${this.capitalize(channelPrefix)}API = {\n`;
+      code += `export const ${this.capitalize(camelizedPrefix)}API = {\n`;
 
       for (const method of methods) {
-        const methodName = method.name;
+        const methodName = this.camelize(method.name);
         const channel = method.channel;
         const params = this.generateMethodParams(
           method.metadata.parameters || []
@@ -141,12 +154,16 @@ import { ipcRenderer } from 'electron';
 
     // Generate implementations for service-based APIs
     for (const service of this.serviceHandlers) {
+      // Camelize the channel prefix for variable names
+      const camelizedPrefix = this.camelize(service.channelPrefix);
+
       code += `// ${service.name} API\n`;
-      code += `export const ${this.capitalize(service.channelPrefix)}API = {\n`;
+      code += `export const ${this.capitalize(camelizedPrefix)}API = {\n`;
 
       for (const method of service.methods) {
-        const methodName = method.name;
-        const channel = `db:${service.channelPrefix}${this.capitalize(methodName)}`;
+        const methodName = this.camelize(method.name);
+        // Use the original channel format structure but with camelized method name
+        const channel = `${service.channelPrefix}:${methodName}`;
         const params = this.generateMethodParams(method.parameters || []);
         const paramNames = this.extractParamNames(method.parameters || []);
 
@@ -202,6 +219,14 @@ import { ipcRenderer } from 'electron';
    */
   private static capitalize(str: string): string {
     return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  /**
+   * Convert a string to camelCase
+   * Handles strings with hyphens like "app-initializer" -> "appInitializer"
+   */
+  private static camelize(str: string): string {
+    return str.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
   }
 }
 

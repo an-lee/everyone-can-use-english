@@ -1,6 +1,4 @@
 import { log } from "@main/core";
-import path from "path";
-import { fileURLToPath } from "url";
 import { ipcRegistry } from "@main/ipc/core";
 import { PreloadApiGenerator } from "@main/ipc/preload";
 
@@ -13,6 +11,8 @@ import {
   windowIpcModule,
   shellIpcModule,
 } from "@main/ipc/modules";
+import path from "path";
+import { app } from "electron";
 
 const logger = log.scope("ipc-handlers");
 
@@ -33,10 +33,15 @@ export const setupIpcHandlers = async () => {
   ]);
 
   // Generate preload API if needed
-  if (process.env.GENERATE_PRELOAD_API === "true") {
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
-    const outputPath = path.join(__dirname, "../../generated/preload-api.ts");
+  if (!app.isPackaged) {
+    // Use consistent path with preload-api-manager.ts
+    const outputPath = path.join(
+      process.cwd(),
+      "src",
+      "generated",
+      "preload-api.ts"
+    );
+
     await PreloadApiGenerator.generatePreloadApi(outputPath);
     logger.info(`Generated preload API at ${outputPath}`);
   }
