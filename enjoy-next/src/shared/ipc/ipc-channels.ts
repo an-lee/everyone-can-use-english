@@ -17,6 +17,24 @@ export interface IpcHandlerRegistration {
 }
 
 /**
+ * Helper function to create entity channel names consistently
+ */
+function createEntityChannels<T extends Record<string, any>>(
+  entityName: string,
+  methods: string[]
+): T {
+  const channels: Record<string, string> = {};
+
+  methods.forEach((method) => {
+    const key = `${entityName.toUpperCase()}_${method.toUpperCase()}`;
+    const channelName = `db:${entityName}${method.charAt(0).toUpperCase() + method.slice(1)}`;
+    channels[key] = channelName;
+  });
+
+  return channels as T;
+}
+
+/**
  * All IPC channels in the application
  */
 export const IpcChannels = {
@@ -57,6 +75,37 @@ export const IpcChannels = {
   // App initializer channels
   APP_INITIALIZER: {
     STATUS: "app-initializer:status",
+  },
+
+  // Database channels
+  DB: {
+    // Core database operations
+    CONNECT: "db:connect",
+    DISCONNECT: "db:disconnect",
+    BACKUP: "db:backup",
+    STATUS: "db:status",
+    STATE_CHANGED: "db-state-changed",
+
+    // Audio entity operations
+    ...createEntityChannels<Record<string, string>>("audio", [
+      "findAll",
+      "findById",
+      "findByMd5",
+      "create",
+      "update",
+      "delete",
+    ]),
+
+    // Video entity operations
+    ...createEntityChannels<Record<string, string>>("video", [
+      "findAll",
+      "findById",
+      "create",
+      "update",
+      "delete",
+    ]),
+
+    // To add more entities, use createEntityChannels
   },
 
   // Add more channel categories as needed...

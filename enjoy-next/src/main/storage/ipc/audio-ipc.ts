@@ -1,5 +1,6 @@
-import { ILike, IsNull, Not } from "typeorm";
-import { Audio } from "../entities/audio";
+import { ILike } from "typeorm";
+import { Audio } from "@main/storage/entities/audio";
+import { createIpcHandlers } from "./ipc-handler-factory";
 
 /**
  * Service for Audio entity
@@ -89,3 +90,5 @@ export const AudioService = {
     return true;
   },
 };
+
+export const AudioIpcHandlers = createIpcHandlers("Audio", AudioService);

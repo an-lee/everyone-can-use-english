@@ -25,5 +25,11 @@ export const setupIpcHandlers = async () => {
   // Setup plugin handlers
   pluginIpcModule.registerHandlers();
 
+  // Database-related handlers are registered when db.init() is called
+  // and will be available once a user logs in
+  logger.info(
+    "Database-related handlers will be registered when db.init() is called"
+  );
+
   logger.info("IPC handlers setup complete");
 };
