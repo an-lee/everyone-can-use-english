@@ -1,11 +1,12 @@
-import { BaseIpcModule, IpcMethod } from "@/main/ipc/modules/base-ipc-module";
+import { BaseIpcModule, IpcMethod } from "@main/ipc/modules";
 import { ipcMain } from "electron";
 import { db } from "@main/storage/db";
 import appConfig from "@/main/core/app/config";
 import PreloadApiGenerator, {
   ServiceHandlerMetadata,
-} from "../preload/preload-generator";
+} from "@main/ipc/preload/preload-generator";
 import { log } from "@main/core";
+import { AudioService } from "@main/storage/services";
 
 // Define the types locally instead of importing from @preload/db-api
 export type DbConnectionState =
@@ -342,7 +343,12 @@ export class DbIpcModule extends BaseIpcModule {
 
     try {
       // Generate preload API definitions for audio service
-      await this.generateAudioServicePreload();
+      await this.generateServicePreloadApi(
+        "Audio",
+        AudioService,
+        "audio",
+        "db"
+      );
 
       // Add more services here as needed
 
@@ -357,119 +363,159 @@ export class DbIpcModule extends BaseIpcModule {
   }
 
   /**
-   * Generate Audio service preload API
+   * Generate service preload API metadata automatically from service methods
+   * @param serviceName The display name of the service
+   * @param serviceObject The service object with methods
+   * @param channelPrefix The channel prefix for IPC calls (e.g., "audio")
+   * @param parentModule Optional parent module name (e.g., "db")
    */
-  private async generateAudioServicePreload(): Promise<void> {
+  private async generateServicePreloadApi<T extends object>(
+    serviceName: string,
+    serviceObject: T,
+    channelPrefix: string,
+    parentModule?: string
+  ): Promise<void> {
     try {
-      // Import the AudioService
-      const { AudioService } = await import(
-        "@main/storage/services/audio-service"
-      );
+      if (!serviceObject) {
+        throw new Error(`${serviceName}Service object is not valid`);
+      }
 
-      // Extract methods for service registration
-      const methodNames = Object.getOwnPropertyNames(AudioService).filter(
+      // Extract methods
+      const methodNames = Object.getOwnPropertyNames(serviceObject).filter(
         (name) =>
-          typeof AudioService[name as keyof typeof AudioService] ===
+          typeof serviceObject[name as keyof typeof serviceObject] ===
             "function" && !name.startsWith("_")
       );
 
-      // Create metadata for API generation with better type information
+      // Create metadata for API generation
       const metadata: ServiceHandlerMetadata = {
-        name: "Audio",
-        channelPrefix: "audio", // Audio entity prefix
-        parentModule: "db", // Parent is db
-        methods: [
-          {
-            name: "findAll",
-            returnType:
-              "Promise<{ items: any[]; total: number; page: number; limit: number; totalPages: number; }>",
-            description:
-              "Find all audio records with optional pagination and search",
-            parameters: [
-              {
-                name: "options",
-                type: "{ page?: number; limit?: number; search?: string }",
-                required: false,
-              },
-            ],
-          },
-          {
-            name: "findById",
-            returnType: "Promise<any>",
-            description: "Find audio by ID",
-            parameters: [
-              {
-                name: "id",
-                type: "string",
-                required: true,
-              },
-            ],
-          },
-          {
-            name: "findByMd5",
-            returnType: "Promise<any>",
-            description: "Find audio by MD5 hash",
-            parameters: [
-              {
-                name: "md5",
-                type: "string",
-                required: true,
-              },
-            ],
-          },
-          {
-            name: "create",
-            returnType: "Promise<any>",
-            description: "Create a new audio record",
-            parameters: [
-              {
-                name: "data",
-                type: "any",
-                required: true,
-              },
-            ],
-          },
-          {
-            name: "update",
-            returnType: "Promise<any>",
-            description: "Update an existing audio record",
-            parameters: [
-              {
-                name: "id",
-                type: "string",
-                required: true,
-              },
-              {
-                name: "data",
-                type: "any",
-                required: true,
-              },
-            ],
-          },
-          {
-            name: "delete",
-            returnType: "Promise<boolean>",
-            description: "Delete an audio record",
-            parameters: [
-              {
-                name: "id",
-                type: "string",
-                required: true,
-              },
-            ],
-          },
-        ],
+        name: serviceName,
+        channelPrefix: channelPrefix,
+        parentModule: parentModule,
+        methods: methodNames.map((methodName) => {
+          // Generate parameter information based on method name conventions
+          const paramInfo = this.inferParametersFromMethodName(methodName);
+
+          // Generate return type based on method name conventions
+          const returnType = this.inferReturnTypeFromMethodName(
+            methodName,
+            serviceName
+          );
+
+          return {
+            name: methodName,
+            returnType,
+            description: `${serviceName} ${methodName} operation`,
+            parameters: paramInfo,
+          };
+        }),
       };
 
       // Register the metadata
       PreloadApiGenerator.registerServiceHandler(metadata);
 
       this.logger.debug(
-        `Generated Audio service preload API with ${metadata.methods.length} methods`
+        `Generated ${serviceName} service preload API with ${metadata.methods.length} methods`
       );
     } catch (error) {
-      this.logger.error("Failed to generate Audio service preload API:", error);
+      this.logger.error(
+        `Failed to generate ${serviceName} service preload API:`,
+        error
+      );
     }
+  }
+
+  /**
+   * Infer parameters based on method name conventions
+   */
+  private inferParametersFromMethodName(methodName: string): Array<{
+    name: string;
+    type: string;
+    required?: boolean;
+  }> {
+    // Common parameter patterns based on method name
+    if (methodName === "findAll") {
+      return [
+        {
+          name: "options",
+          type: "{ page?: number; limit?: number; search?: string }",
+          required: false,
+        },
+      ];
+    } else if (methodName === "findById") {
+      return [
+        {
+          name: "id",
+          type: "string",
+          required: true,
+        },
+      ];
+    } else if (methodName === "findByMd5" || methodName.startsWith("findBy")) {
+      // Extract the field name from methods like findByXxx
+      const fieldName = methodName.replace("findBy", "");
+      const paramName = fieldName.charAt(0).toLowerCase() + fieldName.slice(1);
+
+      return [
+        {
+          name: paramName,
+          type: "string",
+          required: true,
+        },
+      ];
+    } else if (methodName === "create") {
+      return [
+        {
+          name: "data",
+          type: "any",
+          required: true,
+        },
+      ];
+    } else if (methodName === "update") {
+      return [
+        {
+          name: "id",
+          type: "string",
+          required: true,
+        },
+        {
+          name: "data",
+          type: "any",
+          required: true,
+        },
+      ];
+    } else if (methodName === "delete" || methodName === "remove") {
+      return [
+        {
+          name: "id",
+          type: "string",
+          required: true,
+        },
+      ];
+    }
+
+    // Default to empty array for unknown methods
+    return [];
+  }
+
+  /**
+   * Infer return type based on method name conventions
+   */
+  private inferReturnTypeFromMethodName(
+    methodName: string,
+    entityName: string
+  ): string {
+    if (methodName === "findAll") {
+      return `Promise<{ items: any[]; total: number; page: number; limit: number; totalPages: number; }>`;
+    } else if (methodName.startsWith("findBy") || methodName === "findById") {
+      return `Promise<any>`; // Could be improved to return the entity type
+    } else if (methodName === "create" || methodName === "update") {
+      return `Promise<any>`; // Could be improved to return the entity type
+    } else if (methodName === "delete" || methodName === "remove") {
+      return "Promise<boolean>";
+    }
+
+    // Default return type
+    return "Promise<any>";
   }
 
   /**
