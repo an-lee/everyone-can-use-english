@@ -1,97 +1,39 @@
-import Store from "electron-store";
-import {
-  WS_URL,
-  WEB_API_URL,
-  LIBRARY_PATH_SUFFIX,
-  DATABASE_NAME,
-  USER_DATA_SUB_PATH,
-} from "@shared/constants";
-import path from "path";
-import { app } from "electron";
-import fs from "fs-extra";
-import { UserType } from "@renderer/api";
 import { BehaviorSubject, Observable, distinctUntilChanged, map } from "rxjs";
+import { AppConfigState, ProxyConfig } from "./types";
+import { UserType } from "@renderer/api";
+import {
+  configStore,
+  ensureLibraryPath,
+  getCachePath,
+  getDbPath,
+  getLibraryPath,
+  getUserDataPath,
+  getConfigFilePath,
+} from "./store";
+import path from "path";
+import fs from "fs-extra";
 import log from "@/main/core/utils/logger";
 
 const logger = log.scope("AppConfig");
 
-// Config type definitions
-export interface ProxyConfig {
-  enabled: boolean;
-  url?: string;
-}
-
-export interface AppConfigState {
-  libraryPath: string;
-  webApiUrl: string;
-  wsUrl: string;
-  proxy: ProxyConfig;
-  user: UserType | null;
-  sessions: UserType[];
-}
-
-const APP_CONFIG_SCHEMA = {
-  libraryPath: {
-    type: "string",
-    default:
-      process.env.LIBRARY_PATH ||
-      path.join(app.getPath("documents"), LIBRARY_PATH_SUFFIX),
-  },
-  webApiUrl: { type: "string", default: WEB_API_URL },
-  wsUrl: { type: "string", default: WS_URL },
-  proxy: {
-    type: "object",
-    properties: {
-      enabled: { type: "boolean", default: false },
-      url: { type: "string" },
-    },
-  },
-  user: {
-    type: "object",
-    properties: {
-      id: { type: "number" },
-      name: { type: "string" },
-      avatarUrl: { type: "string" },
-      accessToken: { type: "string" },
-    },
-  },
-  sessions: {
-    type: "array",
-    items: {
-      type: "object",
-      properties: {
-        id: { type: "number" },
-        name: { type: "string" },
-        avatarUrl: { type: "string" },
-        accessToken: { type: "string" },
-      },
-    },
-    default: [],
-  },
-};
-
 class AppConfig {
-  private store: any;
   private isInitialized: boolean = false;
 
   // State subjects
   private state$: BehaviorSubject<AppConfigState>;
 
   constructor() {
-    this.store = new Store({
-      schema: APP_CONFIG_SCHEMA,
-    });
     this.state$ = new BehaviorSubject<AppConfigState>(this.getInitialState());
   }
 
   private getInitialState(): AppConfigState {
     return {
-      libraryPath: this.store.get("libraryPath") as string,
-      webApiUrl: this.store.get("webApiUrl") as string,
-      wsUrl: this.store.get("wsUrl") as string,
-      proxy: this.store.get("proxy") as ProxyConfig,
-      user: (this.store.get("user") as UserType) || null,
-      sessions: (this.store.get("sessions") as UserType[]) || [],
+      libraryPath: configStore.get("libraryPath"),
+      webApiUrl: configStore.get("webApiUrl"),
+      wsUrl: configStore.get("wsUrl"),
+      proxy: configStore.get("proxy") as ProxyConfig,
+      user: (configStore.get("user") as UserType) || null,
+      sessions: (configStore.get("sessions") as UserType[]) || [],
     };
   }
 
@@ -162,7 +104,7 @@ class AppConfig {
     value: AppConfigState[K]
   ): void {
     // Update store
-    this.store.set(key, value);
+    configStore.set(key, value);
 
     // Update state and emit
     const currentState = this.state$.getValue();
@@ -183,10 +125,10 @@ class AppConfig {
       }
 
       logger.info("Initializing AppConfig");
-      logger.info(`Configuration loaded from: ${this.store.path}`);
+      logger.info(`Configuration loaded from: ${configStore.path}`);
 
       // Verify paths
-      await this.ensureLibraryPath();
+      await ensureLibraryPath();
       logger.info(`Library path verified: ${this.get("libraryPath")}`);
 
       // Reset state with verified paths
@@ -215,7 +157,7 @@ class AppConfig {
     logger.info(`Setting user: ${user.id}`);
 
     // Store the full user object
-    this.store.set("user", {
+    configStore.set("user", {
       id: user.id,
       name: user.name || `User ${user.id}`,
       avatarUrl: user.avatarUrl || null,
@@ -226,7 +168,7 @@ class AppConfig {
     const currentState = this.state$.getValue();
     this.state$.next({
       ...currentState,
-      user: this.store.get("user"),
+      user: configStore.get("user"),
     });
 
     logger.info(`User ${user.id} logged in successfully`);
@@ -251,7 +193,7 @@ class AppConfig {
 
     // Delete user
     logger.info(`Logging out user: ${currentUser.id}`);
-    this.store.delete("user");
+    configStore.delete("user");
 
     // Update state
     const currentState = this.state$.getValue();
@@ -261,59 +203,27 @@ class AppConfig {
     });
   }
 
-  async ensureLibraryPath(): Promise<string> {
-    const libraryPath = this.get("libraryPath");
-    if (path.parse(libraryPath).base !== LIBRARY_PATH_SUFFIX) {
-      return path.join(libraryPath, LIBRARY_PATH_SUFFIX);
-    }
-
-    try {
-      await fs.ensureDir(libraryPath);
-      this.set("libraryPath", libraryPath);
-      return libraryPath;
-    } catch (error) {
-      logger.error("Failed to ensure library path", error);
-      throw error;
-    }
-  }
-
+  // Path helpers
   libraryPath(): string {
-    return this.get("libraryPath");
+    return getLibraryPath();
   }
 
   userDataPath(subPath: string = ""): string | null {
     if (!this.currentUser()) return null;
-
-    if (subPath && !USER_DATA_SUB_PATH.includes(subPath)) {
-      throw new Error(`Invalid subPath: ${subPath}`);
-    }
-
-    const tmpPath = path.join(
-      this.libraryPath(),
-      this.currentUser()!.id.toString(),
-      subPath
-    );
-    fs.ensureDirSync(tmpPath);
-    return tmpPath;
+    return getUserDataPath(Number(this.currentUser()!.id), subPath);
   }
 
   dbPath(): string | null {
-    if (!this.userDataPath()) return null;
-
-    const dbName = app.isPackaged
-      ? `${DATABASE_NAME}.sqlite`
-      : `${DATABASE_NAME}_dev.sqlite`;
-    return path.join(this.userDataPath()!, dbName);
+    if (!this.currentUser()) return null;
+    return getDbPath(Number(this.currentUser()!.id));
   }
 
   cachePath(): string {
-    const tmpDir = path.join(this.get("libraryPath"), "cache");
-    fs.ensureDirSync(tmpDir);
-    return tmpDir;
+    return getCachePath();
   }
 
   file(): string {
-    return this.store.path;
+    return getConfigFilePath();
   }
 }
 
