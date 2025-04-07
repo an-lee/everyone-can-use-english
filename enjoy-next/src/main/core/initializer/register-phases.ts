@@ -1,4 +1,4 @@
-import { phaseRegistry } from "@main/plugin/phase-registry";
+import { phaseRegistry } from "@main/core/initializer/phase-registry";
 import ipcSetupPhase from "@main/core/initializer/phases/ipc-setup-phase";
 import dbInitPhase from "@main/core/initializer/phases/db-init-phase";
 import log from "@main/services/logger";

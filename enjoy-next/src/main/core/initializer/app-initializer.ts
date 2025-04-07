@@ -1,6 +1,9 @@
 import { BrowserWindow } from "electron";
 import log from "@main/services/logger";
-import { phaseRegistry, InitPhase } from "@main/plugin/phase-registry";
+import {
+  phaseRegistry,
+  InitPhase,
+} from "@main/core/initializer/phase-registry";
 import {
   from,
   firstValueFrom,

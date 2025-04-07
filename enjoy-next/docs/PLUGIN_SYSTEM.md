@@ -38,13 +38,14 @@ The system uses RxJS observables to broadcast plugin events:
 - Plugin error states
 - Configuration changes
 
-### Plugin Phases
+### Initialization Phase Integration
 
-The plugin system supports different initialization phases:
+Plugins can participate in the application's initialization process through the phase system:
 
-- Phase registry for organizing plugin initialization
-- Ordered execution of plugin code
-- Dependencies between plugins
+- Plugins use the `PluginPhaseAdapter` to interact with the core phase registry
+- Phase IDs are automatically namespaced with the plugin ID
+- Plugin-provided phases are properly cleaned up when a plugin is deactivated
+- Dependencies between phases ensure correct execution order
 
 ## Plugin Lifecycle
 
@@ -143,6 +144,13 @@ Plugins have access to various APIs through the plugin context:
 - `context.registerApi(name, implementation)`: Register API for renderer process
 - `context.registerCommand(name, callback)`: Register a command
 
+### Initialization Integration
+
+- `context.registerInitPhase(phase)`: Register a custom initialization phase
+- `context.unregisterInitPhase(phaseId)`: Unregister a previously registered phase
+- `context.getInitPhases()`: Get all registered initialization phases
+- `context.waitForPhase(phaseId, timeoutMs)`: Wait for a specific phase to complete
+
 ## Plugin Development
 
 ### Creating a Plugin
@@ -199,6 +207,34 @@ When developing plugins:
 5. **Event-Driven**: Use events for communication with other plugins
 6. **Type Safety**: Use TypeScript for better type checking
 7. **Documentation**: Document your plugin API and extension points
+8. **Phase Dependencies**: When registering initialization phases, declare proper dependencies
+9. **Namespacing**: Use plugin-specific namespaces for events and configuration keys
+
+## Integration with Application Initialization
+
+Plugins can integrate with the application initialization process:
+
+```typescript
+export default {
+  async activate(context) {
+    // Register an initialization phase
+    context.registerInitPhase({
+      name: "My Plugin Setup",
+      description: "Sets up my plugin's functionality",
+      dependencies: ["database", "plugins_activation"], // Depends on core phases
+      execute: async () => {
+        // Phase execution code
+        await setupMyPlugin();
+      }
+    });
+    
+    // Wait for a specific phase to complete before doing something
+    context.waitForPhase("app_ready").then(() => {
+      // Do something when the app is fully ready
+    });
+  }
+};
+```
 
 ## Plugin Distribution
 

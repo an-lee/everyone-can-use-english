@@ -1,4 +1,4 @@
-import { InitPhase } from "@main/plugin/phase-registry";
+import { InitPhase } from "@main/core/initializer/phase-registry";
 import log from "@main/services/logger";
 import { db } from "@main/storage/db";
 

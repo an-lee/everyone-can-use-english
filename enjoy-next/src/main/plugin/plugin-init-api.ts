@@ -1,10 +1,11 @@
 import log from "@main/services/logger";
-import { phaseRegistry, InitPhase } from "./phase-registry";
-import { initObservables } from "../initializer/init-observables";
+import { InitPhase } from "@main/core/initializer/phase-registry";
+import { pluginPhaseAdapter } from "./plugin-phase-adapter";
+import { initObservables } from "@main/core/initializer/init-observables";
 import initHooks, {
   InitHookType,
   HookFunction,
-} from "../initializer/init-hooks";
+} from "@main/core/initializer/init-hooks";
 import { from, firstValueFrom, timeout, catchError } from "rxjs";
 
 const logger = log.scope("PluginInitAPI");
@@ -33,7 +34,7 @@ export const PluginInitAPI = {
       id: phaseId,
     };
 
-    return phaseRegistry.registerPhase(fullPhase);
+    return pluginPhaseAdapter.registerPluginPhase(fullPhase, pluginId);
   },
 
   /**
@@ -52,7 +53,7 @@ export const PluginInitAPI = {
     }
 
     logger.info(`Plugin ${pluginId} is unregistering phase: ${phaseNameOrId}`);
-    return phaseRegistry.unregisterPhase(phaseId);
+    return pluginPhaseAdapter.getPhaseRegistry().unregisterPhase(phaseId);
   },
 
   /**
@@ -60,7 +61,7 @@ export const PluginInitAPI = {
    * @returns Array of initialization phases
    */
   getPhases: (): InitPhase[] => {
-    return phaseRegistry.getPhases();
+    return pluginPhaseAdapter.getPhaseRegistry().getPhases();
   },
 
   /**

@@ -3,6 +3,8 @@ import path from "path";
 import log from "@main/services/logger";
 import appInitializer from "@main/core/initializer/app-initializer";
 import { registerInitializerPhases } from "@main/core/initializer/register-phases";
+import { registerPluginSystemPhases } from "@main/core/initializer/register-plugin-phases";
+import { phaseRegistry } from "@main/core/initializer/phase-registry";
 
 // Configure logger
 const logger = log.scope("MainAppLoader");
@@ -15,8 +17,18 @@ export class MainAppLoader {
     logger.info("Starting application initialization");
 
     try {
-      // Register all initialization phases
+      // Register core initialization phases
       registerInitializerPhases();
+
+      // Register plugin system phases
+      registerPluginSystemPhases();
+
+      // Register default system phases (config, database, etc)
+      phaseRegistry.registerDefaultPhases();
+
+      logger.info(
+        `Total registered phases: ${phaseRegistry.getPhases().length}`
+      );
 
       // Run the initialization process
       await appInitializer.initialize();

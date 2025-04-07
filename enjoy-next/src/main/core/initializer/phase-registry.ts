@@ -1,8 +1,6 @@
 import log from "@main/services/logger";
-import appConfig from "@/main/core/app-config";
+import appConfig from "@main/core/app-config";
 import db from "@main/storage";
-import pluginManager from "@/main/core/plugin/plugin-manager";
-import { publishEvent } from "@/main/core/plugin/plugin-context";
 
 // Configure logger
 const logger = log.scope("PhaseRegistry");
@@ -17,12 +15,14 @@ export type InitPhase = {
   timeout?: number; // Optional timeout in milliseconds
 };
 
+/**
+ * Registry for initialization phases
+ * Manages registration, dependencies, and provides access to phases
+ */
 class PhaseRegistry {
   private phases: InitPhase[] = [];
 
-  constructor() {
-    this.registerDefaultPhases();
-  }
+  constructor() {}
 
   /**
    * Register a new initialization phase
@@ -140,9 +140,12 @@ class PhaseRegistry {
   }
 
   /**
-   * Register the default application initialization phases
+   * Register default system phases
+   * This should be called during core initialization
    */
-  private registerDefaultPhases(): void {
+  registerDefaultPhases(): void {
+    logger.info("Registering default initialization phases");
+
     // Configuration phase - loads app configuration
     this.registerPhase({
       id: "config",
@@ -153,6 +156,37 @@ class PhaseRegistry {
         await appConfig.initialize();
       },
     });
+
+    // Database initialization
+    this.registerPhase({
+      id: "database",
+      name: "Database",
+      description: "Setting up database connection",
+      dependencies: ["config"],
+      execute: async () => {
+        db.init();
+        // Database actual connection happens when user logs in
+      },
+    });
+
+    // Plugin system phases will be registered by the plugin manager when it loads
+    // But they depend on these core phases, so we define them here
+
+    logger.info(
+      `Registered ${this.phases.length} default initialization phases`
+    );
+  }
+
+  /**
+   * Register plugin system phases
+   * @param pluginManager The plugin manager instance
+   * @param publishEvent The function to publish events
+   */
+  registerPluginSystemPhases(
+    pluginManager: any,
+    publishEvent: (event: string, data?: any) => void
+  ): void {
+    logger.info("Registering plugin system phases");
 
     // Plugin system initialization
     this.registerPhase({
@@ -176,18 +210,6 @@ class PhaseRegistry {
       },
     });
 
-    // Database initialization
-    this.registerPhase({
-      id: "database",
-      name: "Database",
-      description: "Setting up database connection",
-      dependencies: ["config"],
-      execute: async () => {
-        db.init();
-        // Database actual connection happens when user logs in
-      },
-    });
-
     // Final ready phase
     this.registerPhase({
       id: "app_ready",
@@ -200,11 +222,11 @@ class PhaseRegistry {
     });
 
     logger.info(
-      `Registered ${this.phases.length} default initialization phases`
+      `Registered plugin system phases, total phases: ${this.phases.length}`
     );
   }
 }
 
-// Export a singleton instance
+// Create and export a singleton instance
 export const phaseRegistry = new PhaseRegistry();
 export default phaseRegistry;

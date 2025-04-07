@@ -4,9 +4,10 @@ import fs from "fs-extra";
 import { PluginContext, PluginManifest } from "@/types/plugin";
 import log from "@main/services/logger";
 import { PluginInitAPI } from "./plugin-init-api";
-import { InitPhase } from "./phase-registry";
-import { pluginObservables } from "./plugin-observables";
-import { InitHookType, HookFunction } from "../initializer/init-hooks";
+import { pluginPhaseAdapter } from "./plugin-phase-adapter";
+import { InitPhase } from "@main/core/initializer/phase-registry";
+import { pluginObservables } from "@main/plugin/plugin-observables";
+import { InitHookType, HookFunction } from "@main/core/initializer/init-hooks";
 import { Subject, Subscription } from "rxjs";
 
 const logger = log.scope("plugin-context");
@@ -80,11 +81,31 @@ export function createPluginContext(
     },
 
     registerInitPhase(phase: Omit<InitPhase, "id">): void {
-      PluginInitAPI.registerPhase(pluginId, phase);
+      // Create a complete phase with the plugin's ID as a prefix
+      const fullPhase: InitPhase = {
+        ...phase,
+        id: `${manifest.id}-${phase.name.toLowerCase().replace(/\s+/g, "-")}`,
+      };
+
+      // Use the adapter instead of direct registration
+      pluginPhaseAdapter.registerPluginPhase(fullPhase, manifest.id);
+      pluginLogger.debug(`Registered initialization phase: ${fullPhase.id}`);
     },
 
-    unregisterInitPhase(phaseName: string): void {
-      PluginInitAPI.unregisterPhase(pluginId, phaseName);
+    unregisterInitPhase(phaseId: string): void {
+      // Use the adapter's method to unregister plugin phases
+      const phases = pluginPhaseAdapter.getPluginPhases(manifest.id);
+      const phaseToRemove = phases.find(
+        (p) => p.id.endsWith(phaseId) || p.id === phaseId
+      );
+
+      if (phaseToRemove) {
+        const registry = pluginPhaseAdapter.getPhaseRegistry();
+        registry.unregisterPhase(phaseToRemove.id);
+        pluginLogger.debug(
+          `Unregistered initialization phase: ${phaseToRemove.id}`
+        );
+      }
     },
 
     getInitPhases(): Array<{
@@ -92,7 +113,15 @@ export function createPluginContext(
       name: string;
       dependencies: string[];
     }> {
-      return PluginInitAPI.getPhases();
+      // Get all phases from the registry through the adapter
+      return pluginPhaseAdapter
+        .getPhaseRegistry()
+        .getPhases()
+        .map((phase) => ({
+          id: phase.id,
+          name: phase.name,
+          dependencies: phase.dependencies,
+        }));
     },
 
     registerInitHook(
