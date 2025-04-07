@@ -1,11 +1,11 @@
-import { StrictMode, useEffect, useState, useRef } from "react";
+import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 import "./lib/i18n";
 
 // Import the generated route tree
 import { routeTree } from "./routeTree.gen";
-import { useAppStore, useAuthStore } from "./store";
+import { useAppStore, useDbStore } from "./store";
 import { Icon } from "@iconify/react";
 import { AppMenubar } from "./components/layouts/menubar";
 import { Login } from "./routes/login";
@@ -26,174 +26,12 @@ declare module "@tanstack/react-router" {
   }
 }
 
-// Define the types here instead of importing from @preload files
-type DbConnectionState =
-  | "disconnected"
-  | "connecting"
-  | "connected"
-  | "error"
-  | "locked"
-  | "reconnecting";
-
-type InitStatus = {
-  currentStep: string;
-  progress: number;
-  error: string | null;
-  message: string;
-};
-
-interface DbState {
-  state: DbConnectionState;
-  path: string | null;
-  error: string | null;
-  autoConnected?: boolean;
-  retryCount?: number;
-  retryDelay?: number;
-  lastOperation?: string;
-  connectionTime?: number;
-  stats?: {
-    connectionDuration?: number;
-    operationCount?: number;
-    lastError?: {
-      message: string;
-      time: number;
-    } | null;
-  };
-}
-
-// Extend DbState with any additional properties needed
-interface EnhancedDbState extends DbState {}
-
-type AppStatusType = "initializing" | "login" | "ready" | "error";
-
 const App = () => {
-  const { isAuthenticated, autoLogin } = useAuthStore();
-  const [appStatus, setAppStatus] = useState<AppStatusType>("initializing");
-  const [initStatus, setInitStatus] = useState<InitStatus>({
-    currentStep: "starting",
-    progress: 0,
-    error: null,
-    message: "Starting application...",
-  });
-  const [dbState, setDbState] = useState<EnhancedDbState>({
-    state: "disconnected",
-    path: null,
-    error: null,
-    autoConnected: false,
-  });
-
-  // Ref to track the last database state for logging purposes
-  const dbStateRef = useRef<string | null>("disconnected");
+  const { dbState } = useDbStore();
+  const { appStatus, initStatus } = useAppStore();
 
   useTheme();
   useFontSize();
-
-  // Listen for app initialization status
-  useEffect(() => {
-    const handleInitStatus = (status: InitStatus) => {
-      setInitStatus(status);
-
-      if (status.error) {
-        setAppStatus("error");
-      } else if (status.currentStep === "ready") {
-        // Call autoLogin when app is ready
-        autoLogin().then(() => {
-          if (isAuthenticated()) {
-            setAppStatus("ready");
-          } else {
-            setAppStatus("login");
-          }
-        });
-      }
-    };
-
-    // Get initial status
-    if (window.EnjoyAPI) {
-      window.EnjoyAPI.initializer.getStatus().then(handleInitStatus);
-      window.EnjoyAPI.events.on("app-init-status", handleInitStatus);
-    }
-
-    return () => {
-      if (window.EnjoyAPI) {
-        window.EnjoyAPI.events.off("app-init-status", handleInitStatus);
-      }
-    };
-  }, []);
-
-  // Listen for auth state changes
-  useEffect(() => {
-    if (initStatus.currentStep === "ready") {
-      if (isAuthenticated()) {
-        setAppStatus("ready");
-      } else {
-        setAppStatus("login");
-
-        // No need to manually check database state after logout
-        // The db-state-changed event will handle this
-      }
-    }
-  }, [isAuthenticated(), initStatus.currentStep]);
-
-  // Listen for database state changes
-  useEffect(() => {
-    const handleDbStateChange = (state: EnhancedDbState) => {
-      // Only log if the state has changed from the last known state
-      if (dbStateRef.current !== state.state) {
-        console.log(
-          `Database state changed: ${dbStateRef.current} → ${state.state}`,
-          state
-        );
-        dbStateRef.current = state.state;
-      }
-
-      setDbState(state);
-    };
-
-    // Check database status immediately when authenticated and app is ready
-    const checkDbStatus = async () => {
-      if (!isAuthenticated() || !window.EnjoyAPI) return;
-
-      try {
-        console.log("Checking database status");
-        const status = await window.EnjoyAPI.db.status();
-        console.log("Database status:", status);
-        setDbState(status);
-
-        // If user is authenticated but db isn't connected, try to connect
-        if (status.state !== "connected" && status.state !== "connecting") {
-          console.log("Connecting to database");
-          try {
-            await window.EnjoyAPI.db.connect();
-          } catch (connectErr) {
-            console.error("Failed to connect to database:", connectErr);
-            // Get the latest status after connection attempt (even if it failed)
-            const latestStatus = await window.EnjoyAPI.db.status();
-            setDbState(latestStatus);
-          }
-        }
-      } catch (err) {
-        console.error("Failed to check database status:", err);
-      }
-    };
-
-    // Check initial status when auth state changes
-    if (appStatus === "ready") {
-      console.log("App is ready, checking database status");
-      checkDbStatus();
-    }
-
-    // Set up event listener for database state changes
-    if (window.EnjoyAPI) {
-      window.EnjoyAPI.events.on("db-state-changed", handleDbStateChange);
-    }
-
-    // Clean up event listener
-    return () => {
-      if (window.EnjoyAPI) {
-        window.EnjoyAPI.events.off("db-state-changed", handleDbStateChange);
-      }
-    };
-  }, [appStatus]);
 
   // App is still initializing
   if (appStatus === "initializing") {
@@ -305,9 +143,7 @@ const App = () => {
               <button
                 className="mt-4 rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground"
                 onClick={async () => {
-                  if (window.EnjoyAPI) {
-                    await window.EnjoyAPI.db.connect();
-                  }
+                  useDbStore.getState().connect();
                 }}
               >
                 Retry Connection

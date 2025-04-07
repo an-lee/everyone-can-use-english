@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { UserType } from "@renderer/api";
+import { useDbStore } from "./use-db-store";
 
 export type LoginMethodType =
   | "google_oauth2"
@@ -50,12 +51,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       window.EnjoyAPI.appConfig.set("user", currentUser);
 
       // Explicitly connect to database if needed
-      window.EnjoyAPI.db
-        .status()
-        .then((status: any) => {
-          if (status.state !== "connected") {
+      const { getStatus, connect } = useDbStore.getState();
+      getStatus()
+        .then(() => {
+          const { dbState } = useDbStore.getState();
+          if (dbState.state !== "connected") {
             console.log("Connecting to database after login");
-            window.EnjoyAPI.db.connect().catch((err: Error) => {
+            connect().catch((err: Error) => {
               console.error("Error connecting to database after login:", err);
             });
           }
@@ -63,7 +65,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         .catch((err: Error) => {
           console.error("Error checking db status:", err);
           // Try connecting anyway
-          window.EnjoyAPI.db.connect().catch((err: Error) => {
+          connect().catch((err: Error) => {
             console.error("Error connecting to database after login:", err);
           });
         });
