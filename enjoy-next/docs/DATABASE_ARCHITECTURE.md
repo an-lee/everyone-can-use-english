@@ -15,7 +15,7 @@ The application uses a robust database system built on TypeORM to provide persis
 
 ### Database Module
 
-The central database module (`db.ts`) provides:
+The central database module (`storage/db.ts`) provides:
 
 - Connection management with retry capability
 - Error handling and state reporting
@@ -27,7 +27,7 @@ The central database module (`db.ts`) provides:
 
 The application uses TypeORM's `DataSource` to configure and connect to SQLite databases:
 
-- Configured through `data-source.ts`
+- Configured through `storage/data-source.ts`
 - Entity discovery through patterns
 - Migration support
 - Connection pooling
@@ -35,7 +35,7 @@ The application uses TypeORM's `DataSource` to configure and connect to SQLite d
 
 ### Entity Models
 
-Entity models define the database schema using TypeORM decorators:
+Entity models located in `storage/entities/` define the database schema using TypeORM decorators:
 
 - Each entity corresponds to a database table
 - Relationships between entities are defined explicitly
@@ -44,7 +44,7 @@ Entity models define the database schema using TypeORM decorators:
 
 ### Services Layer
 
-Each entity has a corresponding service module that:
+Each entity has a corresponding service module in `storage/services/` that:
 
 - Provides business logic for entity operations
 - Abstracts database access patterns

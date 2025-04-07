@@ -3,14 +3,16 @@ import path from "path";
 import fs from "fs-extra";
 import { PluginContext, PluginManifest } from "@main/plugin/types";
 import log from "@main/core/utils/logger";
-import { PluginInitAPI } from "@main/plugin/plugin-init-api";
-import { pluginPhaseAdapter } from "@main/plugin/plugin-phase-adapter";
-import { InitPhase } from "@main/core/app/initialization/registry/phase-registry";
-import { pluginObservables } from "@main/plugin/plugin-observables";
 import {
-  InitHookType,
+  PluginInitAPI,
+  pluginPhaseAdapter,
+  pluginObservables,
+} from "@main/plugin/core";
+import {
   HookFunction,
-} from "@main/core/app/initialization/lifecycle/init-hooks";
+  InitHookType,
+  InitPhase,
+} from "@main/core/app/initialization";
 import { Subject, Subscription } from "rxjs";
 
 const logger = log.scope("plugin-context");

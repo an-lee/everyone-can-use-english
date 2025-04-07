@@ -100,22 +100,29 @@ The storage system uses TypeORM with a service-oriented architecture:
 ```
 src/main/
 ├── core/                  # Core application modules
-│   ├── app-config.ts      # Application configuration
-│   └── initializer/       # Application initialization
+│   ├── main-app-loader.ts # Application initialization entry point
+│   ├── app/               # Application core functionality
+│   │   └── ...            # App-specific modules
+│   └── utils/             # Core utility functions
 ├── ipc/                   # IPC communication modules
 │   ├── modules/           # Individual IPC modules
 │   ├── base-ipc-module.ts # Base class for IPC modules
 │   ├── ipc-registry.ts    # IPC handler registry
+│   ├── ipc-handlers.ts    # IPC handler setup
+│   ├── ipc-error-handler.ts # Error handling for IPC
+│   ├── preload-api-manager.ts # API manager for preload
 │   └── preload-generator.ts # Preload API generator
 ├── plugin/                # Plugin system
-│   ├── plugin-manager.ts  # Plugin loading and lifecycle
-│   ├── plugin-context.ts  # Plugin API context
-│   └── plugin-observables.ts # Event system for plugins
-├── storage/               # Data storage
-│   ├── entities/          # Database entity models
-│   └── services/          # Entity services
-└── services/              # Application services
-    └── logger.ts          # Logging service
+│   ├── core/              # Core plugin functionality
+│   ├── manager/           # Plugin loading and lifecycle
+│   ├── types.ts           # Plugin type definitions
+│   └── index.ts           # Plugin system exports
+└── storage/               # Data storage
+    ├── entities/          # Database entity models
+    ├── services/          # Entity services
+    ├── data-source.ts     # Database connection configuration
+    ├── db.ts              # Database management system
+    └── index.ts           # Storage system exports
 ```
 
 ## Best Practices

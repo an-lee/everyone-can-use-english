@@ -12,12 +12,30 @@ The plugin system is built around these core components:
 
 ### Plugin Manager
 
-The `PluginManager` class is responsible for:
+The plugin manager (located in `src/main/plugin/manager`) is responsible for:
 
 - Loading built-in and user plugins
 - Managing the plugin lifecycle (loading, activation, deactivation)
 - Providing access to plugin metadata and state
 - Cleaning up plugin resources when deactivated
+
+### Plugin Core
+
+The core plugin functionality (located in `src/main/plugin/core`) provides:
+
+- Plugin context creation and management
+- Plugin API implementation
+- Event handling for plugins
+- Resource management for plugins
+
+### Plugin Types
+
+The `types.ts` file defines the interfaces and types used throughout the plugin system:
+
+- Plugin manifest format
+- Plugin lifecycle hooks
+- Plugin context interface
+- Plugin event types
 
 ### Plugin Context
 

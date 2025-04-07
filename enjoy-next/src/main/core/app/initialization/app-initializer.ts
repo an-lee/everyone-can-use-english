@@ -3,7 +3,7 @@ import log from "@main/core/utils/logger";
 import {
   phaseRegistry,
   InitPhase,
-} from "@main/core/app/initialization/registry/phase-registry";
+} from "@main/core/app/initialization/registry";
 import {
   from,
   firstValueFrom,
@@ -16,7 +16,7 @@ import {
   catchError,
   toArray,
 } from "rxjs";
-import { initObservables } from "@main/core/app/initialization/lifecycle/init-observables";
+import { initObservables } from "@main/core/app/initialization/lifecycle";
 
 // Configure logger
 const logger = log.scope("AppInitializer");
@@ -291,4 +291,3 @@ export class AppInitializer {
 
 // Create and export a singleton instance
 export const appInitializer = new AppInitializer();
-export default appInitializer;

@@ -219,5 +219,5 @@ class InitHookManager {
 }
 
 // Create and export a singleton instance
-const initHooks = new InitHookManager();
+export const initHooks = new InitHookManager();
 export default initHooks;

@@ -14,15 +14,33 @@ The application initialization system provides a structured, phase-based approac
 
 ## Core Components
 
-### App Initializer
+### Main App Loader
 
-The `AppInitializer` class orchestrates the entire initialization process:
+The `MainAppLoader` class located in `src/main/core/main-app-loader.ts` orchestrates the entire initialization process:
 
-- Manages the execution of initialization phases in dependency order
+- Manages the execution of initialization phases
 - Provides timeout protection for phases that take too long
 - Broadcasts initialization status to renderer processes
 - Handles parallel execution of independent phases
 - Provides detailed error reporting
+
+### App Core
+
+The application core functionality is located in `src/main/core/app/` and includes:
+
+- Application configuration management
+- Window management
+- Core application state
+- Initialization phase definitions
+
+### Utils
+
+Utility functions that support initialization are located in `src/main/core/utils/`:
+
+- Phase dependency management
+- Timeout handling
+- Error formatting
+- Progress calculation
 
 ### Phase Registry
 

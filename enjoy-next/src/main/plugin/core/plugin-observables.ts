@@ -8,7 +8,7 @@ import {
   share,
   scan,
 } from "rxjs";
-import log from "@/main/core/utils/logger";
+import log from "@main/core/utils/logger";
 
 const logger = log.scope("PluginObservables");
 

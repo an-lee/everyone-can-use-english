@@ -1,8 +1,8 @@
 import {
   HookFunction,
   InitHookType,
-} from "../core/app/initialization/lifecycle/init-hooks";
-import { InitPhase } from "../core/app/initialization/registry/phase-registry";
+  InitPhase,
+} from "@main/core/app/initialization";
 
 export enum PluginLifecycle {
   UNLOADED = "unloaded",

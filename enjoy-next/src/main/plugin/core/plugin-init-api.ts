@@ -1,11 +1,12 @@
 import log from "@/main/core/utils/logger";
-import { InitPhase } from "@/main/core/app/initialization/registry/phase-registry";
-import { pluginPhaseAdapter } from "./plugin-phase-adapter";
-import { initObservables } from "@/main/core/app/initialization/lifecycle/init-observables";
-import initHooks, {
+import {
+  initHooks,
+  InitPhase,
+  initObservables,
   InitHookType,
   HookFunction,
-} from "@/main/core/app/initialization/lifecycle/init-hooks";
+} from "@main/core/app/initialization";
+import { pluginPhaseAdapter } from "@main/plugin/core";
 import { from, firstValueFrom, timeout, catchError } from "rxjs";
 
 const logger = log.scope("PluginInitAPI");

@@ -27,6 +27,8 @@ The `BaseIpcModule` is the foundation for all IPC modules. It provides:
 Example:
 
 ```typescript
+import { BaseIpcModule, IpcMethod } from "@main/ipc/base-ipc-module";
+
 export class MyIpcModule extends BaseIpcModule {
   constructor() {
     super("MyModule", "myPrefix");
@@ -56,19 +58,18 @@ export class MyIpcModule extends BaseIpcModule {
 
 ### IPC Registry
 
-The `IpcRegistry` automatically discovers and manages all IPC modules:
+The `IpcRegistry` manages all IPC modules:
 
-- Auto-discovers modules following the naming convention `*-ipc.ts`
-- Registers all methods marked with `@IpcMethod`
+- Registers IPC modules and their methods
 - Provides central access to all registered handlers
 - Exposes metadata for documentation and type generation
 
-### Preload API Generator
+### Preload API Manager & Generator
 
-The `PreloadApiGenerator` creates TypeScript interfaces and implementations for the preload API based on the registered IPC modules:
+The system includes components to create TypeScript interfaces and implementations for the preload API:
 
-- Generates type-safe preload API interfaces
-- Creates the actual implementation code
+- `PreloadApiManager`: Manages preload API registration
+- `PreloadApiGenerator`: Generates type-safe preload API interfaces and implementations
 - Updates when new modules are registered
 - Supports both decorator-based and service-based APIs
 
