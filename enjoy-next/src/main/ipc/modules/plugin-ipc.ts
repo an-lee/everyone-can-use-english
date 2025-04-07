@@ -1,7 +1,4 @@
-import { BaseIpcModule } from "@/main/core/ipc/base-ipc-module";
-import { IpcMethod } from "@/main/core/ipc/base-ipc-module";
-import { IPlugin } from "./types";
-import { PluginManager } from "./plugin-manager";
+import { BaseIpcModule, IpcMethod } from "@main/core/ipc/base-ipc-module";
 
 export class PluginIpcModule extends BaseIpcModule {
   constructor() {
@@ -12,9 +9,17 @@ export class PluginIpcModule extends BaseIpcModule {
    * Get all installed plugins
    * @returns Array of simplified plugin objects for IPC transport
    */
-  @IpcMethod()
+  @IpcMethod({
+    description: "Get all installed plugins",
+    returns: {
+      type: "any[]",
+      description: "Array of simplified plugin objects",
+    },
+  })
   async getAll(): Promise<any[]> {
-    const { default: pluginManager } = await import("./plugin-manager");
+    const { default: pluginManager } = await import(
+      "../../plugin/plugin-manager"
+    );
     const plugins = pluginManager.getAllPlugins();
 
     return plugins.map((plugin) => ({
@@ -36,7 +41,21 @@ export class PluginIpcModule extends BaseIpcModule {
    * @param args Arguments for the command
    * @returns Result of command execution
    */
-  @IpcMethod()
+  @IpcMethod({
+    description: "Execute a plugin command",
+    parameters: [
+      {
+        name: "commandId",
+        type: "string",
+        description: "ID of the command to execute",
+        required: true,
+      },
+    ],
+    returns: {
+      type: "any",
+      description: "Result of command execution",
+    },
+  })
   async executeCommand(
     _event: any,
     commandId: string,
@@ -45,7 +64,7 @@ export class PluginIpcModule extends BaseIpcModule {
     this.logger.info(`Executing command: ${commandId}`);
 
     try {
-      const { executeCommand } = await import("./plugin-context");
+      const { executeCommand } = await import("../../plugin/plugin-context");
       return await executeCommand(commandId, ...args);
     } catch (error) {
       this.logger.error(`Error executing command ${commandId}`, error);

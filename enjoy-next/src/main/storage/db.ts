@@ -6,7 +6,6 @@ import log from "@main/services/logger";
 import appConfig from "@main/config/app-config";
 import { AppDataSource } from "@main/storage/data-source";
 import { IpcChannels } from "@shared/ipc/ipc-channels";
-import dbIpcModule from "@/main/storage/ipc/db-core-ipc";
 
 const logger = log.scope("Storage");
 
@@ -225,8 +224,10 @@ export const db = {
   init: () => {
     logger.info("Initializing database module");
 
-    // Register database IPC handlers (core handlers only, entity handlers are part of the same module)
-    db.registerIpcHandlers();
+    // We don't need to explicitly register IPC handlers here anymore
+    // They are automatically discovered and registered by the IPC registry
+    // through the files in src/main/core/ipc/modules/
+    logger.info("Database IPC handlers are managed by the IPC registry");
 
     // Set up event listeners for login/logout
     appConfig.getUser$().subscribe(async (user) => {
@@ -322,26 +323,6 @@ export const db = {
     fs.copySync(dbPath, backupFilePath);
 
     logger.info(`Backup created at ${backupFilePath}`);
-  },
-
-  // Register database IPC handlers
-  registerIpcHandlers: () => {
-    // Only register handlers once
-    if (db.ipcHandlersRegistered) {
-      logger.debug("Database IPC handlers already registered, skipping");
-      return;
-    }
-
-    try {
-      // Register database handlers (includes both core and entity handlers in one module)
-      dbIpcModule.registerHandlers();
-
-      db.ipcHandlersRegistered = true;
-      logger.info("Database IPC handlers registered");
-    } catch (error) {
-      logger.error("Failed to register Database IPC handlers", error);
-      // Don't set ipcHandlersRegistered to true if there was an error
-    }
   },
 };
 

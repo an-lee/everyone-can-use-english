@@ -1,4 +1,4 @@
-import { BrowserWindow, ipcMain } from "electron";
+import { BrowserWindow } from "electron";
 import log from "@main/services/logger";
 import { phaseRegistry, InitPhase } from "../plugin/phase-registry";
 import {
@@ -19,7 +19,6 @@ import { initObservables } from "./init-observables";
 const logger = log.scope("AppInitializer");
 
 export class AppInitializer {
-  private ipcHandlersRegistered: boolean = false;
   private startTime: number = 0;
   private defaultPhaseTimeout: number = 30000; // Default timeout: 30 seconds
 
@@ -104,24 +103,6 @@ export class AppInitializer {
     } else {
       this.defaultPhaseTimeout = timeout;
       logger.debug(`Default phase timeout set to ${timeout}ms`);
-    }
-  }
-
-  /**
-   * Register IPC handlers for accessing initializer status
-   */
-  private registerIpcHandlers() {
-    if (this.ipcHandlersRegistered) {
-      logger.debug("AppInitializer IPC handlers already registered, skipping");
-      return;
-    }
-
-    try {
-      ipcMain.handle("app-initializer:status", () => this.getStatusForIpc());
-      this.ipcHandlersRegistered = true;
-      logger.debug("AppInitializer IPC handlers registered");
-    } catch (error) {
-      logger.error("Failed to register AppInitializer IPC handlers", error);
     }
   }
 
@@ -228,9 +209,6 @@ export class AppInitializer {
         `Circular dependencies detected in phases: ${cycles.join(", ")}`
       );
     }
-
-    // Register IPC handlers before starting initialization
-    this.registerIpcHandlers();
 
     const currentState = initObservables.getCurrentState();
     if (currentState.status === "in_progress") {

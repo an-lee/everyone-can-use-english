@@ -1,8 +1,7 @@
 import log from "@main/services/logger";
-import windowIpcModule from "@main/core/ipc/modules/window-ipc";
-import shellIpcModule from "@main/core/ipc/modules/shell-ipc";
-import appConfigIpcModule from "@main/config/app-config-ipc";
-import pluginIpcModule from "@main/core/plugin/plugin-ipc";
+import path from "path";
+import ipcRegistry from "@main/ipc/ipc-registry";
+import PreloadApiGenerator from "@main/ipc/preload-generator";
 
 const logger = log.scope("ipc-handlers");
 
@@ -12,24 +11,27 @@ const logger = log.scope("ipc-handlers");
 export const setupIpcHandlers = async () => {
   logger.info("Setting up IPC handlers");
 
-  // Setup app configuration handlers
-  appConfigIpcModule.registerHandlers();
+  // Auto-discover and register all IPC modules
+  const modulesDir = path.join(__dirname, "../");
+  await ipcRegistry.discoverAndRegisterModules(modulesDir, true);
 
-  // Setup shell handlers
-  shellIpcModule.registerHandlers();
+  // Generate preload API if needed
+  if (process.env.GENERATE_PRELOAD_API === "true") {
+    const outputPath = path.join(__dirname, "../../generated/preload-api.ts");
+    await PreloadApiGenerator.generatePreloadApi(outputPath);
+    logger.info(`Generated preload API at ${outputPath}`);
+  }
 
-  // Setup window handlers
-  windowIpcModule.registerHandlers();
-  windowIpcModule.registerWindowStateListeners();
-
-  // Setup plugin handlers
-  pluginIpcModule.registerHandlers();
-
-  // Database-related handlers are registered when db.init() is called
-  // and will be available once a user logs in
   logger.info(
-    "Database-related handlers will be registered when db.init() is called"
+    `IPC handlers setup complete. Registered modules: ${ipcRegistry.getModuleNames().join(", ")}`
   );
+};
 
-  logger.info("IPC handlers setup complete");
+/**
+ * Clean up all IPC handlers
+ */
+export const cleanupIpcHandlers = () => {
+  logger.info("Cleaning up IPC handlers");
+  ipcRegistry.clear();
+  logger.info("IPC handlers cleanup complete");
 };

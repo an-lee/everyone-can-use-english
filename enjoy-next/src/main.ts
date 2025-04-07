@@ -2,8 +2,7 @@ import { app, BrowserWindow } from "electron";
 import path from "node:path";
 import started from "electron-squirrel-startup";
 import log from "@main/services/logger";
-import { setupIpcHandlers } from "@main/core/ipc-handlers";
-import { appInitializer } from "@/main/core/initializer/app-initializer";
+import { mainAppLoader } from "@main/core/main-app-loader";
 
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
 declare const MAIN_WINDOW_VITE_NAME: string;
@@ -56,13 +55,8 @@ const initApp = async () => {
   try {
     logger.info("Initializing application");
 
-    // Set up global IPC handlers
-    logger.info("Setting up IPC handlers");
-    setupIpcHandlers();
-
-    // Run application initialization using the new AppInitializer
-    logger.info("Starting application initialization");
-    await appInitializer.initialize();
+    // Use the MainAppLoader to load the application
+    await mainAppLoader.loadApp();
 
     // Create main window
     logger.info("Creating application window");

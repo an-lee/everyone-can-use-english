@@ -10,13 +10,27 @@ export class WindowIpcModule extends BaseIpcModule {
     super("Window", "window");
   }
 
-  @IpcMethod()
+  @IpcMethod({
+    description: "Minimizes the current window",
+    errorHandling: "standard",
+    returns: {
+      type: "void",
+      description: "No return value",
+    },
+  })
   minimize(event: IpcMainInvokeEvent): void {
     const window = BrowserWindow.fromWebContents(event.sender);
     if (window) window.minimize();
   }
 
-  @IpcMethod()
+  @IpcMethod({
+    description: "Toggles maximize/restore state of the current window",
+    errorHandling: "standard",
+    returns: {
+      type: "void",
+      description: "No return value",
+    },
+  })
   maximize(event: IpcMainInvokeEvent): void {
     const window = BrowserWindow.fromWebContents(event.sender);
     if (window) {
@@ -38,13 +52,27 @@ export class WindowIpcModule extends BaseIpcModule {
     }
   }
 
-  @IpcMethod()
+  @IpcMethod({
+    description: "Closes the current window",
+    errorHandling: "standard",
+    returns: {
+      type: "void",
+      description: "No return value",
+    },
+  })
   close(event: IpcMainInvokeEvent): void {
     const window = BrowserWindow.fromWebContents(event.sender);
     if (window) window.close();
   }
 
-  @IpcMethod()
+  @IpcMethod({
+    description: "Checks if the current window is maximized",
+    errorHandling: "standard",
+    returns: {
+      type: "boolean",
+      description: "True if the window is maximized, false otherwise",
+    },
+  })
   isMaximized(event: IpcMainInvokeEvent): boolean {
     const window = BrowserWindow.fromWebContents(event.sender);
     return window ? window.isMaximized() : false;
