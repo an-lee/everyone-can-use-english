@@ -3,7 +3,7 @@ import { DataSource } from "typeorm";
 import path from "path";
 import fs from "fs-extra";
 import log from "@main/services/logger";
-import appConfig from "@main/config/app-config";
+import appConfig from "@main/core/app-config";
 import { AppDataSource } from "@main/storage/data-source";
 import { IpcChannels } from "@shared/ipc/ipc-channels";
 

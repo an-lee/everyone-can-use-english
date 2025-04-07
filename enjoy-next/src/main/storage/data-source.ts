@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
-import { Audio } from "./entities/audio";
-import appConfig from "@main/config/app-config";
+import { Audio } from "@main/storage/entities/audio";
+import appConfig from "@main/core/app-config";
 
 export const AppDataSource = new DataSource({
   type: "sqlite",

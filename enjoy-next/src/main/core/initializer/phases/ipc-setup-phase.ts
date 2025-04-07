@@ -1,4 +1,4 @@
-import { InitPhase } from "@main/core/plugin/phase-registry";
+import { InitPhase } from "@main/plugin/phase-registry";
 import log from "@main/services/logger";
 import path from "path";
 import { fileURLToPath } from "url";

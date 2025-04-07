@@ -1,7 +1,7 @@
 import { BaseIpcModule, IpcMethod } from "@main/ipc/base-ipc-module";
 import { ipcMain } from "electron";
 import { db } from "@main/storage/db";
-import appConfig from "@main/config/app-config";
+import appConfig from "@/main/core/app-config";
 import PreloadApiGenerator, {
   ServiceHandlerMetadata,
 } from "../preload-generator";

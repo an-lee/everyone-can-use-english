@@ -1,5 +1,5 @@
 import { BaseIpcModule, IpcMethod } from "@main/ipc/base-ipc-module";
-import appConfig, { AppConfigState } from "@main/config/app-config";
+import appConfig, { AppConfigState } from "@/main/core/app-config";
 import log from "@main/services/logger";
 
 /**

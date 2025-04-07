@@ -1,5 +1,5 @@
 import { BaseIpcModule, IpcMethod } from "@main/ipc/base-ipc-module";
-import pluginManager from "@main/core/plugin/plugin-manager";
+import pluginManager from "@main/plugin/plugin-manager";
 
 export class PluginIpcModule extends BaseIpcModule {
   constructor() {

@@ -1,5 +1,5 @@
 import log from "@main/services/logger";
-import appConfig from "@main/config/app-config";
+import appConfig from "@/main/core/app-config";
 import db from "@main/storage";
 import pluginManager from "@/main/core/plugin/plugin-manager";
 import { publishEvent } from "@/main/core/plugin/plugin-context";

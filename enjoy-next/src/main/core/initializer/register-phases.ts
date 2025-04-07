@@ -1,6 +1,6 @@
-import { phaseRegistry } from "@main/core/plugin/phase-registry";
-import ipcSetupPhase from "./phases/ipc-setup-phase";
-import dbInitPhase from "./phases/db-init-phase";
+import { phaseRegistry } from "@main/plugin/phase-registry";
+import ipcSetupPhase from "@main/core/initializer/phases/ipc-setup-phase";
+import dbInitPhase from "@main/core/initializer/phases/db-init-phase";
 import log from "@main/services/logger";
 
 const logger = log.scope("InitializerPhases");
