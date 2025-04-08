@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useAudios } from "@renderer/hooks/use-audio";
 import { Icon } from "@iconify/react";
-import { ErrorView } from "../components/status-views";
+import { EmptyView, ErrorView } from "@renderer/components/status-views";
+import { AudioCard } from "@renderer/components/audios/audio-card";
 
 export const Route = createFileRoute("/audios")({
   component: Audios,
@@ -24,15 +25,15 @@ function Audios() {
     return <ErrorView error={error.message} />;
   }
 
-  if (data) {
-    return (
-      <div className="p-2">
-        {data.items.map((item) => (
-          <div key={item.id}>{item.name}</div>
-        ))}
-      </div>
-    );
+  if (!data || data.items.length === 0) {
+    return <EmptyView />;
   }
 
-  return <div className="p-2">Hello from Audios!</div>;
+  return (
+    <div className="grid w-full grid-cols-1 gap-4 p-4 md:grid-cols-2 lg:grid-cols-3">
+      {data.items.map((item) => (
+        <AudioCard key={item.id} audio={item} />
+      ))}
+    </div>
+  );
 }

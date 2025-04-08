@@ -6,8 +6,8 @@ export const ErrorView = ({ error }: { error: string }) => {
   const { t } = useTranslation("components/status-views");
 
   return (
-    <div className="flex h-[100svh] w-screen flex-col items-center justify-center gap-4">
-      <Icon icon="mdi:alert-circle" className="h-12 w-12 text-destructive" />
+    <div className="flex h-full w-full flex-col items-center justify-center gap-4">
+      <Icon icon="tabler:alert-circle" className="h-12 w-12 text-destructive" />
       <div className="text-center">
         <p className="text-lg font-medium">{t("somethingWentWrong")}</p>
         {error && <p className="mt-1 text-sm text-muted-foreground">{error}</p>}

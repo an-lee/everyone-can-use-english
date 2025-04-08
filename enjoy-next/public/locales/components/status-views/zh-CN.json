@@ -9,5 +9,6 @@
   "termsOfService": "服务条款",
   "privacyPolicy": "隐私政策",
   "loading": "加载中...",
-  "somethingWentWrong": "出错了"
+  "somethingWentWrong": "出错了",
+  "noData": "没有数据"
 }

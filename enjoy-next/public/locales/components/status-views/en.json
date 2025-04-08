@@ -9,5 +9,6 @@
   "termsOfService": "Terms of Service",
   "privacyPolicy": "Privacy Policy",
   "loading": "Loading...",
-  "somethingWentWrong": "Something went wrong"
+  "somethingWentWrong": "Something went wrong",
+  "noData": "No data"
 }
