@@ -9,10 +9,47 @@ import {
   DATABASE_NAME,
   USER_DATA_SUB_PATH,
 } from "@shared/constants";
-import { APP_CONFIG_SCHEMA, AppConfigState } from "./types";
 import { log } from "@main/core/utils";
 
 const logger = log.scope("AppConfig");
+
+export const APP_CONFIG_SCHEMA = {
+  libraryPath: {
+    type: "string",
+    default: process.env.LIBRARY_PATH || "", // Will be set in store.ts with proper path
+  },
+  webApiUrl: { type: "string", default: "" }, // Will be set in store.ts
+  wsUrl: { type: "string", default: "" }, // Will be set in store.ts
+  proxy: {
+    type: "object",
+    properties: {
+      enabled: { type: "boolean", default: false },
+      url: { type: "string" },
+    },
+  },
+  user: {
+    type: "object",
+    properties: {
+      id: { type: "number" },
+      name: { type: "string" },
+      avatarUrl: { type: "string" },
+      accessToken: { type: "string" },
+    },
+  },
+  sessions: {
+    type: "array",
+    items: {
+      type: "object",
+      properties: {
+        id: { type: "number" },
+        name: { type: "string" },
+        avatarUrl: { type: "string" },
+        accessToken: { type: "string" },
+      },
+    },
+    default: [],
+  },
+};
 
 // Create a schema with proper defaults
 const schemaWithDefaults = {

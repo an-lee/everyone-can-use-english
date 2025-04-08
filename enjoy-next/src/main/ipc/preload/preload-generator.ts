@@ -72,9 +72,13 @@ export class PreloadApiGenerator {
 
   /**
    * Generate TypeScript code for the preload API
-   * @param outputPath Path to write the generated file
+   * @param outputPath Path to write the generated implementation file
+   * @param typeDefsPath Path to write the generated type definitions
    */
-  static async generatePreloadApi(outputPath: string): Promise<void> {
+  static async generatePreloadApi(
+    outputPath: string,
+    typeDefsPath?: string
+  ): Promise<void> {
     // Get metadata from IPC modules
     const metadata = ipcRegistry.getAllMethodsMetadata();
 
@@ -97,18 +101,6 @@ export class PreloadApiGenerator {
       );
     }
 
-    let code = `// Auto-generated preload API for Electron IPC
-// DO NOT EDIT DIRECTLY - Generated on ${new Date().toISOString()}
-import { ipcRenderer } from 'electron';
-
-// Define necessary types
-export interface DbState {
-  state: string;
-  message?: string;
-}
-
-`;
-
     // Organize service handlers by parent module
     const servicesByParent = new Map<string, ServiceHandlerMetadata[]>();
     for (const service of this.serviceHandlers) {
@@ -119,8 +111,77 @@ export interface DbState {
       servicesByParent.get(parentKey)!.push(service);
     }
 
+    // Generate the type declarations
+    const typeCode = this.generateTypeDeclarations(
+      moduleGroups,
+      servicesByParent
+    );
+
+    // Generate the implementation
+    const implCode = this.generateImplementation(
+      moduleGroups,
+      servicesByParent
+    );
+
+    // Create the directory if it doesn't exist
+    const dir = path.dirname(outputPath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+
+    // Write the implementation file
+    fs.writeFileSync(outputPath, implCode);
+    logger.info(`Generated preload API implementation at ${outputPath}`);
+
+    // Write the type declarations file if path is provided
+    if (typeDefsPath) {
+      fs.writeFileSync(typeDefsPath, typeCode);
+      logger.info(`Generated type declarations at ${typeDefsPath}`);
+    }
+  }
+
+  /**
+   * Generate TypeScript type declarations
+   */
+  private static generateTypeDeclarations(
+    moduleGroups: Map<string, any[]>,
+    servicesByParent: Map<string, ServiceHandlerMetadata[]>
+  ): string {
+    let code = `// Auto-generated type declarations for Electron IPC
+// DO NOT EDIT DIRECTLY - Generated on ${new Date().toISOString()}
+
+// Define necessary types
+declare type DbConnectionState =
+  | "disconnected"
+  | "connecting"
+  | "connected"
+  | "error"
+  | "locked"
+  | "reconnecting";
+
+declare interface DbState {
+  state: DbConnectionState;
+  path: string | null;
+  error: string | null;
+  autoConnected?: boolean;
+  retryCount?: number;
+  retryDelay?: number;
+  lastOperation?: string;
+  connectionTime?: number;
+  stats?: {
+    connectionDuration?: number;
+    operationCount?: number;
+    lastError?: {
+      message: string;
+      time: number;
+    } | null;
+  };
+}
+
+`;
+
     // Generate the main interface
-    code += `export interface EnjoyAPI {\n`;
+    code += `declare interface EnjoyAPI {\n`;
 
     // Add module-based interfaces
     for (const [moduleName, methods] of moduleGroups.entries()) {
@@ -190,6 +251,36 @@ export interface DbState {
 
     code += `}\n\n`;
 
+    // Declare the modules
+    for (const [moduleName, methods] of moduleGroups.entries()) {
+      if (methods.length === 0) continue;
+      const channelPrefix = methods[0].channel.split(":")[0];
+      const camelizedPrefix = camelCase(channelPrefix);
+      code += `declare const ${capitalize(camelizedPrefix)}API: EnjoyAPI['${camelizedPrefix}'];\n`;
+    }
+
+    // Declare standalone services
+    for (const service of rootServices) {
+      const camelizedPrefix = camelCase(service.channelPrefix);
+      code += `declare const ${capitalize(camelizedPrefix)}API: EnjoyAPI['${camelizedPrefix}'];\n`;
+    }
+
+    return code;
+  }
+
+  /**
+   * Generate TypeScript implementation
+   */
+  private static generateImplementation(
+    moduleGroups: Map<string, any[]>,
+    servicesByParent: Map<string, ServiceHandlerMetadata[]>
+  ): string {
+    let code = `// Auto-generated preload API for Electron IPC
+// DO NOT EDIT DIRECTLY - Generated on ${new Date().toISOString()}
+import { ipcRenderer } from 'electron';
+
+`;
+
     // Generate implementations for module-based APIs
     for (const [moduleName, methods] of moduleGroups.entries()) {
       // Skip if no methods
@@ -251,6 +342,7 @@ export interface DbState {
     }
 
     // Generate implementations for standalone service-based APIs (those without a parent)
+    const rootServices = servicesByParent.get("root") || [];
     for (const service of rootServices) {
       // Camelize the channel prefix for variable names
       const camelizedPrefix = camelCase(service.channelPrefix);
@@ -272,15 +364,7 @@ export interface DbState {
       code += `};\n\n`;
     }
 
-    // Create the directory if it doesn't exist
-    const dir = path.dirname(outputPath);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-
-    // Write the file
-    fs.writeFileSync(outputPath, code);
-    logger.info(`Generated preload API at ${outputPath}`);
+    return code;
   }
 
   /**

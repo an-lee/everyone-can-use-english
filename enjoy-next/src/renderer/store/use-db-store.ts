@@ -30,34 +30,6 @@ import { useAuthStore } from "./use-auth-store";
  * try to connect to the database simultaneously, especially after login events.
  */
 
-// Define the types
-type DbConnectionState =
-  | "disconnected"
-  | "connecting"
-  | "connected"
-  | "error"
-  | "locked"
-  | "reconnecting";
-
-interface DbState {
-  state: DbConnectionState;
-  path: string | null;
-  error: string | null;
-  autoConnected?: boolean;
-  retryCount?: number;
-  retryDelay?: number;
-  lastOperation?: string;
-  connectionTime?: number;
-  stats?: {
-    connectionDuration?: number;
-    operationCount?: number;
-    lastError?: {
-      message: string;
-      time: number;
-    } | null;
-  };
-}
-
 type DbStore = {
   // State
   dbState: DbState;

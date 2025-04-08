@@ -57,7 +57,7 @@ const eventsAPI = {
 // Combine the generated API with our extensions and backward compatibility layer
 const combinedAPI = {
   // Core APIs from the generated API
-  initializer: AppinitializerAPI,
+  appInitializer: AppinitializerAPI,
   appConfig: AppconfigAPI,
   db: DbAPI,
   window: WindowAPI,
@@ -70,7 +70,8 @@ const combinedAPI = {
 // Expose the combined API to the renderer process
 contextBridge.exposeInMainWorld("EnjoyAPI", combinedAPI);
 
-// Log which API version is being used
-console.log(
-  "EnjoyAPI initialized with generated API structure and backward compatibility"
-);
+declare global {
+  interface Window {
+    EnjoyAPI: typeof combinedAPI;
+  }
+}

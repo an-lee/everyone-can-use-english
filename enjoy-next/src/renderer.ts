@@ -28,9 +28,3 @@
 
 import "@renderer/styles/index.css";
 import "@renderer/app";
-import { EnjoyAPI } from "./preload";
-declare global {
-  interface Window {
-    EnjoyAPI: EnjoyAPI;
-  }
-}

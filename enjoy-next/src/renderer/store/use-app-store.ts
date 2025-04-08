@@ -2,26 +2,15 @@ import { create } from "zustand";
 import { version } from "../../../package.json";
 import { useAuthStore } from "./use-auth-store";
 
-// App configuration types
-interface AppConfig {
-  version: string;
-  webApiUrl: string;
-  libraryPath: string | null;
-  proxy?: {
-    enabled: boolean;
-    url: string;
-  };
-}
-
 // App initialization types
-export interface InitializationProgress {
+declare interface InitializationProgress {
   step: string;
   progress: number;
   message: string;
 }
 
 // App state machine types
-export type AppStateType =
+declare type AppStateType =
   | { status: "initializing"; progress: InitializationProgress }
   | {
       status: "initialization_error";
@@ -33,7 +22,7 @@ export type AppStateType =
 
 type AppState = {
   // Config state
-  config: AppConfig;
+  config: Partial<AppConfigState> & { version: string };
   configLoaded: boolean;
 
   // App state
@@ -68,7 +57,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
   config: {
     version,
     webApiUrl: "",
-    libraryPath: null,
+    libraryPath: "",
   },
   configLoaded: false,
 
@@ -199,7 +188,7 @@ if (typeof window !== "undefined") {
 
     // Set up listener for initialization status
     if (window.EnjoyAPI) {
-      window.EnjoyAPI.initializer.status().then((status: any) => {
+      window.EnjoyAPI.appInitializer.status().then((status: any) => {
         useAppStore.getState().handleInitProgress({
           step: status.currentStep,
           progress: status.progress,

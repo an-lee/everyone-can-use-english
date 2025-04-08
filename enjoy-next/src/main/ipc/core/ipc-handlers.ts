@@ -1,6 +1,7 @@
 import { log } from "@main/core";
 import { ipcRegistry } from "@main/ipc/core";
 import { PreloadApiGenerator } from "@main/ipc/preload";
+import { PreloadApiManager } from "@main/ipc/preload";
 
 // Import all IPC modules directly
 import {
@@ -38,19 +39,11 @@ export const setupIpcHandlers = async () => {
   // Initialize entity IPC modules
   await setupEntityIpcModules();
 
-  // Generate preload API if needed
+  // Generate preload API if needed during development
   if (!app.isPackaged) {
-    // Use consistent path with preload-api-manager.ts
-    const outputPath = path.join(
-      process.cwd(),
-      "src",
-      "generated",
-      "preload-api.ts"
-    );
-
-    // Generate the preload API
-    await PreloadApiGenerator.generatePreloadApi(outputPath);
-    logger.info(`Generated preload API at ${outputPath}`);
+    // Use PreloadApiManager instead of direct generation
+    await PreloadApiManager.generatePreloadApi();
+    logger.info("Generated preload API via PreloadApiManager");
   }
 
   logger.info(

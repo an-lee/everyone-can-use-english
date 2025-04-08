@@ -1,8 +1,7 @@
 import { create } from "zustand";
-import { UserType } from "@renderer/api";
 import { useDbStore } from "./use-db-store";
 
-export type LoginMethodType =
+declare type LoginMethodType =
   | "google_oauth2"
   | "github"
   | "mixin"
@@ -10,7 +9,7 @@ export type LoginMethodType =
   | "phone"
   | null;
 
-type AuthState = {
+declare type AuthState = {
   isAuthenticated: () => boolean;
   currentUser: UserType | null;
   sessions: UserType[];

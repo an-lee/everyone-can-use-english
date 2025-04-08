@@ -1,6 +1,4 @@
 import { BehaviorSubject, Observable, distinctUntilChanged, map } from "rxjs";
-import { AppConfigState, ProxyConfig } from "./types";
-import { UserType } from "@renderer/api";
 import {
   configStore,
   ensureLibraryPath,

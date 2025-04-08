@@ -2,8 +2,8 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import i18n from "../lib/i18n";
 
-type Theme = "light" | "dark" | "system";
-type Language = "en" | "zh-CN" | "ja";
+declare type Theme = "light" | "dark" | "system";
+declare type Language = "en" | "zh-CN" | "ja";
 
 const languages: { code: Language; name: string }[] = [
   {

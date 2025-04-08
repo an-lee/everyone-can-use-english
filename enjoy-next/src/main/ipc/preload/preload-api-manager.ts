@@ -10,6 +10,7 @@ const logger = log.scope("PreloadApiManager");
  */
 export class PreloadApiManager {
   private static generatedApiPath = "";
+  private static generatedTypesPath = "";
   private static apiTypes: string[] = [];
 
   /**
@@ -35,11 +36,16 @@ export class PreloadApiManager {
       }
 
       this.generatedApiPath = path.join(outputDir, "preload-api.ts");
+      this.generatedTypesPath = path.join(outputDir, "enjoy-api.d.ts");
 
-      // Generate the API
-      await PreloadApiGenerator.generatePreloadApi(this.generatedApiPath);
+      // Generate the API with both implementation and type declarations
+      await PreloadApiGenerator.generatePreloadApi(
+        this.generatedApiPath,
+        this.generatedTypesPath
+      );
 
       logger.info(`Generated preload API at ${this.generatedApiPath}`);
+      logger.info(`Generated type declarations at ${this.generatedTypesPath}`);
 
       // Also generate a copy in the source directory for type checking/IDE support
       if (process.env.NODE_ENV === "development") {

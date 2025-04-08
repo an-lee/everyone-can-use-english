@@ -1,10 +1,10 @@
-export interface PagyResponseType {
+declare interface PagyResponseType {
   page: number;
   next: number;
   last: number;
 }
 
-export interface UserType {
+declare interface UserType {
   id: string;
   name: string;
   email?: string;
@@ -18,7 +18,7 @@ export interface UserType {
   createdAt?: string;
 }
 
-export interface PostType {
+declare interface PostType {
   id: string;
   metadata: {
     type: "text" | "prompt" | "gpt" | "note";
@@ -35,7 +35,7 @@ export interface PostType {
   updatedAt: Date;
 }
 
-export interface MediumType {
+declare interface MediumType {
   id: string;
   md5: string;
   mediumType: string;
@@ -46,7 +46,7 @@ export interface MediumType {
   updatedAt: string;
 }
 
-export interface AudioType {
+declare interface AudioType {
   mediaType: string;
   id: string;
   source: string;
@@ -69,7 +69,7 @@ export interface AudioType {
   updatedAt: Date;
 }
 
-export interface VideoType {
+declare interface VideoType {
   mediaType: string;
   id: string;
   source: string;
@@ -92,7 +92,7 @@ export interface VideoType {
   updatedAt: Date;
 }
 
-export interface TranscriptionType {
+declare interface TranscriptionType {
   id: string;
   targetId: string;
   targetType: string;
@@ -108,7 +108,7 @@ export interface TranscriptionType {
   updatedAt: Date;
 }
 
-export interface SegmentType {
+declare interface SegmentType {
   id: string;
   targetId: string;
   targetType: string;
@@ -129,7 +129,7 @@ export interface SegmentType {
   createdAt: Date;
 }
 
-export interface NoteType {
+declare interface NoteType {
   id: string;
   targetId: string;
   targetType: string;
@@ -141,7 +141,7 @@ export interface NoteType {
   createdAt: Date;
 }
 
-export interface RecordingType {
+declare interface RecordingType {
   id: string;
   filename?: string;
   target?: AudioType | (MessageType & any);
@@ -168,7 +168,7 @@ enum MessageRoleEnum {
   USER = "user",
 }
 
-export interface MessageType {
+declare interface MessageType {
   id: string;
   role: MessageRoleEnum;
   content: string;
@@ -181,7 +181,7 @@ export interface MessageType {
   recording?: RecordingType;
 }
 
-export interface SpeechType {
+declare interface SpeechType {
   id: string;
   sourceId: string;
   sourceType: string;
@@ -201,7 +201,7 @@ export interface SpeechType {
   updatedAt: Date;
 }
 
-export interface ConversationType {
+declare interface ConversationType {
   id: string;
   type: "gpt" | "tts";
   engine: "enjoyai" | "openai" | "ollama";
@@ -213,7 +213,7 @@ export interface ConversationType {
   createdAt?: string;
 }
 
-export interface PronunciationAssessmentType {
+declare interface PronunciationAssessmentType {
   id: string;
   language?: string;
   targetId: string;
@@ -249,7 +249,7 @@ export interface PronunciationAssessmentType {
   target?: any;
 }
 
-export interface PronunciationAssessmentWordResultType {
+declare interface PronunciationAssessmentWordResultType {
   duration: number;
   offset: number;
   word: string;
@@ -282,7 +282,7 @@ export interface PronunciationAssessmentWordResultType {
   };
 }
 
-export interface SpeechRecognitionResultType {
+declare interface SpeechRecognitionResultType {
   Id: string;
   RecognitionStatus: string;
   Offset: number;
@@ -303,7 +303,7 @@ export interface SpeechRecognitionResultType {
   }[];
 }
 
-export interface LookupType {
+declare interface LookupType {
   id: string;
   word: string;
   context: string;
@@ -315,7 +315,7 @@ export interface LookupType {
   updatedAt: string;
 }
 
-export interface MeaningType {
+declare interface MeaningType {
   id: string;
   word: string;
   lemma?: string;
@@ -326,18 +326,18 @@ export interface MeaningType {
   lookups: LookupType[];
 }
 
-export interface CreateStoryParamsType {
+declare interface CreateStoryParamsType {
   title: string;
   content: string;
 }
 
-export interface StoryType {
+declare interface StoryType {
   id: string;
   title: string;
   content: string;
 }
 
-export interface PaymentType {
+declare interface PaymentType {
   id: string;
   amount: number;
   reconciledCurrency?: string;
@@ -345,7 +345,7 @@ export interface PaymentType {
   paymentType: string;
 }
 
-export interface CourseType {
+declare interface CourseType {
   id: string;
   title: string;
   description: string;
@@ -354,7 +354,7 @@ export interface CourseType {
   updatedAt: Date;
 }
 
-export interface ChapterType {
+declare interface ChapterType {
   id: string;
   title: string;
   description: string;
@@ -363,24 +363,24 @@ export interface ChapterType {
   updatedAt: Date;
 }
 
-export interface EnrollmentType {
+declare interface EnrollmentType {
   id: string;
   courseId: string;
   currentChapterId?: string;
 }
 
-export interface LLmChatType {
+declare interface LLmChatType {
   id: string;
   agentId: string;
   agentType: string;
 }
 
-export interface LlmMessageType {
+declare interface LlmMessageType {
   id: string;
   query: string;
 }
 
-export interface DocumentEType {
+declare interface DocumentEType {
   id: string;
   language: string;
   md5: string;
@@ -402,7 +402,7 @@ export interface DocumentEType {
   isSynced?: boolean;
 }
 
-export interface TranslationType {
+declare interface TranslationType {
   id: string;
   md5: string;
   content: string;
