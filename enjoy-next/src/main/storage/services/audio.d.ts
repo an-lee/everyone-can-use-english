@@ -33,7 +33,7 @@ declare interface AudioSearchOptions {
  * Pagination result for audio items
  */
 declare interface AudioPaginationResult {
-  items: AudioItem[];
+  items: AudioEntity[];
   total: number;
   page: number;
   limit: number;

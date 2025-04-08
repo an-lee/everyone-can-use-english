@@ -1,5 +1,5 @@
 // Auto-generated preload API for Electron IPC
-// DO NOT EDIT DIRECTLY - Generated on 2025-04-08T03:39:22.121Z
+// DO NOT EDIT DIRECTLY - Generated on 2025-04-08T03:41:48.020Z
 import { ipcRenderer } from 'electron';
 
 // Define necessary types
@@ -31,10 +31,10 @@ export interface EnjoyAPI {
     migrate: () => Promise<object>;
     audio: {
       findAll: (options?: AudioSearchOptions) => Promise<Promise<AudioPaginationResult>>;
-      findById: (id: string) => Promise<Promise<AudioItem | null>>;
-      findByMd5: (md5: string) => Promise<Promise<AudioItem | null>>;
-      create: (data: Partial<AudioItem>) => Promise<Promise<AudioItem>>;
-      update: (id: string, data: Partial<AudioItem>) => Promise<Promise<AudioItem | null>>;
+      findById: (id: string) => Promise<Promise<AudioEntity | null>>;
+      findByMd5: (md5: string) => Promise<Promise<AudioEntity | null>>;
+      create: (data: Partial<AudioEntity>) => Promise<Promise<AudioEntity>>;
+      update: (id: string, data: Partial<AudioEntity>) => Promise<Promise<AudioEntity | null>>;
       delete: (id: string) => Promise<Promise<boolean>>;
       count: () => Promise<Promise<number>>;
     };
@@ -84,8 +84,8 @@ export const DbAPI = {
     findAll: (options?: AudioSearchOptions) => ipcRenderer.invoke('db:audio:findAll', options),
     findById: (id: string) => ipcRenderer.invoke('db:audio:findById', id),
     findByMd5: (md5: string) => ipcRenderer.invoke('db:audio:findByMd5', md5),
-    create: (data: Partial<AudioItem>) => ipcRenderer.invoke('db:audio:create', data),
-    update: (id: string, data: Partial<AudioItem>) => ipcRenderer.invoke('db:audio:update', id, data),
+    create: (data: Partial<AudioEntity>) => ipcRenderer.invoke('db:audio:create', data),
+    update: (id: string, data: Partial<AudioEntity>) => ipcRenderer.invoke('db:audio:update', id, data),
     delete: (id: string) => ipcRenderer.invoke('db:audio:delete', id),
     count: () => ipcRenderer.invoke('db:audio:count'),
   },

@@ -55,7 +55,7 @@ export class DbAudioIpcModule extends BaseEntityIpcModule<typeof audioService> {
       create: [
         {
           name: "data",
-          type: "Partial<AudioItem>",
+          type: "Partial<AudioEntity>",
           required: true,
           description: "Audio item data",
         },
@@ -69,7 +69,7 @@ export class DbAudioIpcModule extends BaseEntityIpcModule<typeof audioService> {
         },
         {
           name: "data",
-          type: "Partial<AudioItem>",
+          type: "Partial<AudioEntity>",
           required: true,
           description: "Audio item data to update",
         },
@@ -95,10 +95,10 @@ export class DbAudioIpcModule extends BaseEntityIpcModule<typeof audioService> {
     // Define return types for each method directly
     const returnTypeMap: Record<string, string> = {
       findAll: "Promise<AudioPaginationResult>",
-      findById: "Promise<AudioItem | null>",
-      findByMd5: "Promise<AudioItem | null>",
-      create: "Promise<AudioItem>",
-      update: "Promise<AudioItem | null>",
+      findById: "Promise<AudioEntity | null>",
+      findByMd5: "Promise<AudioEntity | null>",
+      create: "Promise<AudioEntity>",
+      update: "Promise<AudioEntity | null>",
       delete: "Promise<boolean>",
       count: "Promise<number>",
     };
