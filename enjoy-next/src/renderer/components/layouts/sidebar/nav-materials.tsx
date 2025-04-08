@@ -32,7 +32,7 @@ export function NavMaterials({
             <SidebarMenuButton
               tooltip={item.title}
               className="cursor-pointer"
-              isActive={pathname === item.url}
+              isActive={pathname.startsWith(item.url)}
               asChild
             >
               <Link to={item.url}>
