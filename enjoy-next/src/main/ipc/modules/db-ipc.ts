@@ -5,14 +5,13 @@ import appConfig from "@/main/core/app/config";
 import PreloadApiGenerator, {
   ServiceHandlerMetadata,
 } from "@main/ipc/preload/preload-generator";
-import { log } from "@main/core";
-import { AudioService, audioService } from "@main/storage/services";
 import {
-  ServiceMetadataRegistry,
+  audioService,
+  createIpcHandlers,
   getServiceMethodMetadata,
-} from "@main/storage/services/service-decorators";
+} from "@main/storage/services";
 
-// Define the types locally instead of importing from @preload/db-api
+// Database connection states
 export type DbConnectionState =
   | "disconnected"
   | "connecting"
@@ -21,9 +20,7 @@ export type DbConnectionState =
   | "locked"
   | "reconnecting";
 
-/**
- * Database state type definition
- */
+// Database state information
 export type DbState = {
   state: DbConnectionState;
   path: string | null;
@@ -36,10 +33,7 @@ export type DbState = {
   stats?: {
     connectionDuration?: number;
     operationCount?: number;
-    lastError?: {
-      message: string;
-      time: number;
-    } | null;
+    lastError?: { message: string; time: number } | null;
   };
 };
 
@@ -49,19 +43,23 @@ export type DbState = {
 export class DbIpcModule extends BaseIpcModule {
   private registeredEntityHandlers: Set<string> = new Set();
   private registeredServices: Map<string, any> = new Map();
-  private entityHandlersGenerated: boolean = false;
+  private entityHandlersGenerated = false;
 
   constructor() {
     super("Database", "db");
+    this.initializeHandlers();
+  }
 
-    // Generate entity handlers for preload API during initialization
-    this.generateEntityHandlersForPreload().catch((err) => {
-      this.logger.error("Failed to generate entity handlers for preload:", err);
-    });
-
-    // Also register entity handlers so they're available even before DB connects
-    this.registerEntityHandlers().catch((err) => {
-      this.logger.error("Failed to register entity handlers:", err);
+  /**
+   * Initialize entity handlers
+   */
+  private initializeHandlers(): void {
+    // Generate preload API and register handlers
+    Promise.all([
+      this.generateEntityHandlersForPreload(),
+      this.registerEntityHandlers(),
+    ]).catch((err) => {
+      this.logger.error("Failed to initialize entity handlers:", err);
     });
   }
 
@@ -69,23 +67,16 @@ export class DbIpcModule extends BaseIpcModule {
    * Register handlers - overridden to ensure entity handlers are generated
    */
   registerHandlers(): void {
-    // If entity handlers haven't been generated yet, do it now
     if (!this.entityHandlersGenerated) {
       this.generateEntityHandlersForPreload().catch((err) => {
-        this.logger.error(
-          "Failed to generate entity handlers during handler registration:",
-          err
-        );
+        this.logger.error("Failed to generate entity handlers:", err);
       });
     }
-
-    // Call parent method to register normal handlers
     super.registerHandlers();
   }
 
   /**
    * Connect to the database
-   * @returns Current database state
    */
   @IpcMethod({
     description: "Connect to the database",
@@ -99,7 +90,6 @@ export class DbIpcModule extends BaseIpcModule {
     try {
       await db.connect({ retry: true });
 
-      // Register entity handlers after successful connection
       if (db.dataSource?.isInitialized) {
         await this.registerEntityHandlers();
       }
@@ -107,14 +97,12 @@ export class DbIpcModule extends BaseIpcModule {
       return db.currentState;
     } catch (error) {
       this.logger.error("IPC db:connect error:", error);
-      // Return current state even on error - UI will show the error state
-      return db.currentState;
+      return db.currentState; // Return current state even on error
     }
   }
 
   /**
    * Disconnect from the database
-   * @returns Disconnected state
    */
   @IpcMethod({
     description: "Disconnect from the database",
@@ -126,10 +114,6 @@ export class DbIpcModule extends BaseIpcModule {
   })
   async disconnect(): Promise<DbState> {
     try {
-      // Don't unregister entity handlers when disconnecting
-      // This allows calls to succeed even when database is disconnected
-      // They will just return appropriate errors
-
       await db.disconnect();
       return { state: "disconnected" as const, path: null, error: null };
     } catch (error) {
@@ -140,7 +124,6 @@ export class DbIpcModule extends BaseIpcModule {
 
   /**
    * Create a backup of the database
-   * @returns Backup completion state
    */
   @IpcMethod({
     description: "Create a backup of the database",
@@ -162,7 +145,6 @@ export class DbIpcModule extends BaseIpcModule {
 
   /**
    * Get the current database status
-   * @returns Current database state
    */
   @IpcMethod({
     description: "Get the current database status",
@@ -174,99 +156,110 @@ export class DbIpcModule extends BaseIpcModule {
   })
   async status(): Promise<DbState> {
     try {
-      // Track operation for metrics
+      // Track operation metrics
       db.lastOperation = "status";
       db.operationCount = (db.operationCount || 0) + 1;
-
       const startTime = Date.now();
 
-      // If connected but datasource is actually not initialized, correct the state
-      if (
-        db.currentState.state === "connected" &&
-        !db.dataSource?.isInitialized
-      ) {
-        db.broadcastState({
+      // Verify connection state
+      this.validateConnectionState();
+
+      // Check path validity for disconnected state
+      if (db.currentState.state === "disconnected" && !appConfig.dbPath()) {
+        return {
           ...db.currentState,
-          state: "disconnected",
-          error: "Database connection lost",
+          error: "No database path available, please login first",
           lastOperation: "status",
-        });
-      }
-
-      // For new connections, check if path is valid
-      if (db.currentState.state === "disconnected") {
-        const dbPath = appConfig.dbPath();
-        if (!dbPath) {
-          return {
-            ...db.currentState,
-            error: "No database path available, please login first",
-            lastOperation: "status",
-          };
-        }
-      }
-
-      // Calculate connection duration for connected databases
-      let enhancedState = { ...db.currentState };
-
-      if (db.currentState.state === "connected" && db.connectionStartTime > 0) {
-        enhancedState.stats = {
-          connectionDuration: Date.now() - db.connectionStartTime,
-          operationCount: db.operationCount || 0,
-          lastError: db.lastError
-            ? {
-                message: db.lastError.message,
-                time: db.lastErrorTime,
-              }
-            : null,
         };
       }
 
-      // Add operation timing
+      // Build enhanced state with stats
+      const enhancedState = this.buildEnhancedState();
+
       this.logger.debug(
         `Status check completed in ${Date.now() - startTime}ms`
       );
-      enhancedState.lastOperation = "status";
-
       return enhancedState;
     } catch (error) {
-      // Record the error
-      db.lastError = error instanceof Error ? error : new Error(String(error));
-      db.lastErrorTime = Date.now();
-
-      this.logger.error("IPC db:status error:", error);
-      return {
-        state: "error",
-        path: appConfig.dbPath(),
-        error: error instanceof Error ? error.message : String(error),
-        autoConnected: false,
-        lastOperation: "status",
-        stats: {
-          lastError: {
-            message: error instanceof Error ? error.message : String(error),
-            time: db.lastErrorTime,
-          },
-        },
-      };
+      return this.handleStatusError(error);
     }
   }
 
   /**
-   * Generate entity handlers metadata for preload API generation
-   * This is called during initialization to ensure all API types are available
-   * even before the database is connected
+   * Validate the current connection state
+   */
+  private validateConnectionState(): void {
+    if (
+      db.currentState.state === "connected" &&
+      !db.dataSource?.isInitialized
+    ) {
+      db.broadcastState({
+        ...db.currentState,
+        state: "disconnected",
+        error: "Database connection lost",
+        lastOperation: "status",
+      });
+    }
+  }
+
+  /**
+   * Build enhanced state with statistics
+   */
+  private buildEnhancedState(): DbState {
+    const enhancedState = { ...db.currentState, lastOperation: "status" };
+
+    if (db.currentState.state === "connected" && db.connectionStartTime > 0) {
+      enhancedState.stats = {
+        connectionDuration: Date.now() - db.connectionStartTime,
+        operationCount: db.operationCount || 0,
+        lastError: db.lastError
+          ? { message: db.lastError.message, time: db.lastErrorTime }
+          : null,
+      };
+    }
+
+    return enhancedState;
+  }
+
+  /**
+   * Handle status error case
+   */
+  private handleStatusError(error: any): DbState {
+    // Record the error
+    db.lastError = error instanceof Error ? error : new Error(String(error));
+    db.lastErrorTime = Date.now();
+
+    this.logger.error("IPC db:status error:", error);
+
+    return {
+      state: "error",
+      path: appConfig.dbPath(),
+      error: error instanceof Error ? error.message : String(error),
+      autoConnected: false,
+      lastOperation: "status",
+      stats: {
+        lastError: {
+          message: error instanceof Error ? error.message : String(error),
+          time: db.lastErrorTime,
+        },
+      },
+    };
+  }
+
+  /**
+   * Generate entity handlers metadata for preload API
    */
   async generateEntityHandlersForPreload(): Promise<void> {
     this.logger.info("Generating entity handlers for preload API");
 
     try {
-      // Generate preload API definitions for audio service
+      // Register services with preload API
       await this.generateServicePreloadApi(
         "Audio",
         audioService,
         "audio",
         "db"
       );
-
       // Add more services here as needed
 
       this.entityHandlersGenerated = true;
@@ -280,11 +273,7 @@ export class DbIpcModule extends BaseIpcModule {
   }
 
   /**
-   * Generate service preload API metadata automatically from service methods
-   * @param serviceName The display name of the service
-   * @param serviceObject The service object with methods
-   * @param channelPrefix The channel prefix for IPC calls (e.g., "audio")
-   * @param parentModule Optional parent module name (e.g., "db")
+   * Generate service preload API metadata
    */
   private async generateServicePreloadApi<T extends object>(
     serviceName: string,
@@ -297,85 +286,93 @@ export class DbIpcModule extends BaseIpcModule {
         throw new Error(`${serviceName}Service object is not valid`);
       }
 
-      // Create an instance if we received a class constructor
-      const serviceInstance =
-        typeof serviceObject === "function"
-          ? new (serviceObject as any)()
-          : serviceObject;
+      const serviceInstance = this.resolveServiceInstance(serviceObject);
+      const methodNames = this.getServiceMethodNames(serviceInstance);
 
-      // Extract methods from the instance prototype
-      const methodNames = Object.getOwnPropertyNames(
-        Object.getPrototypeOf(serviceInstance)
-      ).filter(
-        (name) =>
-          typeof serviceInstance[name as keyof typeof serviceInstance] ===
-            "function" &&
-          !name.startsWith("_") &&
-          name !== "constructor"
+      const metadata = this.buildServiceMetadata(
+        serviceName,
+        serviceInstance,
+        methodNames,
+        channelPrefix,
+        parentModule
       );
 
-      // Create metadata for API generation
-      const metadata: ServiceHandlerMetadata = {
-        name: serviceName,
-        channelPrefix: channelPrefix,
-        parentModule: parentModule,
-        methods: methodNames.map((methodName) => {
-          // Generate parameter information based on method name conventions or metadata
-          const paramInfo = inferParametersFromMethodName(
-            methodName,
-            serviceInstance
-          );
-
-          // Generate return type based on method name conventions or metadata
-          const returnType = inferReturnTypeFromMethodName(
-            methodName,
-            serviceName,
-            serviceInstance
-          );
-
-          return {
-            name: methodName,
-            returnType,
-            description: `${serviceName} ${methodName} operation`,
-            parameters: paramInfo,
-          };
-        }),
-      };
-
-      // Register the metadata
       PreloadApiGenerator.registerServiceHandler(metadata);
 
       this.logger.debug(
-        `Generated ${serviceName} service preload API with ${metadata.methods.length} methods`
+        `Generated ${serviceName} preload API with ${metadata.methods.length} methods`
       );
     } catch (error) {
       this.logger.error(
-        `Failed to generate ${serviceName} service preload API:`,
+        `Failed to generate ${serviceName} preload API:`,
         error
       );
     }
   }
 
   /**
+   * Resolve a service instance
+   */
+  private resolveServiceInstance<T>(serviceObject: T): any {
+    return typeof serviceObject === "function"
+      ? new (serviceObject as any)()
+      : serviceObject;
+  }
+
+  /**
+   * Get method names from a service instance
+   */
+  private getServiceMethodNames(serviceInstance: any): string[] {
+    return Object.getOwnPropertyNames(
+      Object.getPrototypeOf(serviceInstance)
+    ).filter(
+      (name) =>
+        typeof serviceInstance[name] === "function" &&
+        !name.startsWith("_") &&
+        name !== "constructor"
+    );
+  }
+
+  /**
+   * Build service metadata for preload API
+   */
+  private buildServiceMetadata(
+    serviceName: string,
+    serviceInstance: any,
+    methodNames: string[],
+    channelPrefix: string,
+    parentModule?: string
+  ): ServiceHandlerMetadata {
+    return {
+      name: serviceName,
+      channelPrefix,
+      parentModule,
+      methods: methodNames.map((methodName) => ({
+        name: methodName,
+        returnType: this.inferReturnType(
+          methodName,
+          serviceName,
+          serviceInstance
+        ),
+        description: `${serviceName} ${methodName} operation`,
+        parameters: this.inferParameters(methodName, serviceInstance),
+      })),
+    };
+  }
+
+  /**
    * Register entity handlers for this module
-   * These are loaded dynamically when the database is connected
    */
   async registerEntityHandlers(): Promise<void> {
     this.logger.info("Loading entity handlers");
 
     try {
-      // Only register if not already registered
       if (this.registeredEntityHandlers.size > 0) {
-        this.logger.info(
-          "Entity handlers already registered, skipping registration"
-        );
+        this.logger.info("Entity handlers already registered");
         return;
       }
 
-      // Register the Audio service first (direct import for simplicity)
-      // Use the singleton instance instead of the class constructor
       this.registerServiceHandlers("Audio", audioService, "audio");
-
       // Add more services here as needed
     } catch (error) {
       this.logger.error("Failed to register entity handlers:", error);
@@ -392,38 +389,31 @@ export class DbIpcModule extends BaseIpcModule {
   ): void {
     this.logger.info(`Registering handlers for ${name} service`);
 
-    // Create the handlers using our factory
     const handlers = createIpcHandlers(name, service, channelPrefix);
+    let registeredCount = 0;
 
-    // Register each handler with IPC
     for (const [methodName, handler] of Object.entries(handlers)) {
-      // Use the hierarchical db:entity:method format (db:audio:findAll)
       const channelName = `db:${channelPrefix}:${methodName}`;
 
-      // Check if this handler is already registered
       if (this.registeredEntityHandlers.has(channelName)) {
-        this.logger.debug(
-          `Handler already registered for ${channelName}, skipping`
-        );
+        this.logger.debug(`Handler already registered for ${channelName}`);
         continue;
       }
 
       ipcMain.handle(channelName, (event, ...args) => handler(...args));
       this.registeredEntityHandlers.add(channelName);
-      this.logger.debug(`Registered entity handler: ${channelName}`);
+      this.logger.debug(`Registered handler: ${channelName}`);
+      registeredCount++;
     }
 
-    // Keep track of the service
     this.registeredServices.set(name, service);
-
     this.logger.info(
-      `Registered ${Object.keys(handlers).length} handlers for ${name} service`
+      `Registered ${registeredCount} handlers for ${name} service`
     );
   }
 
   /**
    * Run database migrations
-   * @returns Migration result
    */
   @IpcMethod({
     description: "Run database migrations",
@@ -447,204 +437,52 @@ export class DbIpcModule extends BaseIpcModule {
       throw error;
     }
   }
-}
 
-/**
- * Handler factory for creating IPC handlers from service classes
- * This is a more advanced version that also registers metadata for preload generation
- */
-function createIpcHandlers<
-  T extends Record<string, (...args: any[]) => Promise<any>>,
->(
-  entityName: string,
-  service: T,
-  channelPrefix: string
-): Record<string, (...args: any[]) => Promise<any>> {
-  // Create the handlers
-  const handlers: Record<string, (...args: any[]) => Promise<any>> = {};
-
-  // Try to get metadata from ServiceMetadataRegistry first
-  const serviceMetadata =
-    ServiceMetadataRegistry.getInstance().getServiceMetadata(
-      service.constructor
-    );
-
-  // Extract method names from the service
-  const methodNames = Object.getOwnPropertyNames(service).filter(
-    (name) =>
-      typeof service[name as keyof typeof service] === "function" &&
-      !name.startsWith("_")
-  );
-
-  // IMPORTANT: Also get methods from prototype (where class methods are defined)
-  const prototypeMethodNames = Object.getOwnPropertyNames(
-    Object.getPrototypeOf(service)
-  ).filter(
-    (name) =>
-      typeof service[name as keyof typeof service] === "function" &&
-      !name.startsWith("_") &&
-      name !== "constructor"
-  );
-
-  // Combine all method names (unique)
-  const allMethodNames = [
-    ...new Set([...methodNames, ...prototypeMethodNames]),
-  ];
-
-  // Generate metadata for preload API generation
-  const preloadMetadata: ServiceHandlerMetadata = {
-    name: entityName,
-    channelPrefix: channelPrefix,
-    parentModule: "db", // Specify db as the parent module
-    methods: [],
-  };
-
-  // Create a handler for each method
-  for (const methodName of allMethodNames) {
-    if (typeof service[methodName as keyof typeof service] !== "function") {
-      continue;
-    }
-
-    // Create the handler function
-    handlers[methodName] = async (...args: any[]) => {
-      try {
-        // Check if database is connected before executing the method
-        if (!db.dataSource?.isInitialized) {
-          const dbState = db.currentState.state;
-          throw new Error(
-            `Database is not connected (current state: ${dbState}). Please connect to the database first.`
-          );
-        }
-
-        return await service[methodName as keyof typeof service](...args);
-      } catch (error: any) {
-        // Create a standardized error response
-        const message = error instanceof Error ? error.message : String(error);
-        throw {
-          code: error.code || "DB_ERROR",
-          message,
-          method: `db:${channelPrefix}:${methodName}`,
-          timestamp: new Date().toISOString(),
-        };
-      }
-    };
-
-    // Get method metadata from registry if available
-    const registryMethodMetadata = serviceMetadata?.methods.get(methodName);
-
-    // Define method metadata for preload
-    const methodMetadataForPreload: {
-      name: string;
-      returnType: string;
-      description: string;
-      parameters: Array<{
-        name: string;
-        type: string;
-        required?: boolean;
-      }>;
-    } = {
-      name: methodName,
-      returnType: "Promise<any>",
-      description: `${entityName} ${methodName} operation`,
-      parameters: [],
-    };
-
-    // If registry metadata is available, use it
-    if (registryMethodMetadata) {
-      methodMetadataForPreload.returnType = registryMethodMetadata.returnType;
-      methodMetadataForPreload.description =
-        registryMethodMetadata.description ||
-        methodMetadataForPreload.description;
-      methodMetadataForPreload.parameters =
-        registryMethodMetadata.parameters.map((param) => ({
-          name: param.name,
-          type: param.type,
-          required: param.required,
-        }));
-    } else {
-      // Otherwise use the inference methods
-      methodMetadataForPreload.parameters = inferParametersFromMethodName(
-        methodName,
-        service
-      );
-      methodMetadataForPreload.returnType = inferReturnTypeFromMethodName(
-        methodName,
-        entityName,
-        service
-      );
-    }
-
-    // Add metadata for this method
-    preloadMetadata.methods.push(methodMetadataForPreload);
-  }
-
-  // Register the metadata for preload API generation
-  PreloadApiGenerator.registerServiceHandler(preloadMetadata);
-
-  // Log registration for debugging
-  log
-    .scope("ipc-db")
-    .info(
-      `Registered service handler: ${entityName} with ${preloadMetadata.methods.length} methods under db.${channelPrefix}`
-    );
-
-  return handlers;
-}
-/**
- * Infer parameters based on method name conventions
- */
-function inferParametersFromMethodName(
-  methodName: string,
-  serviceInstance?: any
-): Array<{
-  name: string;
-  type: string;
-  required?: boolean;
-}> {
-  // First try to get metadata if service instance is provided
-  if (serviceInstance) {
+  /**
+   * Infer parameters from method metadata
+   */
+  private inferParameters(
+    methodName: string,
+    serviceInstance: any
+  ): Array<{
+    name: string;
+    type: string;
+    required?: boolean;
+  }> {
     const constructor =
       typeof serviceInstance === "function"
         ? serviceInstance
         : serviceInstance.constructor;
 
     const metadata = getServiceMethodMetadata(constructor, methodName);
-    if (metadata && metadata.parameters) {
+
+    if (metadata?.parameters) {
       return metadata.parameters.map((param) => ({
         name: param.name,
         type: param.type,
         required: param.required,
       }));
     }
+
+    return [];
   }
 
-  // Default to empty array for unknown methods
-  return [];
-}
-
-/**
- * Infer return type based on method name conventions
- */
-function inferReturnTypeFromMethodName(
-  methodName: string,
-  entityName: string,
-  serviceInstance?: any
-): string {
-  // First try to get metadata if service instance is provided
-  if (serviceInstance) {
+  /**
+   * Infer return type from method metadata
+   */
+  private inferReturnType(
+    methodName: string,
+    entityName: string,
+    serviceInstance: any
+  ): string {
     const constructor =
       typeof serviceInstance === "function"
         ? serviceInstance
         : serviceInstance.constructor;
 
     const metadata = getServiceMethodMetadata(constructor, methodName);
-    if (metadata && metadata.returnType) {
-      return metadata.returnType;
-    }
+    return metadata?.returnType || "Promise<any>";
   }
-
-  // Default return type
-  return "Promise<any>";
 }
 
 // Singleton instance
