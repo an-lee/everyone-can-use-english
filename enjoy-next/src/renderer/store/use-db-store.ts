@@ -3,50 +3,6 @@ import { useAppStore } from "./use-app-store";
 import { useAuthStore } from "./use-auth-store";
 
 /**
- * DATABASE CONNECTION COORDINATION PATTERN
- *
- * This codebase uses a specific pattern to coordinate database connections between
- * the main Electron process and the renderer process:
- *
- * 1. Main Process Responsibility:
- *    - Primary owner of the database connection
- *    - Automatically connects when user is set in appConfig
- *    - Sets autoConnected=true flag when it's handling connections
- *    - Broadcasts connection state changes to all windows
- *
- * 2. Renderer Process Responsibility:
- *    - Receives and displays database state from main process
- *    - Only attempts manual connections when:
- *      a. Database is not already connected or connecting
- *      b. The autoConnected flag is not true (main process isn't handling it)
- *    - Uses delays when checking state after auth changes to prevent race conditions
- *
- * 3. Connection Decision Logic:
- *    - Encapsulated in shouldManuallyConnect() helper method
- *    - Centralized to ensure consistent behavior across the app
- *    - Prevents duplicate connection attempts
- *
- * This approach prevents the race conditions that can occur when both processes
- * try to connect to the database simultaneously, especially after login events.
- */
-
-type DbStore = {
-  // State
-  dbState: DbState;
-
-  // Actions
-  connect: () => Promise<void>;
-  disconnect: () => Promise<void>;
-  getStatus: () => Promise<void>;
-  resetState: () => void;
-  checkAndConnectIfNeeded: () => Promise<void>;
-
-  // Helper methods
-  shouldManuallyConnect: (dbState: DbState) => boolean;
-  getConnectionStatusReason: (dbState: DbState) => string;
-};
-
-/**
  * Database store
  *
  * This store is used to manage database connection state and operations.

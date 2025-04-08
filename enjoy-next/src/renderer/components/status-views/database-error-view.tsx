@@ -36,7 +36,7 @@ export const DatabaseErrorView = ({
               <p className="text-xs text-muted-foreground">
                 Retry attempt {retryCount} of {MAX_RETRIES}
               </p>
-              <div className="mt-2 h-1.5 w-48 overflow-hidden rounded-full bg-muted">
+              <div className="mt-2 flex h-1.5 w-48 items-center overflow-hidden rounded-full bg-muted">
                 <div
                   className="h-full bg-amber-500 transition-all duration-500"
                   style={{

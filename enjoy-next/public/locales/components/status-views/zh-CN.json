@@ -7,5 +7,7 @@
   "retry": "重试",
   "agreeTo": "点击继续，代表您将同意我们的",
   "termsOfService": "服务条款",
-  "privacyPolicy": "隐私政策"
+  "privacyPolicy": "隐私政策",
+  "loading": "加载中...",
+  "somethingWentWrong": "出错了"
 }

@@ -7,5 +7,7 @@
   "retry": "Retry",
   "agreeTo": "By clicking continue, you agree to our",
   "termsOfService": "Terms of Service",
-  "privacyPolicy": "Privacy Policy"
+  "privacyPolicy": "Privacy Policy",
+  "loading": "Loading...",
+  "somethingWentWrong": "Something went wrong"
 }

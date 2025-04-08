@@ -2,51 +2,6 @@ import { create } from "zustand";
 import { version } from "../../../package.json";
 import { useAuthStore } from "./use-auth-store";
 
-// App initialization types
-declare interface InitializationProgress {
-  step: string;
-  progress: number;
-  message: string;
-}
-
-// App state machine types
-declare type AppStateType =
-  | { status: "initializing"; progress: InitializationProgress }
-  | {
-      status: "initialization_error";
-      error: string;
-      progress: InitializationProgress;
-    }
-  | { status: "login" }
-  | { status: "ready" };
-
-type AppState = {
-  // Config state
-  config: Partial<AppConfigState> & { version: string };
-  configLoaded: boolean;
-
-  // App state
-  appState: AppStateType;
-
-  // Actions - Config
-  loadConfig: () => Promise<void>;
-
-  // Actions - State transitions
-  setInitializing: (progress: InitializationProgress) => void;
-  setInitializationError: (
-    error: string,
-    progress: InitializationProgress
-  ) => void;
-  setLoginRequired: () => void;
-  setReady: () => void;
-
-  // Complex actions
-  handleInitProgress: (
-    progress: InitializationProgress & { error: string | null }
-  ) => void;
-  checkAuthAndUpdateState: () => Promise<void>;
-};
-
 /**
  * App store
  *

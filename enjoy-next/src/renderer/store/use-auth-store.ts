@@ -1,31 +1,6 @@
 import { create } from "zustand";
 import { useDbStore } from "./use-db-store";
 
-declare type LoginMethodType =
-  | "google_oauth2"
-  | "github"
-  | "mixin"
-  | "email"
-  | "phone"
-  | null;
-
-declare type AuthState = {
-  isAuthenticated: () => boolean;
-  currentUser: UserType | null;
-  sessions: UserType[];
-
-  nonce: string | null;
-  logingMethod: LoginMethodType;
-
-  // Actions
-  setLogingMethod: (logingMethod: LoginMethodType) => void;
-  autoLogin: () => Promise<void>;
-  generateNonce: () => string;
-  login: (currentUser: UserType) => void;
-  logout: () => void;
-  fetchSessions: () => Promise<void>;
-};
-
 export const useAuthStore = create<AuthState>((set, get) => ({
   isAuthenticated: () => !!get().currentUser?.id,
   currentUser: null,

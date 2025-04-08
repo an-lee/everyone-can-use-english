@@ -10,11 +10,11 @@ import { useTheme } from "./hooks/use-theme";
 import { useFontSize } from "./hooks/use-font-size";
 import {
   InitializingView,
-  ErrorView,
   LoginView,
   ConnectingDatabaseView,
   DatabaseErrorView,
 } from "./components/status-views";
+import { InitializingErrorView } from "./components/status-views/initializing-error-view";
 
 // Create a new router instance
 const router = createRouter({ routeTree });
@@ -40,13 +40,9 @@ const App = () => {
 
     case "initialization_error":
       return (
-        <ErrorView
-          initStatus={{
-            currentStep: appState.progress.step,
-            progress: appState.progress.progress,
-            message: appState.progress.message,
-            error: appState.error,
-          }}
+        <InitializingErrorView
+          error={appState.error}
+          message={appState.progress.message}
         />
       );
 
@@ -75,13 +71,9 @@ const App = () => {
     default:
       // This should never happen, but TypeScript wants us to handle it
       return (
-        <ErrorView
-          initStatus={{
-            currentStep: "unknown",
-            progress: 0,
-            message: "Unknown application state",
-            error: "Application reached an invalid state",
-          }}
+        <InitializingErrorView
+          error="Application reached an invalid state"
+          message="Unknown application state"
         />
       );
   }

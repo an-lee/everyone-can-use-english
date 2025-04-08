@@ -27,7 +27,7 @@ export class Audio extends BaseEntity {
   @Column({ nullable: true, type: "varchar" })
   name?: string;
 
-  @Column({ type: "text", default: "{}" })
+  @Column({ type: "json", default: "{}" })
   metadata!: Record<string, any>;
 
   @Column({ nullable: true, type: "varchar" })
@@ -39,22 +39,22 @@ export class Audio extends BaseEntity {
   @Column({ name: "recordings_duration", default: 0, type: "integer" })
   recordingsDuration!: number;
 
-  @Column({ name: "synced_at", type: "datetime", nullable: true })
+  @Column({ name: "synced_at", type: "date", nullable: true })
   syncedAt?: Date;
 
-  @Column({ name: "uploaded_at", type: "datetime", nullable: true })
+  @Column({ name: "uploaded_at", type: "date", nullable: true })
   uploadedAt?: Date;
 
   @Column({
     name: "created_at",
-    type: "datetime",
+    type: "date",
     default: () => "CURRENT_TIMESTAMP",
   })
   createdAt!: Date;
 
   @Column({
     name: "updated_at",
-    type: "datetime",
+    type: "date",
     default: () => "CURRENT_TIMESTAMP",
   })
   updatedAt!: Date;
