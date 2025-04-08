@@ -10,6 +10,9 @@ import {
   pluginIpcModule,
   windowIpcModule,
   shellIpcModule,
+  // Import entity IPC modules
+  dbAudioIpcModule,
+  // Add new entity modules here
 } from "@main/ipc/modules";
 import path from "path";
 import { app } from "electron";
@@ -22,7 +25,7 @@ const logger = log.scope("ipc-handlers");
 export const setupIpcHandlers = async () => {
   logger.info("Setting up IPC handlers");
 
-  // Register modules directly
+  // Register regular modules directly
   ipcRegistry.addModule([
     appConfigIpcModule,
     appInitializerIpcModule,
@@ -32,9 +35,8 @@ export const setupIpcHandlers = async () => {
     shellIpcModule,
   ]);
 
-  // Explicitly generate entity handlers for preload
-  await dbIpcModule.generateEntityHandlersForPreload();
-  logger.info("Entity handlers generated for preload API");
+  // Initialize entity IPC modules
+  await setupEntityIpcModules();
 
   // Generate preload API if needed
   if (!app.isPackaged) {
@@ -57,10 +59,30 @@ export const setupIpcHandlers = async () => {
 };
 
 /**
+ * Set up entity IPC modules
+ */
+const setupEntityIpcModules = async () => {
+  logger.info("Setting up entity IPC modules");
+
+  // Initialize each entity module
+  dbAudioIpcModule.initialize();
+  // Add new entity modules initialization here
+
+  logger.info("Entity IPC modules setup complete");
+};
+
+/**
  * Clean up all IPC handlers
  */
 export const cleanupIpcHandlers = () => {
   logger.info("Cleaning up IPC handlers");
+
+  // Clean up entity modules
+  dbAudioIpcModule.dispose();
+  // Add new entity modules cleanup here
+
+  // Clear registry
   ipcRegistry.clear();
+
   logger.info("IPC handlers cleanup complete");
 };

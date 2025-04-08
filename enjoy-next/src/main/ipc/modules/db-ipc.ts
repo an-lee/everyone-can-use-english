@@ -1,15 +1,6 @@
 import { BaseIpcModule, IpcMethod } from "@main/ipc/modules";
-import { ipcMain } from "electron";
 import { db } from "@main/storage/db";
 import appConfig from "@/main/core/app/config";
-import PreloadApiGenerator, {
-  ServiceHandlerMetadata,
-} from "@main/ipc/preload/preload-generator";
-import {
-  audioService,
-  createIpcHandlers,
-  getServiceMethodMetadata,
-} from "@main/storage/services";
 
 // Database connection states
 export type DbConnectionState =
@@ -41,38 +32,8 @@ export type DbState = {
  * Database IPC module for handling database operations
  */
 export class DbIpcModule extends BaseIpcModule {
-  private registeredEntityHandlers: Set<string> = new Set();
-  private registeredServices: Map<string, any> = new Map();
-  private entityHandlersGenerated = false;
-
   constructor() {
     super("Database", "db");
-    this.initializeHandlers();
-  }
-
-  /**
-   * Initialize entity handlers
-   */
-  private initializeHandlers(): void {
-    // Generate preload API and register handlers
-    Promise.all([
-      this.generateEntityHandlersForPreload(),
-      this.registerEntityHandlers(),
-    ]).catch((err) => {
-      this.logger.error("Failed to initialize entity handlers:", err);
-    });
-  }
-
-  /**
-   * Register handlers - overridden to ensure entity handlers are generated
-   */
-  registerHandlers(): void {
-    if (!this.entityHandlersGenerated) {
-      this.generateEntityHandlersForPreload().catch((err) => {
-        this.logger.error("Failed to generate entity handlers:", err);
-      });
-    }
-    super.registerHandlers();
   }
 
   /**
@@ -89,11 +50,6 @@ export class DbIpcModule extends BaseIpcModule {
   async connect(): Promise<DbState> {
     try {
       await db.connect({ retry: true });
-
-      if (db.dataSource?.isInitialized) {
-        await this.registerEntityHandlers();
-      }
-
       return db.currentState;
     } catch (error) {
       this.logger.error("IPC db:connect error:", error);
@@ -247,172 +203,6 @@ export class DbIpcModule extends BaseIpcModule {
   }
 
   /**
-   * Generate entity handlers metadata for preload API
-   */
-  async generateEntityHandlersForPreload(): Promise<void> {
-    this.logger.info("Generating entity handlers for preload API");
-
-    try {
-      // Register services with preload API
-      await this.generateServicePreloadApi(
-        "Audio",
-        audioService,
-        "audio",
-        "db"
-      );
-      // Add more services here as needed
-
-      this.entityHandlersGenerated = true;
-      this.logger.info("Entity handlers generated for preload API");
-    } catch (error) {
-      this.logger.error(
-        "Failed to generate entity handlers for preload:",
-        error
-      );
-    }
-  }
-
-  /**
-   * Generate service preload API metadata
-   */
-  private async generateServicePreloadApi<T extends object>(
-    serviceName: string,
-    serviceObject: T,
-    channelPrefix: string,
-    parentModule?: string
-  ): Promise<void> {
-    try {
-      if (!serviceObject) {
-        throw new Error(`${serviceName}Service object is not valid`);
-      }
-
-      const serviceInstance = this.resolveServiceInstance(serviceObject);
-      const methodNames = this.getServiceMethodNames(serviceInstance);
-
-      const metadata = this.buildServiceMetadata(
-        serviceName,
-        serviceInstance,
-        methodNames,
-        channelPrefix,
-        parentModule
-      );
-
-      PreloadApiGenerator.registerServiceHandler(metadata);
-
-      this.logger.debug(
-        `Generated ${serviceName} preload API with ${metadata.methods.length} methods`
-      );
-    } catch (error) {
-      this.logger.error(
-        `Failed to generate ${serviceName} preload API:`,
-        error
-      );
-    }
-  }
-
-  /**
-   * Resolve a service instance
-   */
-  private resolveServiceInstance<T>(serviceObject: T): any {
-    return typeof serviceObject === "function"
-      ? new (serviceObject as any)()
-      : serviceObject;
-  }
-
-  /**
-   * Get method names from a service instance
-   */
-  private getServiceMethodNames(serviceInstance: any): string[] {
-    return Object.getOwnPropertyNames(
-      Object.getPrototypeOf(serviceInstance)
-    ).filter(
-      (name) =>
-        typeof serviceInstance[name] === "function" &&
-        !name.startsWith("_") &&
-        name !== "constructor"
-    );
-  }
-
-  /**
-   * Build service metadata for preload API
-   */
-  private buildServiceMetadata(
-    serviceName: string,
-    serviceInstance: any,
-    methodNames: string[],
-    channelPrefix: string,
-    parentModule?: string
-  ): ServiceHandlerMetadata {
-    return {
-      name: serviceName,
-      channelPrefix,
-      parentModule,
-      methods: methodNames.map((methodName) => ({
-        name: methodName,
-        returnType: this.inferReturnType(
-          methodName,
-          serviceName,
-          serviceInstance
-        ),
-        description: `${serviceName} ${methodName} operation`,
-        parameters: this.inferParameters(methodName, serviceInstance),
-      })),
-    };
-  }
-
-  /**
-   * Register entity handlers for this module
-   */
-  async registerEntityHandlers(): Promise<void> {
-    this.logger.info("Loading entity handlers");
-
-    try {
-      if (this.registeredEntityHandlers.size > 0) {
-        this.logger.info("Entity handlers already registered");
-        return;
-      }
-
-      this.registerServiceHandlers("Audio", audioService, "audio");
-      // Add more services here as needed
-    } catch (error) {
-      this.logger.error("Failed to register entity handlers:", error);
-    }
-  }
-
-  /**
-   * Register handlers for a service
-   */
-  private registerServiceHandlers(
-    name: string,
-    service: any,
-    channelPrefix: string
-  ): void {
-    this.logger.info(`Registering handlers for ${name} service`);
-
-    const handlers = createIpcHandlers(name, service, channelPrefix);
-    let registeredCount = 0;
-
-    for (const [methodName, handler] of Object.entries(handlers)) {
-      const channelName = `db:${channelPrefix}:${methodName}`;
-
-      if (this.registeredEntityHandlers.has(channelName)) {
-        this.logger.debug(`Handler already registered for ${channelName}`);
-        continue;
-      }
-
-      ipcMain.handle(channelName, (event, ...args) => handler(...args));
-      this.registeredEntityHandlers.add(channelName);
-      this.logger.debug(`Registered handler: ${channelName}`);
-      registeredCount++;
-    }
-
-    this.registeredServices.set(name, service);
-    this.logger.info(
-      `Registered ${registeredCount} handlers for ${name} service`
-    );
-  }
-
-  /**
    * Run database migrations
    */
   @IpcMethod({
@@ -436,52 +226,6 @@ export class DbIpcModule extends BaseIpcModule {
       this.logger.error("IPC db:migrate error:", error);
       throw error;
     }
-  }
-
-  /**
-   * Infer parameters from method metadata
-   */
-  private inferParameters(
-    methodName: string,
-    serviceInstance: any
-  ): Array<{
-    name: string;
-    type: string;
-    required?: boolean;
-  }> {
-    const constructor =
-      typeof serviceInstance === "function"
-        ? serviceInstance
-        : serviceInstance.constructor;
-
-    const metadata = getServiceMethodMetadata(constructor, methodName);
-
-    if (metadata?.parameters) {
-      return metadata.parameters.map((param) => ({
-        name: param.name,
-        type: param.type,
-        required: param.required,
-      }));
-    }
-
-    return [];
-  }
-
-  /**
-   * Infer return type from method metadata
-   */
-  private inferReturnType(
-    methodName: string,
-    entityName: string,
-    serviceInstance: any
-  ): string {
-    const constructor =
-      typeof serviceInstance === "function"
-        ? serviceInstance
-        : serviceInstance.constructor;
-
-    const metadata = getServiceMethodMetadata(constructor, methodName);
-    return metadata?.returnType || "Promise<any>";
   }
 }
 
