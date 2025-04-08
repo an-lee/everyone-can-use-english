@@ -8,9 +8,10 @@ import {
   SidebarMenuItem,
 } from "@renderer/components/ui";
 import { Icon } from "@iconify/react";
-import { Link, useLocation, useMatch } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
-export function NavMain({
+export function NavMaterials({
   items,
 }: {
   items: {
@@ -20,8 +21,11 @@ export function NavMain({
   }[];
 }) {
   const { pathname } = useLocation();
+  const { t } = useTranslation("components/layouts/sidebar");
+
   return (
     <SidebarGroup className="non-draggable-region">
+      <SidebarGroupLabel>{t("materials")}</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (
           <SidebarMenuItem key={item.title}>

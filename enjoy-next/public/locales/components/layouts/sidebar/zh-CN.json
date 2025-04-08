@@ -1,3 +1,11 @@
 {
-  "logout": "登出"
+  "account": "账户",
+  "billing": "账单",
+  "notifications": "通知",
+  "logout": "登出",
+  "home": "首页",
+  "materials": "练习素材",
+  "audios": "音频",
+  "videos": "视频",
+  "documents": "文档"
 }

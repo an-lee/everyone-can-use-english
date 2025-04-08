@@ -10,85 +10,123 @@
 
 // Import Routes
 
-import { Route as rootRoute } from './routes/__root'
-import { Route as AboutImport } from './routes/about'
-import { Route as IndexImport } from './routes/index'
+import { Route as rootRoute } from "./routes/__root";
+import { Route as VideosImport } from "./routes/videos";
+import { Route as DocumentsImport } from "./routes/documents";
+import { Route as AudiosImport } from "./routes/audios";
+import { Route as IndexImport } from "./routes/index";
 
 // Create/Update Routes
 
-const AboutRoute = AboutImport.update({
-  id: '/about',
-  path: '/about',
+const VideosRoute = VideosImport.update({
+  id: "/videos",
+  path: "/videos",
   getParentRoute: () => rootRoute,
-} as any)
+} as any);
+
+const DocumentsRoute = DocumentsImport.update({
+  id: "/documents",
+  path: "/documents",
+  getParentRoute: () => rootRoute,
+} as any);
+
+const AudiosRoute = AudiosImport.update({
+  id: "/audios",
+  path: "/audios",
+  getParentRoute: () => rootRoute,
+} as any);
 
 const IndexRoute = IndexImport.update({
-  id: '/',
-  path: '/',
+  id: "/",
+  path: "/",
   getParentRoute: () => rootRoute,
-} as any)
+} as any);
 
 // Populate the FileRoutesByPath interface
 
-declare module '@tanstack/react-router' {
+declare module "@tanstack/react-router" {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutImport
-      parentRoute: typeof rootRoute
-    }
+    "/": {
+      id: "/";
+      path: "/";
+      fullPath: "/";
+      preLoaderRoute: typeof IndexImport;
+      parentRoute: typeof rootRoute;
+    };
+    "/audios": {
+      id: "/audios";
+      path: "/audios";
+      fullPath: "/audios";
+      preLoaderRoute: typeof AudiosImport;
+      parentRoute: typeof rootRoute;
+    };
+    "/documents": {
+      id: "/documents";
+      path: "/documents";
+      fullPath: "/documents";
+      preLoaderRoute: typeof DocumentsImport;
+      parentRoute: typeof rootRoute;
+    };
+    "/videos": {
+      id: "/videos";
+      path: "/videos";
+      fullPath: "/videos";
+      preLoaderRoute: typeof VideosImport;
+      parentRoute: typeof rootRoute;
+    };
   }
 }
 
 // Create and export the route tree
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/about': typeof AboutRoute
+  "/": typeof IndexRoute;
+  "/audios": typeof AudiosRoute;
+  "/documents": typeof DocumentsRoute;
+  "/videos": typeof VideosRoute;
 }
 
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/about': typeof AboutRoute
+  "/": typeof IndexRoute;
+  "/audios": typeof AudiosRoute;
+  "/documents": typeof DocumentsRoute;
+  "/videos": typeof VideosRoute;
 }
 
 export interface FileRoutesById {
-  __root__: typeof rootRoute
-  '/': typeof IndexRoute
-  '/about': typeof AboutRoute
+  __root__: typeof rootRoute;
+  "/": typeof IndexRoute;
+  "/audios": typeof AudiosRoute;
+  "/documents": typeof DocumentsRoute;
+  "/videos": typeof VideosRoute;
 }
 
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about'
-  fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about'
-  id: '__root__' | '/' | '/about'
-  fileRoutesById: FileRoutesById
+  fileRoutesByFullPath: FileRoutesByFullPath;
+  fullPaths: "/" | "/audios" | "/documents" | "/videos";
+  fileRoutesByTo: FileRoutesByTo;
+  to: "/" | "/audios" | "/documents" | "/videos";
+  id: "__root__" | "/" | "/audios" | "/documents" | "/videos";
+  fileRoutesById: FileRoutesById;
 }
 
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  AboutRoute: typeof AboutRoute
+  IndexRoute: typeof IndexRoute;
+  AudiosRoute: typeof AudiosRoute;
+  DocumentsRoute: typeof DocumentsRoute;
+  VideosRoute: typeof VideosRoute;
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AboutRoute: AboutRoute,
-}
+  AudiosRoute: AudiosRoute,
+  DocumentsRoute: DocumentsRoute,
+  VideosRoute: VideosRoute,
+};
 
 export const routeTree = rootRoute
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+  ._addFileTypes<FileRouteTypes>();
 
 /* ROUTE_MANIFEST_START
 {
@@ -97,14 +135,22 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/about"
+        "/audios",
+        "/documents",
+        "/videos"
       ]
     },
     "/": {
       "filePath": "index.tsx"
     },
-    "/about": {
-      "filePath": "about.tsx"
+    "/audios": {
+      "filePath": "audios.tsx"
+    },
+    "/documents": {
+      "filePath": "documents.tsx"
+    },
+    "/videos": {
+      "filePath": "videos.tsx"
     }
   }
 }

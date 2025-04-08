@@ -1,3 +1,11 @@
 {
-  "logout": "Log out"
+  "account": "Account",
+  "billing": "Billing",
+  "notifications": "Notifications",
+  "logout": "Log out",
+  "home": "Home",
+  "materials": "Materials",
+  "audios": "Audios",
+  "videos": "Videos",
+  "documents": "Documents"
 }
