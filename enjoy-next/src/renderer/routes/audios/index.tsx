@@ -4,11 +4,11 @@ import { Icon } from "@iconify/react";
 import { EmptyView, ErrorView } from "@renderer/components/status-views";
 import { AudioCard } from "@renderer/components/audios/audio-card";
 
-export const Route = createFileRoute("/audios")({
-  component: Audios,
+export const Route = createFileRoute("/audios/")({
+  component: AudiosComponent,
 });
 
-function Audios() {
+function AudiosComponent() {
   const { data, isLoading, error } = useAudios();
 
   if (isLoading) {
@@ -30,7 +30,7 @@ function Audios() {
   }
 
   return (
-    <div className="grid w-full grid-cols-1 gap-4 p-4 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid w-full grid-cols-2 gap-4 p-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
       {data.items.map((item) => (
         <AudioCard key={item.id} audio={item} />
       ))}
