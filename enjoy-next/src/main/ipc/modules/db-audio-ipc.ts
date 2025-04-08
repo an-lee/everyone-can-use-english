@@ -1,8 +1,5 @@
 import { BaseEntityIpcModule } from "./base-entity-ipc";
-import {
-  audioService,
-  AudioSearchOptions,
-} from "@main/storage/services/audio-service";
+import { audioService } from "@main/storage/services/audio-service";
 
 /**
  * IPC module for Audio entity operations

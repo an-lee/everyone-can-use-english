@@ -2,51 +2,9 @@ import { ILike } from "typeorm";
 import { Audio } from "@main/storage/entities/audio";
 
 /**
- * Audio item interface that maps to our entity
- */
-export interface AudioItem {
-  id: string;
-  name?: string;
-  description?: string;
-  language?: string;
-  source?: string;
-  md5: string;
-  metadata: Record<string, any>;
-  coverUrl?: string;
-  recordingsCount: number;
-  recordingsDuration: number;
-  syncedAt?: Date;
-  uploadedAt?: Date;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-/**
- * Audio search options
- */
-export interface AudioSearchOptions {
-  page?: number;
-  limit?: number;
-  search?: string;
-  language?: string;
-  source?: string;
-}
-
-/**
- * Pagination result for audio items
- */
-export interface AudioPaginationResult {
-  items: AudioItem[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
-
-/**
  * Map from Audio entity to AudioItem interface
  */
-function mapAudioToItem(audio: Audio): AudioItem {
+function mapAudioToItem(audio: Audio): AudioEntity {
   return {
     id: audio.id,
     name: audio.name,
@@ -104,7 +62,7 @@ export class AudioService {
   /**
    * Find audio item by ID
    */
-  async findById(id: string): Promise<AudioItem | null> {
+  async findById(id: string): Promise<AudioEntity | null> {
     const audio = await Audio.findOne({ where: { id } });
     if (!audio) {
       return null;
@@ -116,7 +74,7 @@ export class AudioService {
   /**
    * Find audio item by MD5 hash
    */
-  async findByMd5(md5: string): Promise<AudioItem | null> {
+  async findByMd5(md5: string): Promise<AudioEntity | null> {
     const audio = await Audio.findOne({ where: { md5 } });
     if (!audio) {
       return null;
@@ -128,7 +86,7 @@ export class AudioService {
   /**
    * Create a new audio item
    */
-  async create(data: Partial<AudioItem>): Promise<AudioItem> {
+  async create(data: Partial<AudioEntity>): Promise<AudioEntity> {
     const audio = Audio.create(data as any);
     await audio.save();
 
@@ -140,8 +98,8 @@ export class AudioService {
    */
   async update(
     id: string,
-    data: Partial<AudioItem>
-  ): Promise<AudioItem | null> {
+    data: Partial<AudioEntity>
+  ): Promise<AudioEntity | null> {
     const audio = await Audio.findOne({ where: { id } });
     if (!audio) {
       return null;

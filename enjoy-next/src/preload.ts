@@ -10,7 +10,7 @@ import {
   WindowAPI,
   ShellAPI,
   AppinitializerAPI,
-} from "./generated/preload-api";
+} from "./main/generated/preload-api";
 
 // Define allowed IPC event channels
 const validChannels = [
