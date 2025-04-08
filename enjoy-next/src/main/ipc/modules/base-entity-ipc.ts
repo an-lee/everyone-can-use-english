@@ -122,14 +122,14 @@ export abstract class BaseEntityIpcModule<
       channelPrefix: this.servicePrefix,
       parentModule: "db",
       methods: methodNames.map((methodName) => {
-        // Extract method metadata using reflection (implementation will depend on your metadata system)
+        // Get metadata from subclass implementation
         const paramMetadata = this.getMethodParameterMetadata(methodName);
         const returnType = this.getMethodReturnType(methodName);
 
         return {
           name: methodName,
           returnType: returnType || "Promise<any>",
-          description: `${this.entityName}Entity ${methodName} operation`,
+          description: `${this.entityName} ${methodName} operation`,
           parameters: paramMetadata || [],
         };
       }),

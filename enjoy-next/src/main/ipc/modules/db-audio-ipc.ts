@@ -1,6 +1,8 @@
 import { BaseEntityIpcModule } from "./base-entity-ipc";
-import { audioService } from "@main/storage/services/audio-service";
-import { getServiceMethodMetadata } from "@main/storage/services/service-decorators";
+import {
+  audioService,
+  AudioSearchOptions,
+} from "@main/storage/services/audio-service";
 
 /**
  * IPC module for Audio entity operations
@@ -11,7 +13,7 @@ export class DbAudioIpcModule extends BaseEntityIpcModule<typeof audioService> {
   }
 
   /**
-   * Get parameter metadata for a method using the service decorators system
+   * Define parameter metadata explicitly instead of extracting from decorators
    */
   protected getMethodParameterMetadata(methodName: string): Array<{
     name: string;
@@ -19,32 +21,92 @@ export class DbAudioIpcModule extends BaseEntityIpcModule<typeof audioService> {
     required?: boolean;
     description?: string;
   }> {
-    const metadata = getServiceMethodMetadata(
-      audioService.constructor,
-      methodName
-    );
+    // Define metadata for each method directly
+    const metadataMap: Record<
+      string,
+      Array<{
+        name: string;
+        type: string;
+        required?: boolean;
+        description?: string;
+      }>
+    > = {
+      findAll: [
+        {
+          name: "options",
+          type: "AudioSearchOptions",
+          required: false,
+          description: "Search and pagination options",
+        },
+      ],
+      findById: [
+        {
+          name: "id",
+          type: "string",
+          required: true,
+          description: "Audio item ID",
+        },
+      ],
+      findByMd5: [
+        {
+          name: "md5",
+          type: "string",
+          required: true,
+          description: "MD5 hash of the audio file",
+        },
+      ],
+      create: [
+        {
+          name: "data",
+          type: "Partial<AudioItem>",
+          required: true,
+          description: "Audio item data",
+        },
+      ],
+      update: [
+        {
+          name: "id",
+          type: "string",
+          required: true,
+          description: "Audio item ID",
+        },
+        {
+          name: "data",
+          type: "Partial<AudioItem>",
+          required: true,
+          description: "Audio item data to update",
+        },
+      ],
+      delete: [
+        {
+          name: "id",
+          type: "string",
+          required: true,
+          description: "Audio item ID",
+        },
+      ],
+      count: [],
+    };
 
-    if (metadata?.parameters) {
-      return metadata.parameters.map((param) => ({
-        name: param.name || `param${param.index}`,
-        type: param.type || "any",
-        required: param.required,
-        description: param.description,
-      }));
-    }
-
-    return [];
+    return metadataMap[methodName] || [];
   }
 
   /**
-   * Get return type for a method using the service decorators system
+   * Define return types explicitly instead of extracting from decorators
    */
   protected getMethodReturnType(methodName: string): string {
-    const metadata = getServiceMethodMetadata(
-      audioService.constructor,
-      methodName
-    );
-    return metadata?.returnType || "Promise<any>";
+    // Define return types for each method directly
+    const returnTypeMap: Record<string, string> = {
+      findAll: "Promise<AudioPaginationResult>",
+      findById: "Promise<AudioItem | null>",
+      findByMd5: "Promise<AudioItem | null>",
+      create: "Promise<AudioItem>",
+      update: "Promise<AudioItem | null>",
+      delete: "Promise<boolean>",
+      count: "Promise<number>",
+    };
+
+    return returnTypeMap[methodName] || "Promise<any>";
   }
 }
 

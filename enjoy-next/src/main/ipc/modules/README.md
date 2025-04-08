@@ -51,22 +51,33 @@ To add a new entity service IPC module:
 
 #### Step 1: Create Service Class
 
-Create a service class using the Service decorators:
+Create a plain service class:
 
 ```typescript
 // src/main/storage/services/todo-service.ts
-import { Service, ServiceMethod, Param } from "./service-decorators";
 import { Todo } from "@main/storage/entities/todo";
 
-@Service("Todo")
+// Interface for Todo items
+export interface TodoItem {
+  id: string;
+  title: string;
+  completed: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Simple Todo service
 export class TodoService {
-  @ServiceMethod("Get all todos")
-  async findAll(
-    @Param({ name: "options", required: false, description: "Search options" })
-    options?: { search?: string }
-  ): Promise<Todo[]> {
+  // Find all todos
+  async findAll(options?: { search?: string }): Promise<TodoItem[]> {
     // Implementation
     return Todo.find();
+  }
+  
+  // Find by ID
+  async findById(id: string): Promise<TodoItem | null> {
+    // Implementation
+    return Todo.findOne({ where: { id } });
   }
   
   // Other methods...
@@ -78,42 +89,63 @@ export const todoService = new TodoService();
 
 #### Step 2: Create Entity IPC Module
 
-Create an entity IPC module for your service:
+Create an entity IPC module for your service with explicit metadata:
 
 ```typescript
 // src/main/ipc/modules/db-todo-ipc.ts
 import { BaseEntityIpcModule } from "./base-entity-ipc";
 import { todoService } from "@main/storage/services/todo-service";
-import { getServiceMethodMetadata } from "@main/storage/services/service-decorators";
 
 export class DbTodoIpcModule extends BaseEntityIpcModule<typeof todoService> {
   constructor() {
     super("Todo", "todo", todoService);
   }
 
+  // Define parameter metadata explicitly
   protected getMethodParameterMetadata(methodName: string): Array<{
     name: string;
     type: string;
     required?: boolean;
     description?: string;
   }> {
-    const metadata = getServiceMethodMetadata(todoService.constructor, methodName);
-    
-    if (metadata?.parameters) {
-      return metadata.parameters.map(param => ({
-        name: param.name || `param${param.index}`,
-        type: param.type || "any",
-        required: param.required,
-        description: param.description
-      }));
-    }
-    
-    return [];
+    // Define metadata for each method
+    const metadataMap: Record<string, Array<{
+      name: string;
+      type: string;
+      required?: boolean;
+      description?: string;
+    }>> = {
+      findAll: [
+        {
+          name: "options",
+          type: "object",
+          required: false,
+          description: "Search options"
+        }
+      ],
+      findById: [
+        {
+          name: "id",
+          type: "string",
+          required: true,
+          description: "Todo item ID"
+        }
+      ],
+      // Other methods...
+    };
+
+    return metadataMap[methodName] || [];
   }
 
+  // Define return types explicitly
   protected getMethodReturnType(methodName: string): string {
-    const metadata = getServiceMethodMetadata(todoService.constructor, methodName);
-    return metadata?.returnType || "Promise<any>";
+    const returnTypeMap: Record<string, string> = {
+      findAll: "Promise<TodoItem[]>",
+      findById: "Promise<TodoItem | null>",
+      // Other methods...
+    };
+    
+    return returnTypeMap[methodName] || "Promise<any>";
   }
 }
 
@@ -162,10 +194,10 @@ export const cleanupIpcHandlers = () => {
 
 ### Benefits of the New Architecture
 
-1. **Modularity**: Each entity has its own module, making the system more maintainable
-2. **Isolation**: Entity modules are isolated, reducing the risk of bugs affecting the entire system
-3. **Simplicity**: Adding a new entity is straightforward with clear steps
-4. **Consistency**: All entity modules follow the same pattern
+1. **Simplicity**: No complex decorators or reflection magic
+2. **Explicitness**: Metadata is defined directly where it's used
+3. **Modularity**: Each entity has its own module, making the system more maintainable
+4. **Isolation**: Entity modules are isolated, reducing the risk of bugs affecting the entire system
 5. **Type Safety**: Complete parameter and return type information is preserved
 6. **Self-documenting**: Metadata is used to generate documentation and type definitions
 

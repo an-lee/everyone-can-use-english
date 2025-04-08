@@ -1,5 +1,5 @@
 // Auto-generated preload API for Electron IPC
-// DO NOT EDIT DIRECTLY - Generated on 2025-04-08T03:08:05.273Z
+// DO NOT EDIT DIRECTLY - Generated on 2025-04-08T03:14:19.913Z
 import { ipcRenderer } from 'electron';
 
 // Define necessary types
@@ -30,13 +30,13 @@ export interface EnjoyAPI {
     status: () => Promise<DbState>;
     migrate: () => Promise<object>;
     audio: {
-      findAll: () => Promise<Promise<any>>;
-      findById: () => Promise<Promise<any>>;
-      findByMd5: () => Promise<Promise<any>>;
-      create: () => Promise<Promise<any>>;
-      update: () => Promise<Promise<any>>;
-      delete: () => Promise<Promise<any>>;
-      count: () => Promise<Promise<any>>;
+      findAll: (options?: AudioSearchOptions) => Promise<Promise<AudioPaginationResult>>;
+      findById: (id: string) => Promise<Promise<AudioItem | null>>;
+      findByMd5: (md5: string) => Promise<Promise<AudioItem | null>>;
+      create: (data: Partial<AudioItem>) => Promise<Promise<AudioItem>>;
+      update: (id: string, data: Partial<AudioItem>) => Promise<Promise<AudioItem | null>>;
+      delete: (id: string) => Promise<Promise<boolean>>;
+      count: () => Promise<Promise<number>>;
     };
   };
   plugin: {
@@ -81,12 +81,12 @@ export const DbAPI = {
   status: () => ipcRenderer.invoke('db:status'),
   migrate: () => ipcRenderer.invoke('db:migrate'),
   audio: {
-    findAll: () => ipcRenderer.invoke('db:audio:findAll'),
-    findById: () => ipcRenderer.invoke('db:audio:findById'),
-    findByMd5: () => ipcRenderer.invoke('db:audio:findByMd5'),
-    create: () => ipcRenderer.invoke('db:audio:create'),
-    update: () => ipcRenderer.invoke('db:audio:update'),
-    delete: () => ipcRenderer.invoke('db:audio:delete'),
+    findAll: (options?: AudioSearchOptions) => ipcRenderer.invoke('db:audio:findAll', options),
+    findById: (id: string) => ipcRenderer.invoke('db:audio:findById', id),
+    findByMd5: (md5: string) => ipcRenderer.invoke('db:audio:findByMd5', md5),
+    create: (data: Partial<AudioItem>) => ipcRenderer.invoke('db:audio:create', data),
+    update: (id: string, data: Partial<AudioItem>) => ipcRenderer.invoke('db:audio:update', id, data),
+    delete: (id: string) => ipcRenderer.invoke('db:audio:delete', id),
     count: () => ipcRenderer.invoke('db:audio:count'),
   },
 };
