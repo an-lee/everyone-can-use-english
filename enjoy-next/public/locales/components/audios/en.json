@@ -1,0 +1,19 @@
+{
+  "search": "Search",
+  "add_audio": "Add Audio",
+  "order": "Order",
+  "asc": "Asc",
+  "desc": "Desc",
+  "name": "Name",
+  "duration": "Duration",
+  "created_at": "Created at",
+  "updated_at": "Updated at",
+  "language": "Language",
+  "source": "Source",
+  "description": "Description",
+  "cover_url": "Cover URL",
+  "recordings_count": "Recordings Count",
+  "recordings_duration": "Recordings Duration",
+  "synced_at": "Synced at",
+  "uploaded_at": "Uploaded at"
+}
