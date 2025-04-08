@@ -1,5 +1,5 @@
 // Auto-generated preload API for Electron IPC
-// DO NOT EDIT DIRECTLY - Generated on 2025-04-08T02:05:33.011Z
+// DO NOT EDIT DIRECTLY - Generated on 2025-04-08T02:36:15.289Z
 import { ipcRenderer } from 'electron';
 
 // Define necessary types
@@ -56,7 +56,7 @@ export interface EnjoyAPI {
 }
 
 // AppConfig API
-export const AppConfigAPI = {
+export const AppconfigAPI = {
   get: (key: string) => ipcRenderer.invoke('appConfig:get', key),
   set: (key: string, value: any) => ipcRenderer.invoke('appConfig:set', key, value),
   file: () => ipcRenderer.invoke('appConfig:file'),
@@ -69,7 +69,7 @@ export const AppConfigAPI = {
 };
 
 // AppInitializer API
-export const AppInitializerAPI = {
+export const AppinitializerAPI = {
   status: () => ipcRenderer.invoke('app-initializer:status'),
 };
 

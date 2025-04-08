@@ -5,11 +5,11 @@ import { contextBridge, ipcRenderer } from "electron";
 
 // Import the generated API
 import {
-  AppConfigAPI,
+  AppconfigAPI,
   DbAPI,
   WindowAPI,
   ShellAPI,
-  AppInitializerAPI,
+  AppinitializerAPI,
 } from "./generated/preload-api";
 
 // Define allowed IPC event channels
@@ -57,8 +57,8 @@ const eventsAPI = {
 // Combine the generated API with our extensions and backward compatibility layer
 const combinedAPI = {
   // Core APIs from the generated API
-  initializer: AppInitializerAPI,
-  appConfig: AppConfigAPI,
+  initializer: AppinitializerAPI,
+  appConfig: AppconfigAPI,
   db: DbAPI,
   window: WindowAPI,
   shell: ShellAPI,

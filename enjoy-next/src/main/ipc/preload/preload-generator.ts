@@ -2,6 +2,8 @@ import { ipcRegistry } from "@main/ipc/core";
 import fs from "fs";
 import path from "path";
 import { log } from "@main/core";
+import capitalize from "lodash/capitalize";
+import camelCase from "lodash/camelCase";
 
 const logger = log.scope("PreloadGenerator");
 
@@ -128,13 +130,13 @@ export interface DbState {
       // Get channel prefix from first method
       const channelPrefix = methods[0].channel.split(":")[0];
       // Camelize the channel prefix
-      const camelizedPrefix = this.camelize(channelPrefix);
+      const camelizedPrefix = camelCase(channelPrefix);
 
       code += `  ${camelizedPrefix}: {\n`;
 
       // Add core methods for this module
       for (const method of methods) {
-        const methodName = this.camelize(method.name);
+        const methodName = camelCase(method.name);
         const params = this.generateMethodParams(
           method.metadata.parameters || []
         );
@@ -148,7 +150,7 @@ export interface DbState {
       if (moduleServices.length > 0) {
         for (const service of moduleServices) {
           // Get service name (namespace)
-          const serviceName = this.camelize(
+          const serviceName = camelCase(
             service.channelPrefix.split(":").pop() || ""
           );
 
@@ -156,7 +158,7 @@ export interface DbState {
           code += `    ${serviceName}: {\n`;
 
           for (const method of service.methods) {
-            const methodName = this.camelize(method.name);
+            const methodName = camelCase(method.name);
             const params = this.generateMethodParams(method.parameters || []);
             const returnType = method.returnType || "any";
 
@@ -174,11 +176,11 @@ export interface DbState {
     const rootServices = servicesByParent.get("root") || [];
     for (const service of rootServices) {
       // Camelize the channel prefix
-      const camelizedPrefix = this.camelize(service.channelPrefix);
+      const camelizedPrefix = camelCase(service.channelPrefix);
       code += `  ${camelizedPrefix}: {\n`;
 
       for (const method of service.methods) {
-        const methodName = this.camelize(method.name);
+        const methodName = camelCase(method.name);
         const params = this.generateMethodParams(method.parameters || []);
         code += `    ${methodName}: ${params} => Promise<${method.returnType}>;\n`;
       }
@@ -196,14 +198,14 @@ export interface DbState {
       // Get channel prefix from first method
       const channelPrefix = methods[0].channel.split(":")[0];
       // Camelize the channel prefix for variable names
-      const camelizedPrefix = this.camelize(channelPrefix);
+      const camelizedPrefix = camelCase(channelPrefix);
 
       code += `// ${moduleName} API\n`;
-      code += `export const ${this.capitalize(camelizedPrefix)}API = {\n`;
+      code += `export const ${capitalize(camelizedPrefix)}API = {\n`;
 
       // Main module methods
       for (const method of methods) {
-        const methodName = this.camelize(method.name);
+        const methodName = camelCase(method.name);
         const channel = method.channel;
         const params = this.generateMethodParams(
           method.metadata.parameters || []
@@ -222,7 +224,7 @@ export interface DbState {
       if (moduleServices.length > 0) {
         for (const service of moduleServices) {
           // Get service name (namespace)
-          const serviceName = this.camelize(
+          const serviceName = camelCase(
             service.channelPrefix.split(":").pop() || ""
           );
 
@@ -230,7 +232,7 @@ export interface DbState {
           code += `  ${serviceName}: {\n`;
 
           for (const method of service.methods) {
-            const methodName = this.camelize(method.name);
+            const methodName = camelCase(method.name);
             // Build the full channel name: parentModule:servicePrefix:methodName
             const channel = `${service.parentModule}:${service.channelPrefix}:${methodName}`;
             const params = this.generateMethodParams(method.parameters || []);
@@ -251,13 +253,13 @@ export interface DbState {
     // Generate implementations for standalone service-based APIs (those without a parent)
     for (const service of rootServices) {
       // Camelize the channel prefix for variable names
-      const camelizedPrefix = this.camelize(service.channelPrefix);
+      const camelizedPrefix = camelCase(service.channelPrefix);
 
       code += `// ${service.name} API\n`;
-      code += `export const ${this.capitalize(camelizedPrefix)}API = {\n`;
+      code += `export const ${capitalize(camelizedPrefix)}API = {\n`;
 
       for (const method of service.methods) {
-        const methodName = this.camelize(method.name);
+        const methodName = camelCase(method.name);
         const channel = `${service.channelPrefix}:${methodName}`;
         const params = this.generateMethodParams(method.parameters || []);
         const paramNames = this.extractParamNames(method.parameters || []);
@@ -307,21 +309,6 @@ export interface DbState {
    */
   private static extractParamNames(params: Array<{ name: string }>): string[] {
     return params.map((p) => p.name);
-  }
-
-  /**
-   * Capitalize the first letter of a string
-   */
-  private static capitalize(str: string): string {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-  }
-
-  /**
-   * Convert a string to camelCase
-   * Handles strings with hyphens like "app-initializer" -> "appInitializer"
-   */
-  private static camelize(str: string): string {
-    return str.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
   }
 }
 

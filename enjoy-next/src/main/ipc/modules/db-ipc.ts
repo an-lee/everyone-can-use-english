@@ -422,26 +422,6 @@ export class DbIpcModule extends BaseIpcModule {
   }
 
   /**
-   * Unregister entity handlers
-   */
-  unregisterEntityHandlers(): void {
-    // Unregister all IPC handlers
-    for (const channelName of this.registeredEntityHandlers) {
-      ipcMain.removeHandler(channelName);
-      this.logger.debug(`Unregistered entity handler: ${channelName}`);
-    }
-
-    // Clear the collections
-    this.registeredEntityHandlers.clear();
-    this.registeredServices.clear();
-
-    // Don't clear preload API definitions as they're needed for type generation
-    // PreloadApiGenerator.clearServiceHandlers();
-
-    this.logger.info("Entity handlers unregistered");
-  }
-
-  /**
    * Run database migrations
    * @returns Migration result
    */
@@ -496,6 +476,21 @@ function createIpcHandlers<
       !name.startsWith("_")
   );
 
+  // IMPORTANT: Also get methods from prototype (where class methods are defined)
+  const prototypeMethodNames = Object.getOwnPropertyNames(
+    Object.getPrototypeOf(service)
+  ).filter(
+    (name) =>
+      typeof service[name as keyof typeof service] === "function" &&
+      !name.startsWith("_") &&
+      name !== "constructor"
+  );
+
+  // Combine all method names (unique)
+  const allMethodNames = [
+    ...new Set([...methodNames, ...prototypeMethodNames]),
+  ];
+
   // Generate metadata for preload API generation
   const preloadMetadata: ServiceHandlerMetadata = {
     name: entityName,
@@ -505,7 +500,7 @@ function createIpcHandlers<
   };
 
   // Create a handler for each method
-  for (const methodName of methodNames) {
+  for (const methodName of allMethodNames) {
     if (typeof service[methodName as keyof typeof service] !== "function") {
       continue;
     }
