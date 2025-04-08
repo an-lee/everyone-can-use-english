@@ -1,10 +1,4 @@
 import { BaseClient } from "./base";
-import {
-  AudioType,
-  VideoType,
-  RecordingType,
-  PronunciationAssessmentType,
-} from "./types";
 
 export class MediaClient extends BaseClient {
   syncAudio(audio: Partial<AudioType>) {

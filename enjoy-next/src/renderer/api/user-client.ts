@@ -1,5 +1,4 @@
 import { BaseClient } from "./base";
-import { PagyResponseType, UserType } from "./types";
 
 export class UserClient extends BaseClient {
   updateProfile(

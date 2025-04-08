@@ -1,5 +1,4 @@
 import { BaseClient } from "./base";
-import { PagyResponseType, PostType } from "./types";
 
 export class PostClient extends BaseClient {
   posts(params?: {
