@@ -19,7 +19,8 @@
       "@renderer/*": ["src/renderer/*"],
       "@main/*": ["src/main/*"],
       "@shared/*": ["src/shared/*"],
-      "@types/*": ["src/types/*"]
+      "@types/*": ["src/types/*"],
+      "@generated/*": ["src/generated/*"]
     },
     "types": ["vite/client"],
     "emitDecoratorMetadata": true,

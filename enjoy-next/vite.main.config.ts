@@ -20,6 +20,7 @@ export default defineConfig({
       "@main": resolve(__dirname, "./src/main"),
       "@renderer": resolve(__dirname, "./src/renderer"),
       "@shared": resolve(__dirname, "./src/shared"),
+      "@generated": resolve(__dirname, "./src/generated"),
     },
   },
 });

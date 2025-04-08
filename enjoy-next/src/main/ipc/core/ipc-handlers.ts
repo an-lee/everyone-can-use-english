@@ -44,7 +44,6 @@ export const setupIpcHandlers = async () => {
     const outputPath = path.join(
       process.cwd(),
       "src",
-      "main",
       "generated",
       "preload-api.ts"
     );
