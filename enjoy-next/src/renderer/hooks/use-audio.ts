@@ -7,6 +7,8 @@ export const useAudios = (options?: {
   page?: number;
   limit?: number;
   search?: string;
+  order?: "asc" | "desc";
+  sort?: "created_at" | "updated_at" | "name" | "duration" | "size";
 }) => {
   return useQuery<AudioPaginationResult>({
     queryKey: ["audios", options],

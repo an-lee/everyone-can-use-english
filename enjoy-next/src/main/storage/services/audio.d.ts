@@ -27,6 +27,8 @@ declare interface AudioSearchOptions {
   search?: string;
   language?: string;
   source?: string;
+  order?: "asc" | "desc";
+  sort?: "created_at" | "updated_at" | "name" | "duration" | "size";
 }
 
 /**

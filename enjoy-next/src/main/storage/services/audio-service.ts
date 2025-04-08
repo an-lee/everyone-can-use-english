@@ -1,5 +1,6 @@
 import { ILike } from "typeorm";
 import { Audio } from "@main/storage/entities/audio";
+import { log } from "@main/core";
 
 /**
  * Map from Audio entity to AudioItem interface
@@ -34,6 +35,8 @@ export class AudioService {
     const page = options?.page || 1;
     const limit = options?.limit || 20;
     const search = options?.search;
+    const order = options?.order == "asc" ? "ASC" : "DESC";
+    const sort = options?.sort || "updated_at";
 
     const queryBuilder = Audio.createQueryBuilder("audio");
 
@@ -44,10 +47,14 @@ export class AudioService {
       ]);
     }
 
+    log.info(
+      `Querying audios with search: ${search}, page: ${page}, limit: ${limit}, order: ${order}, sort: ${sort}`
+    );
+
     const [audios, total] = await queryBuilder
       .skip((page - 1) * limit)
       .take(limit)
-      .orderBy("audio.createdAt", "DESC")
+      .orderBy(`audio.${sort}`, order)
       .getManyAndCount();
 
     return {

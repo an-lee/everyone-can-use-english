@@ -1,5 +1,5 @@
 // Auto-generated type declarations for Electron IPC
-// DO NOT EDIT DIRECTLY - Generated on 2025-04-08T07:39:19.532Z
+// DO NOT EDIT DIRECTLY - Generated on 2025-04-08T07:54:45.718Z
 
 // Define necessary types
 declare type DbConnectionState =

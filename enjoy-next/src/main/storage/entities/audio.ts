@@ -30,7 +30,7 @@ export class Audio extends BaseEntity {
   @Column({ type: "json", default: "{}" })
   metadata!: Record<string, any>;
 
-  @Column({ nullable: true, type: "varchar" })
+  @Column({ name: "cover_url", nullable: true, type: "varchar" })
   coverUrl?: string;
 
   @Column({ name: "recordings_count", default: 0, type: "integer" })
