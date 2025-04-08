@@ -6,7 +6,7 @@ import PreloadApiGenerator, {
   ServiceHandlerMetadata,
 } from "@main/ipc/preload/preload-generator";
 import { log } from "@main/core";
-import { AudioService } from "@main/storage/services";
+import { AudioService, audioService } from "@main/storage/services";
 import {
   ServiceMetadataRegistry,
   getServiceMethodMetadata,
@@ -262,7 +262,7 @@ export class DbIpcModule extends BaseIpcModule {
       // Generate preload API definitions for audio service
       await this.generateServicePreloadApi(
         "Audio",
-        AudioService,
+        audioService,
         "audio",
         "db"
       );
@@ -297,11 +297,21 @@ export class DbIpcModule extends BaseIpcModule {
         throw new Error(`${serviceName}Service object is not valid`);
       }
 
-      // Extract methods
-      const methodNames = Object.getOwnPropertyNames(serviceObject).filter(
+      // Create an instance if we received a class constructor
+      const serviceInstance =
+        typeof serviceObject === "function"
+          ? new (serviceObject as any)()
+          : serviceObject;
+
+      // Extract methods from the instance prototype
+      const methodNames = Object.getOwnPropertyNames(
+        Object.getPrototypeOf(serviceInstance)
+      ).filter(
         (name) =>
-          typeof serviceObject[name as keyof typeof serviceObject] ===
-            "function" && !name.startsWith("_")
+          typeof serviceInstance[name as keyof typeof serviceInstance] ===
+            "function" &&
+          !name.startsWith("_") &&
+          name !== "constructor"
       );
 
       // Create metadata for API generation
@@ -313,14 +323,14 @@ export class DbIpcModule extends BaseIpcModule {
           // Generate parameter information based on method name conventions or metadata
           const paramInfo = inferParametersFromMethodName(
             methodName,
-            serviceObject
+            serviceInstance
           );
 
           // Generate return type based on method name conventions or metadata
           const returnType = inferReturnTypeFromMethodName(
             methodName,
             serviceName,
-            serviceObject
+            serviceInstance
           );
 
           return {
@@ -363,7 +373,8 @@ export class DbIpcModule extends BaseIpcModule {
       }
 
       // Register the Audio service first (direct import for simplicity)
-      this.registerServiceHandlers("Audio", AudioService, "audio");
+      // Use the singleton instance instead of the class constructor
+      this.registerServiceHandlers("Audio", audioService, "audio");
 
       // Add more services here as needed
     } catch (error) {
@@ -597,10 +608,12 @@ function inferParametersFromMethodName(
 }> {
   // First try to get metadata if service instance is provided
   if (serviceInstance) {
-    const metadata = getServiceMethodMetadata(
-      serviceInstance.constructor,
-      methodName
-    );
+    const constructor =
+      typeof serviceInstance === "function"
+        ? serviceInstance
+        : serviceInstance.constructor;
+
+    const metadata = getServiceMethodMetadata(constructor, methodName);
     if (metadata && metadata.parameters) {
       return metadata.parameters.map((param) => ({
         name: param.name,
@@ -624,10 +637,12 @@ function inferReturnTypeFromMethodName(
 ): string {
   // First try to get metadata if service instance is provided
   if (serviceInstance) {
-    const metadata = getServiceMethodMetadata(
-      serviceInstance.constructor,
-      methodName
-    );
+    const constructor =
+      typeof serviceInstance === "function"
+        ? serviceInstance
+        : serviceInstance.constructor;
+
+    const metadata = getServiceMethodMetadata(constructor, methodName);
     if (metadata && metadata.returnType) {
       return metadata.returnType;
     }
