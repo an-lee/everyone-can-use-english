@@ -3,17 +3,6 @@ import { log } from "@main/core";
 const logger = log.scope("IpcErrorHandler");
 
 /**
- * Standard IPC error response structure
- */
-export interface IpcErrorResponse {
-  code: string;
-  message: string;
-  method: string;
-  timestamp: string;
-  details?: any;
-}
-
-/**
  * Utility to create standardized IPC error responses
  */
 export class IpcErrorHandler {
