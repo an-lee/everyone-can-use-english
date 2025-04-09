@@ -134,7 +134,7 @@ if (typeof window !== "undefined") {
   window.addEventListener("DOMContentLoaded", () => {
     if (window.EnjoyAPI) {
       // Set up event listener for database state changes
-      window.EnjoyAPI.events.on("db-state-changed", (state: DbState) => {
+      window.EnjoyAPI.events.on("db:onStateChanged", (state: DbState) => {
         useDbStore.setState({ dbState: state });
       });
 

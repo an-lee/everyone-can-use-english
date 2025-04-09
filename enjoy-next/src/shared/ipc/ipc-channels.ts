@@ -74,7 +74,7 @@ export const IpcChannels = {
 
   // App initializer channels
   APP_INITIALIZER: {
-    STATUS: "app-initializer:status",
+    STATUS: "appInitializer:status",
   },
 
   // Database channels
@@ -85,7 +85,7 @@ export const IpcChannels = {
     BACKUP: "db:backup",
     MIGRATE: "db:migrate",
     STATUS: "db:status",
-    STATE_CHANGED: "db-state-changed",
+    STATE_CHANGED: "db:onStateChanged",
 
     // Audio entity operations
     ...createEntityChannels<Record<string, string>>("audio", [

@@ -15,3 +15,13 @@ export const USER_DATA_SUB_PATH = [
   "speeches",
   "videos",
 ];
+
+export const MIME_TYPES: Record<string, string> = {
+  ".mp3": "audio/mpeg",
+  ".wav": "audio/wav",
+  ".ogg": "audio/ogg",
+  ".m4a": "audio/mp4",
+  ".aac": "audio/aac",
+  ".flac": "audio/flac",
+  ".wma": "audio/x-ms-wma",
+};

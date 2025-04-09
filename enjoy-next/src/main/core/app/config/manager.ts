@@ -206,9 +206,9 @@ class AppConfig {
     return getLibraryPath();
   }
 
-  userDataPath(subPath: string = ""): string | null {
+  userDataPath(...subPath: string[]): string | null {
     if (!this.currentUser()) return null;
-    return getUserDataPath(Number(this.currentUser()!.id), subPath);
+    return getUserDataPath(Number(this.currentUser()!.id), ...subPath);
   }
 
   dbPath(): string | null {

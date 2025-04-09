@@ -4,6 +4,8 @@ import {
   Column,
   Index,
   PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from "typeorm";
 
 @Entity("audios")
@@ -45,17 +47,15 @@ export class Audio extends BaseEntity {
   @Column({ name: "uploaded_at", type: "date", nullable: true })
   uploadedAt?: Date;
 
-  @Column({
+  @CreateDateColumn({
     name: "created_at",
     type: "date",
-    default: () => "CURRENT_TIMESTAMP",
   })
   createdAt!: Date;
 
-  @Column({
+  @UpdateDateColumn({
     name: "updated_at",
     type: "date",
-    default: () => "CURRENT_TIMESTAMP",
   })
   updatedAt!: Date;
 }

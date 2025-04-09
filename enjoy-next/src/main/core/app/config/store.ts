@@ -91,16 +91,19 @@ export const ensureLibraryPath = async (): Promise<string> => {
 };
 
 export const getUserDataPath = (
-  userId: number | null,
-  subPath: string = ""
+  userId: number | string,
+  ...subPath: string[]
 ): string | null => {
   if (!userId) return null;
 
-  if (subPath && !USER_DATA_SUB_PATH.includes(subPath)) {
+  if (
+    subPath.length > 0 &&
+    !USER_DATA_SUB_PATH.includes(path.basename(subPath[0]))
+  ) {
     throw new Error(`Invalid subPath: ${subPath}`);
   }
 
-  const tmpPath = path.join(getLibraryPath(), userId.toString(), subPath);
+  const tmpPath = path.join(getLibraryPath(), userId.toString(), ...subPath);
   fs.ensureDirSync(tmpPath);
   return tmpPath;
 };

@@ -59,11 +59,14 @@ export const AppMenubar = (props: { isAuthenticated?: boolean }) => {
       setIsMaximized(maximized);
     };
 
-    window.EnjoyAPI.events.on("window-state-changed", handleWindowStateChanged);
+    window.EnjoyAPI.events.on(
+      "window:onStateChanged",
+      handleWindowStateChanged
+    );
 
     return () => {
       window.EnjoyAPI.events.off(
-        "window-state-changed",
+        "window:onStateChanged",
         handleWindowStateChanged
       );
     };
@@ -75,7 +78,7 @@ export const AppMenubar = (props: { isAuthenticated?: boolean }) => {
 
   const handleMaximize = () => {
     window.EnjoyAPI.window.maximize();
-    // The state will be updated via the window-state-changed event
+    // The state will be updated via the window:onStateChanged event
   };
 
   const handleClose = () => {
