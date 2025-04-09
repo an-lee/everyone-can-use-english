@@ -2,8 +2,8 @@ import { BrowserWindow } from "electron";
 import { DataSource } from "typeorm";
 import path from "path";
 import fs from "fs-extra";
-import { log } from "@/main/core/utils";
-import appConfig from "@/main/core/app/config";
+import { log } from "@main/core/utils";
+import appConfig from "@main/core/app/config";
 import { AppDataSource } from "@main/storage/data-source";
 import { IpcChannels } from "@shared/ipc/ipc-channels";
 
@@ -13,32 +13,6 @@ const logger = log.scope("DB");
 const RETRY_DELAYS = [1000, 2000, 3000, 5000, 8000]; // Fibonacci-like sequence
 const MAX_RETRIES = RETRY_DELAYS.length;
 const CONNECTION_TIMEOUT = 10000; // 10 seconds timeout for connection
-
-// Database state type
-export type DbState = {
-  state:
-    | "disconnected"
-    | "connecting"
-    | "connected"
-    | "error"
-    | "locked"
-    | "reconnecting";
-  path: string | null;
-  error: string | null;
-  autoConnected: boolean;
-  retryCount?: number;
-  retryDelay?: number;
-  lastOperation?: string;
-  connectionTime?: number;
-  stats?: {
-    connectionDuration?: number;
-    operationCount?: number;
-    lastError?: {
-      message: string;
-      time: number;
-    } | null;
-  };
-};
 
 // Database module
 export const db = {

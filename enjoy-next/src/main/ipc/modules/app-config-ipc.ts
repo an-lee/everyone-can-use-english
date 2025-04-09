@@ -1,5 +1,5 @@
 import { BaseIpcModule, IpcMethod } from "@main/ipc/modules/base-ipc-module";
-import appConfig, { AppConfigState } from "@main/core/app/config";
+import appConfig from "@main/core/app/config";
 
 /**
  * AppConfig IPC module provides all app configuration related IPC handlers

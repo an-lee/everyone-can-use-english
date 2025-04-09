@@ -150,34 +150,6 @@ export class PreloadApiGenerator {
     let code = `// Auto-generated type declarations for Electron IPC
 // DO NOT EDIT DIRECTLY - Generated on ${new Date().toISOString()}
 
-// Define necessary types
-declare type DbConnectionState =
-  | "disconnected"
-  | "connecting"
-  | "connected"
-  | "error"
-  | "locked"
-  | "reconnecting";
-
-declare interface DbState {
-  state: DbConnectionState;
-  path: string | null;
-  error: string | null;
-  autoConnected?: boolean;
-  retryCount?: number;
-  retryDelay?: number;
-  lastOperation?: string;
-  connectionTime?: number;
-  stats?: {
-    connectionDuration?: number;
-    operationCount?: number;
-    lastError?: {
-      message: string;
-      time: number;
-    } | null;
-  };
-}
-
 `;
 
     // Generate the main interface
@@ -223,7 +195,11 @@ declare interface DbState {
             const params = this.generateMethodParams(method.parameters || []);
             const returnType = method.returnType || "any";
 
-            code += `      ${methodName}: ${params} => Promise<${returnType}>;\n`;
+            if (returnType.startsWith("Promise<")) {
+              code += `      ${methodName}: ${params} => ${returnType};\n`;
+            } else {
+              code += `      ${methodName}: ${params} => Promise<${returnType}>;\n`;
+            }
           }
 
           code += `    };\n`;
@@ -277,6 +253,7 @@ declare interface DbState {
   ): string {
     let code = `// Auto-generated preload API for Electron IPC
 // DO NOT EDIT DIRECTLY - Generated on ${new Date().toISOString()}
+
 import { ipcRenderer } from 'electron';
 
 `;

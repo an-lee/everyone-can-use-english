@@ -2,32 +2,6 @@ import { BaseIpcModule, IpcMethod } from "@main/ipc/modules";
 import { db } from "@main/storage/db";
 import appConfig from "@/main/core/app/config";
 
-// Database connection states
-export type DbConnectionState =
-  | "disconnected"
-  | "connecting"
-  | "connected"
-  | "error"
-  | "locked"
-  | "reconnecting";
-
-// Database state information
-export type DbState = {
-  state: DbConnectionState;
-  path: string | null;
-  error: string | null;
-  autoConnected?: boolean;
-  retryCount?: number;
-  retryDelay?: number;
-  lastOperation?: string;
-  connectionTime?: number;
-  stats?: {
-    connectionDuration?: number;
-    operationCount?: number;
-    lastError?: { message: string; time: number } | null;
-  };
-};
-
 /**
  * Database IPC module for handling database operations
  */
