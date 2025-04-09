@@ -42,7 +42,12 @@ export class CacheObject extends BaseEntity {
       return null;
     }
 
-    return cacheObject.value;
+    const value = cacheObject.value;
+    try {
+      return JSON.parse(value);
+    } catch (error) {
+      return value;
+    }
   }
 
   static async set(

@@ -1,5 +1,5 @@
 // Auto-generated preload API for Electron IPC
-// DO NOT EDIT DIRECTLY - Generated on 2025-04-09T07:41:09.015Z
+// DO NOT EDIT DIRECTLY - Generated on 2025-04-09T07:47:40.320Z
 
 import { ipcRenderer } from 'electron';
 
@@ -38,6 +38,9 @@ export const DbAPI = {
     count: () => ipcRenderer.invoke('db:audio:count'),
   },
   cacheObject: {
+    get: (key: string) => ipcRenderer.invoke('db:cacheObject:get', key),
+    set: (key: string, value: any, ttl?: number) => ipcRenderer.invoke('db:cacheObject:set', key, value, ttl),
+    delete: (key: string) => ipcRenderer.invoke('db:cacheObject:delete', key),
   },
   conversation: {
     findAll: (options?: PaginationOptions) => ipcRenderer.invoke('db:conversation:findAll', options),
@@ -48,14 +51,37 @@ export const DbAPI = {
     count: () => ipcRenderer.invoke('db:conversation:count'),
   },
   document: {
+    findAll: (options?: PaginationOptions) => ipcRenderer.invoke('db:document:findAll', options),
+    findById: (id: string) => ipcRenderer.invoke('db:document:findById', id),
+    create: (data: Partial<DocumentEntity>) => ipcRenderer.invoke('db:document:create', data),
+    update: (id: string, data: Partial<DocumentEntity>) => ipcRenderer.invoke('db:document:update', id, data),
+    delete: (id: string) => ipcRenderer.invoke('db:document:delete', id),
   },
   pronunciationAssessment: {
+    create: (data: Partial<PronunciationAssessmentEntity>) => ipcRenderer.invoke('db:pronunciationAssessment:create', data),
+    update: (id: string, data: Partial<PronunciationAssessmentEntity>) => ipcRenderer.invoke('db:pronunciationAssessment:update', id, data),
+    delete: (id: string) => ipcRenderer.invoke('db:pronunciationAssessment:delete', id),
   },
   recording: {
+    findAll: (options?: PaginationOptions) => ipcRenderer.invoke('db:recording:findAll', options),
+    findById: (id: string) => ipcRenderer.invoke('db:recording:findById', id),
+    findByTarget: (targetId: string, targetType: string) => ipcRenderer.invoke('db:recording:findByTarget', targetId, targetType),
+    create: (data: Partial<RecordingEntity>) => ipcRenderer.invoke('db:recording:create', data),
+    update: (id: string, data: Partial<RecordingEntity>) => ipcRenderer.invoke('db:recording:update', id, data),
+    delete: (id: string) => ipcRenderer.invoke('db:recording:delete', id),
   },
   segment: {
+    findAll: (options?: PaginationOptions) => ipcRenderer.invoke('db:segment:findAll', options),
+    findByTarget: (targetId: string, targetType: string, segmentIndex: number) => ipcRenderer.invoke('db:segment:findByTarget', targetId, targetType, segmentIndex),
+    create: (data: Partial<SegmentEntity>) => ipcRenderer.invoke('db:segment:create', data),
+    update: (id: string, data: Partial<SegmentEntity>) => ipcRenderer.invoke('db:segment:update', id, data),
+    delete: (id: string) => ipcRenderer.invoke('db:segment:delete', id),
   },
   speech: {
+    findBySource: (sourceId: string, sourceType: string) => ipcRenderer.invoke('db:speech:findBySource', sourceId, sourceType),
+    create: (data: Partial<SpeechEntity>) => ipcRenderer.invoke('db:speech:create', data),
+    update: (id: string, data: Partial<SpeechEntity>) => ipcRenderer.invoke('db:speech:update', id, data),
+    delete: (id: string) => ipcRenderer.invoke('db:speech:delete', id),
   },
   transcription: {
     findByTarget: (targetId: string, targetType: string) => ipcRenderer.invoke('db:transcription:findByTarget', targetId, targetType),
@@ -66,8 +92,17 @@ export const DbAPI = {
     count: () => ipcRenderer.invoke('db:transcription:count'),
   },
   userSetting: {
+    get: (key: string) => ipcRenderer.invoke('db:userSetting:get', key),
+    set: (key: string, value: string) => ipcRenderer.invoke('db:userSetting:set', key, value),
+    delete: (key: string) => ipcRenderer.invoke('db:userSetting:delete', key),
   },
   video: {
+    findAll: (options?: PaginationOptions) => ipcRenderer.invoke('db:video:findAll', options),
+    findById: (id: string) => ipcRenderer.invoke('db:video:findById', id),
+    findByMd5: (md5: string) => ipcRenderer.invoke('db:video:findByMd5', md5),
+    create: (data: Partial<VideoEntity>) => ipcRenderer.invoke('db:video:create', data),
+    update: (id: string, data: Partial<VideoEntity>) => ipcRenderer.invoke('db:video:update', id, data),
+    delete: (id: string) => ipcRenderer.invoke('db:video:delete', id),
   },
 };
 

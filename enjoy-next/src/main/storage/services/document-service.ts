@@ -5,7 +5,7 @@ import { log } from "@main/core";
 log.scope("Storage/DocumentService");
 
 export class DocumentService {
-  static async findAll(
+  async findAll(
     options?: PaginationOptions
   ): Promise<PaginationResult<DocumentEntity>> {
     const page = options?.page || 1;
@@ -39,18 +39,18 @@ export class DocumentService {
     };
   }
 
-  static async findById(id: string): Promise<DocumentEntity | null> {
+  async findById(id: string): Promise<DocumentEntity | null> {
     const document = await Document.findOne({ where: { id } });
     return document ? (instanceToPlain(document) as DocumentEntity) : null;
   }
 
-  static async create(data: Partial<DocumentEntity>): Promise<DocumentEntity> {
+  async create(data: Partial<DocumentEntity>): Promise<DocumentEntity> {
     const document = Document.create(data);
     await document.save();
     return instanceToPlain(document) as DocumentEntity;
   }
 
-  static async update(
+  async update(
     id: string,
     data: Partial<DocumentEntity>
   ): Promise<DocumentEntity> {
@@ -63,7 +63,7 @@ export class DocumentService {
     return instanceToPlain(document) as DocumentEntity;
   }
 
-  static async delete(id: string): Promise<boolean> {
+  async delete(id: string): Promise<boolean> {
     const document = await Document.findOne({ where: { id } });
     if (!document) {
       return false;

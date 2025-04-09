@@ -72,7 +72,7 @@ export class EntityUserSettingIpcModule extends BaseEntityIpcModule<
   protected getMethodReturnType(methodName: string): string {
     // Define return types for each method directly
     const returnTypeMap: Record<string, string> = {
-      get: "Promise<UserSettingEntity | null>",
+      get: "Promise<UserSettingEntity['value'] | null>",
       set: "Promise<UserSettingEntity | null>",
       delete: "Promise<boolean>",
     };

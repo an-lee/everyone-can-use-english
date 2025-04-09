@@ -5,12 +5,11 @@ import { log } from "@main/core";
 log.scope("Storage/CacheObjectService");
 
 export class CacheObjectService {
-  static async get(key: string): Promise<CacheObjectEntity | null> {
-    const cacheObject = await CacheObject.findOne({ where: { key } });
-    return instanceToPlain(cacheObject) as CacheObjectEntity | null;
+  async get(key: string): Promise<CacheObjectEntity["value"] | null> {
+    return CacheObject.get(key);
   }
 
-  static async set(
+  async set(
     key: string,
     value: object | string,
     ttl: number = 0
@@ -18,7 +17,7 @@ export class CacheObjectService {
     CacheObject.set(key, value, ttl);
   }
 
-  static async delete(key: string): Promise<boolean> {
+  async delete(key: string): Promise<boolean> {
     const cacheObject = await CacheObject.findOne({ where: { key } });
     if (!cacheObject) {
       return false;

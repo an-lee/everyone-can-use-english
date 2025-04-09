@@ -5,7 +5,7 @@ import { log } from "@main/core";
 log.scope("Storage/PronunciationAssessmentService");
 
 export class PronunciationAssessmentService {
-  static async create(
+  async create(
     data: Partial<PronunciationAssessmentEntity>
   ): Promise<PronunciationAssessmentEntity> {
     const pronunciationAssessment = new PronunciationAssessment();
@@ -16,7 +16,7 @@ export class PronunciationAssessmentService {
     ) as PronunciationAssessmentEntity;
   }
 
-  static async update(
+  async update(
     id: string,
     data: Partial<PronunciationAssessmentEntity>
   ): Promise<PronunciationAssessmentEntity> {
@@ -33,7 +33,7 @@ export class PronunciationAssessmentService {
     ) as PronunciationAssessmentEntity;
   }
 
-  static async delete(id: string): Promise<boolean> {
+  async delete(id: string): Promise<boolean> {
     const pronunciationAssessment = await PronunciationAssessment.findOne({
       where: { id },
     });

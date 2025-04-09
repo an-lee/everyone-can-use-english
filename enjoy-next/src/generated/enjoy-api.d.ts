@@ -1,5 +1,5 @@
 // Auto-generated type declarations for Electron IPC
-// DO NOT EDIT DIRECTLY - Generated on 2025-04-09T07:41:09.013Z
+// DO NOT EDIT DIRECTLY - Generated on 2025-04-09T07:47:40.319Z
 
 declare interface EnjoyAPI {
   appConfig: {
@@ -32,6 +32,9 @@ declare interface EnjoyAPI {
       count: () => Promise<number>;
     };
     cacheObject: {
+      get: (key: string) => Promise<CacheObjectEntity | null>;
+      set: (key: string, value: any, ttl?: number) => Promise<void>;
+      delete: (key: string) => Promise<boolean>;
     };
     conversation: {
       findAll: (options?: PaginationOptions) => Promise<PaginationResult<ConversationEntity>>;
@@ -42,14 +45,37 @@ declare interface EnjoyAPI {
       count: () => Promise<number>;
     };
     document: {
+      findAll: (options?: PaginationOptions) => Promise<PaginationResult<DocumentEntity>>;
+      findById: (id: string) => Promise<DocumentEntity | null>;
+      create: (data: Partial<DocumentEntity>) => Promise<DocumentEntity>;
+      update: (id: string, data: Partial<DocumentEntity>) => Promise<DocumentEntity | null>;
+      delete: (id: string) => Promise<boolean>;
     };
     pronunciationAssessment: {
+      create: (data: Partial<PronunciationAssessmentEntity>) => Promise<PronunciationAssessmentEntity>;
+      update: (id: string, data: Partial<PronunciationAssessmentEntity>) => Promise<PronunciationAssessmentEntity | null>;
+      delete: (id: string) => Promise<boolean>;
     };
     recording: {
+      findAll: (options?: PaginationOptions) => Promise<PaginationResult<RecordingEntity>>;
+      findById: (id: string) => Promise<RecordingEntity | null>;
+      findByTarget: (targetId: string, targetType: string) => Promise<RecordingEntity | null>;
+      create: (data: Partial<RecordingEntity>) => Promise<RecordingEntity>;
+      update: (id: string, data: Partial<RecordingEntity>) => Promise<RecordingEntity | null>;
+      delete: (id: string) => Promise<boolean>;
     };
     segment: {
+      findAll: (options?: PaginationOptions) => Promise<PaginationResult<SegmentEntity>>;
+      findByTarget: (targetId: string, targetType: string, segmentIndex: number) => Promise<SegmentEntity | null>;
+      create: (data: Partial<SegmentEntity>) => Promise<SegmentEntity>;
+      update: (id: string, data: Partial<SegmentEntity>) => Promise<SegmentEntity | null>;
+      delete: (id: string) => Promise<boolean>;
     };
     speech: {
+      findBySource: (sourceId: string, sourceType: string) => Promise<SpeechEntity | null>;
+      create: (data: Partial<SpeechEntity>) => Promise<SpeechEntity>;
+      update: (id: string, data: Partial<SpeechEntity>) => Promise<SpeechEntity | null>;
+      delete: (id: string) => Promise<boolean>;
     };
     transcription: {
       findByTarget: (targetId: string, targetType: string) => Promise<TranscriptionEntity | null>;
@@ -60,8 +86,17 @@ declare interface EnjoyAPI {
       count: () => Promise<number>;
     };
     userSetting: {
+      get: (key: string) => Promise<UserSettingEntity | null>;
+      set: (key: string, value: string) => Promise<UserSettingEntity | null>;
+      delete: (key: string) => Promise<boolean>;
     };
     video: {
+      findAll: (options?: PaginationOptions) => Promise<PaginationResult<VideoEntity>>;
+      findById: (id: string) => Promise<VideoEntity | null>;
+      findByMd5: (md5: string) => Promise<VideoEntity | null>;
+      create: (data: Partial<VideoEntity>) => Promise<VideoEntity>;
+      update: (id: string, data: Partial<VideoEntity>) => Promise<VideoEntity | null>;
+      delete: (id: string) => Promise<boolean>;
     };
   };
   plugin: {

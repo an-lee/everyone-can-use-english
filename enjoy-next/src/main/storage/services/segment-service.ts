@@ -6,7 +6,7 @@ import { ILike } from "typeorm";
 log.scope("Storage/SegmentService");
 
 export class SegmentService {
-  static async findAll(
+  async findAll(
     options?: PaginationOptions
   ): Promise<PaginationResult<SegmentEntity>> {
     const page = options?.page || 1;
@@ -42,7 +42,7 @@ export class SegmentService {
     };
   }
 
-  static async findByTarget(
+  async findByTarget(
     targetId: string,
     targetType: string,
     segmentIndex: number
@@ -53,14 +53,14 @@ export class SegmentService {
     return instanceToPlain(segment) as SegmentEntity | null;
   }
 
-  static async create(data: Partial<SegmentEntity>): Promise<SegmentEntity> {
+  async create(data: Partial<SegmentEntity>): Promise<SegmentEntity> {
     const segment = new Segment();
     Object.assign(segment, data);
     await segment.save();
     return instanceToPlain(segment) as SegmentEntity;
   }
 
-  static async update(
+  async update(
     id: string,
     data: Partial<SegmentEntity>
   ): Promise<SegmentEntity> {
@@ -73,7 +73,7 @@ export class SegmentService {
     return instanceToPlain(segment) as SegmentEntity;
   }
 
-  static async delete(id: string): Promise<boolean> {
+  async delete(id: string): Promise<boolean> {
     const segment = await Segment.findOne({ where: { id } });
     if (!segment) {
       return false;

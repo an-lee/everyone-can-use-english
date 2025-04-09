@@ -77,7 +77,7 @@ export class EntityCacheObjectIpcModule extends BaseEntityIpcModule<
   protected getMethodReturnType(methodName: string): string {
     // Define return types for each method directly
     const returnTypeMap: Record<string, string> = {
-      get: "Promise<CacheObjectEntity | null>",
+      get: "Promise<CacheObjectEntity['value'] | null>",
       set: "Promise<void>",
       delete: "Promise<boolean>",
     };

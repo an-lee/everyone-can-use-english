@@ -6,7 +6,7 @@ import { log } from "@main/core";
 log.scope("Storage/RecordingService");
 
 export class RecordingService {
-  static async findAll(
+  async findAll(
     options?: PaginationOptions
   ): Promise<PaginationResult<RecordingEntity>> {
     const page = options?.page || 1;
@@ -45,12 +45,12 @@ export class RecordingService {
     };
   }
 
-  static async findById(id: string): Promise<RecordingEntity | null> {
+  async findById(id: string): Promise<RecordingEntity | null> {
     const recording = await Recording.findOne({ where: { id } });
     return instanceToPlain(recording) as RecordingEntity | null;
   }
 
-  static async findByTarget(
+  async findByTarget(
     targetId: string,
     targetType: RecordingEntity["targetType"]
   ): Promise<RecordingEntity | null> {
@@ -60,16 +60,14 @@ export class RecordingService {
     return instanceToPlain(recording) as RecordingEntity | null;
   }
 
-  static async create(
-    data: Partial<RecordingEntity>
-  ): Promise<RecordingEntity> {
+  async create(data: Partial<RecordingEntity>): Promise<RecordingEntity> {
     const recording = new Recording();
     Object.assign(recording, data);
     await recording.save();
     return instanceToPlain(recording) as RecordingEntity;
   }
 
-  static async update(
+  async update(
     id: string,
     data: Partial<RecordingEntity>
   ): Promise<RecordingEntity> {
@@ -82,7 +80,7 @@ export class RecordingService {
     return instanceToPlain(recording) as RecordingEntity;
   }
 
-  static async delete(id: string): Promise<boolean> {
+  async delete(id: string): Promise<boolean> {
     const recording = await Recording.findOne({ where: { id } });
     if (!recording) {
       return false;

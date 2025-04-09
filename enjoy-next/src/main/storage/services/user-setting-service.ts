@@ -5,15 +5,15 @@ import { log } from "@main/core";
 log.scope("Storage/UserSettingService");
 
 export class UserSettingService {
-  static async get(key: string): Promise<UserSettingEntity | null> {
+  async get(key: string): Promise<UserSettingEntity["value"] | null> {
     return UserSetting.get(key);
   }
 
-  static async set(key: string, value: object | string): Promise<void> {
+  async set(key: string, value: object | string): Promise<void> {
     await UserSetting.set(key, value);
   }
 
-  static async delete(key: string): Promise<void> {
+  async delete(key: string): Promise<void> {
     await UserSetting.delete(key);
   }
 }

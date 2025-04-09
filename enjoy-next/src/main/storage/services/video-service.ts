@@ -4,7 +4,7 @@ import { ILike } from "typeorm";
 import { log } from "@main/core";
 
 export class VideoService {
-  static async findAll(
+  async findAll(
     options?: PaginationOptions
   ): Promise<PaginationResult<VideoEntity>> {
     const page = options?.page || 1;
@@ -41,17 +41,17 @@ export class VideoService {
     };
   }
 
-  static async findById(id: string): Promise<VideoEntity | null> {
+  async findById(id: string): Promise<VideoEntity | null> {
     const video = await Video.findOne({ where: { id } });
     return instanceToPlain(video) as VideoEntity | null;
   }
 
-  static async findByMd5(md5: string): Promise<VideoEntity | null> {
+  async findByMd5(md5: string): Promise<VideoEntity | null> {
     const video = await Video.findOne({ where: { md5 } });
     return instanceToPlain(video) as VideoEntity | null;
   }
 
-  static async create(data: Partial<VideoEntity>): Promise<VideoEntity> {
+  async create(data: Partial<VideoEntity>): Promise<VideoEntity> {
     const videoEntity = new Video();
     Object.assign(videoEntity, data);
     await videoEntity.save();
@@ -59,10 +59,7 @@ export class VideoService {
     return instanceToPlain(videoEntity) as VideoEntity;
   }
 
-  static async update(
-    id: string,
-    data: Partial<VideoEntity>
-  ): Promise<VideoEntity> {
+  async update(id: string, data: Partial<VideoEntity>): Promise<VideoEntity> {
     const videoEntity = await Video.findOne({ where: { id } });
     if (!videoEntity) {
       throw new Error("Video not found");
@@ -72,7 +69,7 @@ export class VideoService {
     return instanceToPlain(videoEntity) as VideoEntity;
   }
 
-  static async delete(id: string): Promise<boolean> {
+  async delete(id: string): Promise<boolean> {
     const videoEntity = await Video.findOne({ where: { id } });
     if (!videoEntity) {
       return false;

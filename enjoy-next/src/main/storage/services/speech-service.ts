@@ -5,7 +5,7 @@ import { log } from "@main/core";
 log.scope("Storage/SpeechService");
 
 export class SpeechService {
-  static async findBySource(
+  async findBySource(
     sourceId: string,
     sourceType: string
   ): Promise<SpeechEntity | null> {
@@ -15,17 +15,14 @@ export class SpeechService {
     return instanceToPlain(speech) as SpeechEntity | null;
   }
 
-  static async create(data: Partial<SpeechEntity>): Promise<SpeechEntity> {
+  async create(data: Partial<SpeechEntity>): Promise<SpeechEntity> {
     const speech = new Speech();
     Object.assign(speech, data);
     await speech.save();
     return instanceToPlain(speech) as SpeechEntity;
   }
 
-  static async update(
-    id: string,
-    data: Partial<SpeechEntity>
-  ): Promise<SpeechEntity> {
+  async update(id: string, data: Partial<SpeechEntity>): Promise<SpeechEntity> {
     const speech = await Speech.findOne({ where: { id } });
     if (!speech) {
       throw new Error("Speech not found");
@@ -35,7 +32,7 @@ export class SpeechService {
     return instanceToPlain(speech) as SpeechEntity;
   }
 
-  static async delete(id: string): Promise<boolean> {
+  async delete(id: string): Promise<boolean> {
     const speech = await Speech.findOne({ where: { id } });
     if (!speech) {
       return false;
