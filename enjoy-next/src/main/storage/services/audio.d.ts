@@ -12,10 +12,10 @@ declare interface AudioEntity {
   coverUrl?: string;
   recordingsCount: number;
   recordingsDuration: number;
-  syncedAt?: Date;
-  uploadedAt?: Date;
-  createdAt: Date;
-  updatedAt: Date;
+  syncedAt?: string;
+  uploadedAt?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 /**

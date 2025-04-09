@@ -1,21 +1,13 @@
 import { log } from "@main/core";
 import { ipcRegistry } from "@main/ipc/core";
-import { PreloadApiGenerator } from "@main/ipc/preload";
 import { PreloadApiManager } from "@main/ipc/preload";
 
 // Import all IPC modules directly
 import {
-  appConfigIpcModule,
-  appInitializerIpcModule,
-  dbIpcModule,
-  pluginIpcModule,
-  windowIpcModule,
-  shellIpcModule,
+  regularIpcModules,
   // Import entity IPC modules
-  dbAudioIpcModule,
-  // Add new entity modules here
+  entityIpcModules,
 } from "@main/ipc/modules";
-import path from "path";
 import { app } from "electron";
 
 const logger = log.scope("ipc-handlers");
@@ -27,14 +19,7 @@ export const setupIpcHandlers = async () => {
   logger.info("Setting up IPC handlers");
 
   // Register regular modules directly
-  ipcRegistry.addModule([
-    appConfigIpcModule,
-    appInitializerIpcModule,
-    dbIpcModule,
-    pluginIpcModule,
-    windowIpcModule,
-    shellIpcModule,
-  ]);
+  ipcRegistry.addModule(regularIpcModules);
 
   // Initialize entity IPC modules
   await setupEntityIpcModules();
@@ -58,8 +43,7 @@ const setupEntityIpcModules = async () => {
   logger.info("Setting up entity IPC modules");
 
   // Initialize each entity module
-  dbAudioIpcModule.initialize();
-  // Add new entity modules initialization here
+  entityIpcModules.forEach((module) => module.initialize());
 
   logger.info("Entity IPC modules setup complete");
 };
@@ -71,8 +55,7 @@ export const cleanupIpcHandlers = () => {
   logger.info("Cleaning up IPC handlers");
 
   // Clean up entity modules
-  dbAudioIpcModule.dispose();
-  // Add new entity modules cleanup here
+  entityIpcModules.forEach((module) => module.dispose());
 
   // Clear registry
   ipcRegistry.clear();

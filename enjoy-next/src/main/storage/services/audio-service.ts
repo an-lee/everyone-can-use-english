@@ -1,28 +1,7 @@
 import { ILike } from "typeorm";
 import { Audio } from "@main/storage/entities/audio";
 import { log } from "@main/core";
-
-/**
- * Map from Audio entity to AudioItem interface
- */
-function mapAudioToItem(audio: Audio): AudioEntity {
-  return {
-    id: audio.id,
-    name: audio.name,
-    description: audio.description,
-    language: audio.language,
-    source: audio.source,
-    md5: audio.md5,
-    metadata: audio.metadata,
-    coverUrl: audio.coverUrl,
-    recordingsCount: audio.recordingsCount,
-    recordingsDuration: audio.recordingsDuration,
-    syncedAt: audio.syncedAt,
-    uploadedAt: audio.uploadedAt,
-    createdAt: audio.createdAt,
-    updatedAt: audio.updatedAt,
-  };
-}
+import { instanceToPlain } from "class-transformer";
 
 /**
  * Simple Audio service for managing audio files
@@ -58,7 +37,7 @@ export class AudioService {
       .getManyAndCount();
 
     return {
-      items: audios.map(mapAudioToItem),
+      items: audios.map((audio) => instanceToPlain(audio) as AudioEntity),
       total,
       page,
       limit,
@@ -75,7 +54,7 @@ export class AudioService {
       return null;
     }
 
-    return mapAudioToItem(audio);
+    return instanceToPlain(audio) as AudioEntity;
   }
 
   /**
@@ -87,7 +66,7 @@ export class AudioService {
       return null;
     }
 
-    return mapAudioToItem(audio);
+    return instanceToPlain(audio) as AudioEntity;
   }
 
   /**
@@ -97,7 +76,7 @@ export class AudioService {
     const audio = Audio.create(data as any);
     await audio.save();
 
-    return mapAudioToItem(audio);
+    return instanceToPlain(audio) as AudioEntity;
   }
 
   /**
@@ -115,7 +94,7 @@ export class AudioService {
     Object.assign(audio, data);
     await audio.save();
 
-    return mapAudioToItem(audio);
+    return instanceToPlain(audio) as AudioEntity;
   }
 
   /**

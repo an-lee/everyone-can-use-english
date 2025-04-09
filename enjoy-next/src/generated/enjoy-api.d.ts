@@ -1,5 +1,5 @@
 // Auto-generated type declarations for Electron IPC
-// DO NOT EDIT DIRECTLY - Generated on 2025-04-08T07:54:45.718Z
+// DO NOT EDIT DIRECTLY - Generated on 2025-04-09T02:19:45.621Z
 
 // Define necessary types
 declare type DbConnectionState =
@@ -56,6 +56,14 @@ declare interface EnjoyAPI {
       findByMd5: (md5: string) => Promise<Promise<AudioEntity | null>>;
       create: (data: Partial<AudioEntity>) => Promise<Promise<AudioEntity>>;
       update: (id: string, data: Partial<AudioEntity>) => Promise<Promise<AudioEntity | null>>;
+      delete: (id: string) => Promise<Promise<boolean>>;
+      count: () => Promise<Promise<number>>;
+    };
+    transcription: {
+      findByTarget: (targetId: string, targetType: string) => Promise<Promise<TranscriptionEntity | null>>;
+      findByMd5: (targetMd5: string) => Promise<Promise<TranscriptionEntity | null>>;
+      create: (data: Partial<TranscriptionEntity>) => Promise<Promise<TranscriptionEntity>>;
+      update: (id: string, data: Partial<TranscriptionEntity>) => Promise<Promise<TranscriptionEntity | null>>;
       delete: (id: string) => Promise<Promise<boolean>>;
       count: () => Promise<Promise<number>>;
     };

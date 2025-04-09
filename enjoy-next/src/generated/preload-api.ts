@@ -1,5 +1,5 @@
 // Auto-generated preload API for Electron IPC
-// DO NOT EDIT DIRECTLY - Generated on 2025-04-08T07:54:45.719Z
+// DO NOT EDIT DIRECTLY - Generated on 2025-04-09T02:19:45.622Z
 import { ipcRenderer } from 'electron';
 
 // AppConfig API
@@ -35,6 +35,14 @@ export const DbAPI = {
     update: (id: string, data: Partial<AudioEntity>) => ipcRenderer.invoke('db:audio:update', id, data),
     delete: (id: string) => ipcRenderer.invoke('db:audio:delete', id),
     count: () => ipcRenderer.invoke('db:audio:count'),
+  },
+  transcription: {
+    findByTarget: (targetId: string, targetType: string) => ipcRenderer.invoke('db:transcription:findByTarget', targetId, targetType),
+    findByMd5: (targetMd5: string) => ipcRenderer.invoke('db:transcription:findByMd5', targetMd5),
+    create: (data: Partial<TranscriptionEntity>) => ipcRenderer.invoke('db:transcription:create', data),
+    update: (id: string, data: Partial<TranscriptionEntity>) => ipcRenderer.invoke('db:transcription:update', id, data),
+    delete: (id: string) => ipcRenderer.invoke('db:transcription:delete', id),
+    count: () => ipcRenderer.invoke('db:transcription:count'),
   },
 };
 
