@@ -10,6 +10,7 @@ export const VALID_CHANNELS = [
   "db:onStateChanged",
   "appInitializer:status",
   "db:onTransaction",
+  "ipc:onError",
 ] as const;
 
 export function sendToAllWindows(

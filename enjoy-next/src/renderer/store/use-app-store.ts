@@ -152,7 +152,7 @@ if (typeof window !== "undefined") {
         });
       });
 
-      window.EnjoyAPI.events.on("app-init-status", (status: any) => {
+      window.EnjoyAPI.events.on("appInitializer:status", (status: any) => {
         useAppStore.getState().handleInitProgress({
           step: status.currentStep,
           progress: status.progress,

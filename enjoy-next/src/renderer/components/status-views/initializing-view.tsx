@@ -1,7 +1,5 @@
 import { Icon } from "@iconify/react";
-import { Toaster } from "@renderer/components/ui";
 import { AppMenubar } from "@renderer/components/layouts/menubar";
-import { InitializationProgress } from "@renderer/store/use-app-store";
 
 interface InitializingViewProps {
   progress: InitializationProgress;
@@ -24,7 +22,6 @@ export const InitializingView = ({ progress }: InitializingViewProps) => {
           />
         </div>
       </div>
-      <Toaster richColors closeButton position="top-center" />
     </div>
   );
 };

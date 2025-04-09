@@ -1,5 +1,4 @@
 import { Icon } from "@iconify/react";
-import { Toaster } from "@renderer/components/ui";
 import { AppMenubar } from "@renderer/components/layouts/menubar";
 import { useTranslation } from "react-i18next";
 
@@ -17,7 +16,6 @@ export const ConnectingDatabaseView = () => {
         </div>
         <Icon icon="mdi:loading" className="h-6 w-6 animate-spin" />
       </div>
-      <Toaster richColors closeButton position="top-center" />
     </div>
   );
 };

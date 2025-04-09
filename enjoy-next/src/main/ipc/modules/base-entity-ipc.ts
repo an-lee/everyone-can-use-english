@@ -3,6 +3,7 @@ import { ipcMain } from "electron";
 import { db } from "@main/storage/db";
 import { log } from "@main/core";
 import { PreloadApiGenerator, ServiceHandlerMetadata } from "@main/ipc/preload";
+import { IpcErrorHandler } from "../core/ipc-error-handler";
 
 /**
  * Base class for entity-specific IPC modules
@@ -13,7 +14,7 @@ export abstract class BaseEntityIpcModule<
 > extends BaseIpcModule {
   protected service: T;
   protected registeredHandlers: Set<string> = new Set();
-  protected logger = log.scope("entity-ipc");
+  protected logger = log.scope("BaseEntityIpcModule");
   protected entityName: string;
   protected servicePrefix: string;
 
@@ -28,6 +29,7 @@ export abstract class BaseEntityIpcModule<
     this.service = service;
     this.entityName = name;
     this.servicePrefix = channelPrefix;
+    this.logger = log.scope(`${name}EntityIpcModule`);
   }
 
   /**
@@ -69,20 +71,19 @@ export abstract class BaseEntityIpcModule<
 
           return await (this.service as any)[methodName](...args);
         } catch (error: any) {
-          // Standardized error response
-          const message =
-            error instanceof Error ? error.message : String(error);
-          throw {
-            code: error.code || "DB_ERROR",
-            message,
-            method: channelName,
-            timestamp: new Date().toISOString(),
-          };
+          throw error;
         }
       };
 
+      const wrappedHandler = IpcErrorHandler.wrapHandler(
+        handler,
+        `${this.entityName}Entity.${methodName}`
+      );
+
       // Register the handler
-      ipcMain.handle(channelName, (event, ...args) => handler(...args));
+      ipcMain.handle(channelName, (event, ...args) =>
+        wrappedHandler(event, ...args)
+      );
       this.registeredHandlers.add(channelName);
       this.logger.debug(`Registered handler: ${channelName}`);
       registeredCount++;

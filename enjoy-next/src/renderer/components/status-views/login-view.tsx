@@ -1,4 +1,3 @@
-import { Toaster } from "@renderer/components/ui";
 import { AppMenubar } from "@renderer/components/layouts/menubar";
 import { LoginForm } from "@renderer/components/auth";
 import { useTranslation } from "react-i18next";
@@ -17,7 +16,6 @@ export const LoginView = () => {
           <a href="#">{t("privacyPolicy")}</a>.
         </div>
       </div>
-      <Toaster richColors closeButton position="top-center" />
     </div>
   );
 };

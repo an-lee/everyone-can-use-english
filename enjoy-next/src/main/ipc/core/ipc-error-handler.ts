@@ -1,6 +1,5 @@
 import { log } from "@main/core";
-
-const logger = log.scope("IpcErrorHandler");
+import { IpcMainInvokeEvent } from "electron";
 
 /**
  * Utility to create standardized IPC error responses
@@ -35,21 +34,11 @@ export class IpcErrorHandler {
 
     // Log the error if requested
     if (logError) {
-      logger.error(`Error in ${method}:`, error);
+      const logger = log.scope("IpcErrorHandler");
+      logger.error(new Error(`Ipc Error in ${method}: [${code}]${message}`));
     }
 
     return response;
-  }
-
-  /**
-   * Handle an error by logging and returning a standard response
-   *
-   * @param error The error that occurred
-   * @param method The IPC method where it happened
-   * @returns A standardized error response
-   */
-  static handleError(error: any, method: string): IpcErrorResponse {
-    return this.createErrorResponse(error, method, true);
   }
 
   /**
@@ -63,11 +52,14 @@ export class IpcErrorHandler {
     handler: T,
     method: string
   ): T {
-    return (async (...args: any[]) => {
+    return (async (event: IpcMainInvokeEvent, ...args: any[]) => {
       try {
-        return await handler(...args);
+        return await handler(event, ...args);
       } catch (error) {
-        const errorResponse = this.handleError(error, method);
+        const errorResponse = this.createErrorResponse(error, method, true);
+        log.debug("Sending IPC error:", errorResponse);
+        event.sender.send("ipc:onError", errorResponse);
+
         throw errorResponse; // Re-throw as a standard error object
       }
     }) as T;

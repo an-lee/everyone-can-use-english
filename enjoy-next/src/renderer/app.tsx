@@ -6,8 +6,7 @@ import "./lib/i18n";
 // Import the generated route tree
 import { routeTree } from "./routeTree.gen";
 import { useAppStore, useDbStore } from "./store";
-import { useTheme } from "./hooks/use-theme";
-import { useFontSize } from "./hooks/use-font-size";
+import { useTheme, useFontSize, useIpcError } from "./hooks";
 import {
   InitializingView,
   LoginView,
@@ -15,6 +14,7 @@ import {
   DatabaseErrorView,
 } from "./components/status-views";
 import { InitializingErrorView } from "./components/status-views/initializing-error-view";
+import { Toaster } from "./components/ui";
 
 // Create a new router instance
 const router = createRouter({ routeTree });
@@ -29,9 +29,6 @@ declare module "@tanstack/react-router" {
 const App = () => {
   const { dbState } = useDbStore();
   const { appState } = useAppStore();
-
-  useTheme();
-  useFontSize();
 
   // Handle different app states
   switch (appState.status) {
@@ -79,13 +76,26 @@ const App = () => {
   }
 };
 
+const AppWrapper = () => {
+  useTheme();
+  useFontSize();
+  useIpcError();
+
+  return (
+    <>
+      <App />
+      <Toaster richColors closeButton position="top-center" />
+    </>
+  );
+};
+
 // Render the app
 const rootElement = document.getElementById("root");
 if (rootElement && !rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
     <StrictMode>
-      <App />
+      <AppWrapper />
     </StrictMode>
   );
 }

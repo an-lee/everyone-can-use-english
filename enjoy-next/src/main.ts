@@ -70,7 +70,7 @@ const initApp = async () => {
     if (windows.length > 0) {
       windows.forEach((window) => {
         if (!window.isDestroyed()) {
-          window.webContents.send("app-init-status", {
+          window.webContents.send("appInitializer:status", {
             currentStep: "starting",
             progress: 0,
             error: error instanceof Error ? error.message : String(error),

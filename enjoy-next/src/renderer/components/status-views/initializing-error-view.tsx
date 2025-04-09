@@ -1,5 +1,4 @@
 import { Icon } from "@iconify/react";
-import { Toaster } from "@renderer/components/ui";
 import { AppMenubar } from "@renderer/components/layouts/menubar";
 import { useTranslation } from "react-i18next";
 
@@ -30,7 +29,6 @@ export const InitializingErrorView = ({
           {t("retry")}
         </button>
       </div>
-      <Toaster richColors closeButton position="top-center" />
     </div>
   );
 };

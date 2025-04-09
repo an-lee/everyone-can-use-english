@@ -2,8 +2,8 @@ import { log } from "@main/core";
 import { ipcRegistry } from "@main/ipc/core";
 import { PreloadApiManager } from "@main/ipc/preload";
 
-// Import all IPC modules directly
 import {
+  // Import regular IPC modules
   regularIpcModules,
   // Import entity IPC modules
   entityIpcModules,

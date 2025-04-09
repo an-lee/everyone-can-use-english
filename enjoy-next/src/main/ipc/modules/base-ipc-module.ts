@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { IpcHandler } from "@shared/ipc/ipc-channels";
-import { ipcRegistry } from "@main/ipc/core";
+import { IpcErrorHandler, ipcRegistry } from "@main/ipc/core";
 import { log } from "@main/core";
 
 /**
@@ -98,8 +98,13 @@ export abstract class BaseIpcModule {
     metadata: IpcMethodMetadata
   ): IpcHandler {
     return async (event, ...args) => {
+      const wrappedHandler = IpcErrorHandler.wrapHandler(
+        handler,
+        `${this.moduleName}.${methodName}`
+      );
+
       try {
-        return await handler(event, ...args);
+        return await wrappedHandler(event, ...args);
       } catch (error) {
         // How to handle the error depends on the metadata
         const errorHandling = metadata.errorHandling || "standard";
@@ -113,12 +118,6 @@ export abstract class BaseIpcModule {
             `Error in ${this.moduleName}.${methodName}:`,
             error
           );
-          throw {
-            code: "IPC_ERROR",
-            message: error instanceof Error ? error.message : String(error),
-            method: `${this.channelPrefix}:${methodName}`,
-            timestamp: new Date().toISOString(),
-          };
         } else {
           // Custom handling - just log and rethrow
           this.logger.error(

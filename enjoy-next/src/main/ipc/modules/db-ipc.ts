@@ -1,6 +1,6 @@
 import { BaseIpcModule, IpcMethod } from "@main/ipc/modules";
 import { db } from "@main/storage/db";
-import appConfig from "@/main/core/app/config";
+import appConfig from "@main/core/app/config";
 
 /**
  * Database IPC module for handling database operations
