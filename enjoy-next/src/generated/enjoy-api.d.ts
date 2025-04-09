@@ -1,5 +1,6 @@
 // Auto-generated type declarations for Electron IPC
-// DO NOT EDIT DIRECTLY - Generated on 2025-04-09T02:27:56.012Z
+// DO NOT EDIT DIRECTLY - Generated on 2025-04-09T07:41:09.013Z
+
 declare interface EnjoyAPI {
   appConfig: {
     get: (key: string) => Promise<any>;
@@ -22,13 +23,33 @@ declare interface EnjoyAPI {
     status: () => Promise<DbState>;
     migrate: () => Promise<object>;
     audio: {
-      findAll: (options?: AudioSearchOptions) => Promise<AudioPaginationResult>;
+      findAll: (options?: PaginationOptions) => Promise<PaginationResult<AudioEntity>>;
       findById: (id: string) => Promise<AudioEntity | null>;
       findByMd5: (md5: string) => Promise<AudioEntity | null>;
       create: (data: Partial<AudioEntity>) => Promise<AudioEntity>;
       update: (id: string, data: Partial<AudioEntity>) => Promise<AudioEntity | null>;
       delete: (id: string) => Promise<boolean>;
       count: () => Promise<number>;
+    };
+    cacheObject: {
+    };
+    conversation: {
+      findAll: (options?: PaginationOptions) => Promise<PaginationResult<ConversationEntity>>;
+      findById: (id: string) => Promise<ConversationEntity | null>;
+      create: (data: Partial<ConversationEntity>) => Promise<ConversationEntity>;
+      update: (id: string, data: Partial<ConversationEntity>) => Promise<ConversationEntity | null>;
+      delete: (id: string) => Promise<boolean>;
+      count: () => Promise<number>;
+    };
+    document: {
+    };
+    pronunciationAssessment: {
+    };
+    recording: {
+    };
+    segment: {
+    };
+    speech: {
     };
     transcription: {
       findByTarget: (targetId: string, targetType: string) => Promise<TranscriptionEntity | null>;
@@ -37,6 +58,10 @@ declare interface EnjoyAPI {
       update: (id: string, data: Partial<TranscriptionEntity>) => Promise<TranscriptionEntity | null>;
       delete: (id: string) => Promise<boolean>;
       count: () => Promise<number>;
+    };
+    userSetting: {
+    };
+    video: {
     };
   };
   plugin: {

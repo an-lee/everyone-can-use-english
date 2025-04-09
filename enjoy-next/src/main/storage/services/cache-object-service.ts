@@ -27,3 +27,5 @@ export class CacheObjectService {
     return true;
   }
 }
+
+export const cacheObjectService = new CacheObjectService();

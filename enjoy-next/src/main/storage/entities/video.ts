@@ -6,6 +6,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
+import { VideoService } from "../services/video-service";
 
 @Entity("videos")
 export class Video extends BaseEntity {

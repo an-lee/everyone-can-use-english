@@ -44,3 +44,5 @@ export class SpeechService {
     return true;
   }
 }
+
+export const speechService = new SpeechService();

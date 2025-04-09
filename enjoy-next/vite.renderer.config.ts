@@ -22,6 +22,7 @@ export default defineConfig({
     preserveSymlinks: true,
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@main": path.resolve(__dirname, "./src/main"),
       "@renderer": path.resolve(__dirname, "./src/renderer"),
       "@shared": path.resolve(__dirname, "./src/shared"),
       "@types": path.resolve(__dirname, "./src/types"),

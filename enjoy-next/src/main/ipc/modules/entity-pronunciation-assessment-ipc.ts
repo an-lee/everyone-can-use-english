@@ -1,14 +1,18 @@
 import { BaseEntityIpcModule } from "./base-entity-ipc";
-import { transcriptionService } from "@main/storage/services/transcription-service";
+import { pronunciationAssessmentService } from "@main/storage/services/pronunciation-assessment-service";
 
 /**
- * IPC module for Transcription entity operations
+ * IPC module for Video entity operations
  */
-export class DbTranscriptionIpcModule extends BaseEntityIpcModule<
-  typeof transcriptionService
+export class EntityPronunciationAssessmentIpcModule extends BaseEntityIpcModule<
+  typeof pronunciationAssessmentService
 > {
   constructor() {
-    super("Transcription", "transcription", transcriptionService);
+    super(
+      "PronunciationAssessment",
+      "pronunciationAssessment",
+      pronunciationAssessmentService
+    );
   }
 
   /**
@@ -30,34 +34,12 @@ export class DbTranscriptionIpcModule extends BaseEntityIpcModule<
         description?: string;
       }>
     > = {
-      findByTarget: [
-        {
-          name: "targetId",
-          type: "string",
-          required: true,
-          description: "Target ID",
-        },
-        {
-          name: "targetType",
-          type: "string",
-          required: true,
-          description: "Target type",
-        },
-      ],
-      findByMd5: [
-        {
-          name: "targetMd5",
-          type: "string",
-          required: true,
-          description: "MD5 hash of the target",
-        },
-      ],
       create: [
         {
           name: "data",
-          type: "Partial<TranscriptionEntity>",
+          type: "Partial<PronunciationAssessmentEntity>",
           required: true,
-          description: "Transcription item data",
+          description: "Pronunciation assessment item data",
         },
       ],
       update: [
@@ -65,13 +47,13 @@ export class DbTranscriptionIpcModule extends BaseEntityIpcModule<
           name: "id",
           type: "string",
           required: true,
-          description: "Transcription item ID",
+          description: "Pronunciation assessment item ID",
         },
         {
           name: "data",
-          type: "Partial<TranscriptionEntity>",
+          type: "Partial<PronunciationAssessmentEntity>",
           required: true,
-          description: "Transcription item data to update",
+          description: "Pronunciation assessment item data to update",
         },
       ],
       delete: [
@@ -79,7 +61,7 @@ export class DbTranscriptionIpcModule extends BaseEntityIpcModule<
           name: "id",
           type: "string",
           required: true,
-          description: "Transcription item ID",
+          description: "Pronunciation assessment item ID",
         },
       ],
       count: [],
@@ -94,10 +76,8 @@ export class DbTranscriptionIpcModule extends BaseEntityIpcModule<
   protected getMethodReturnType(methodName: string): string {
     // Define return types for each method directly
     const returnTypeMap: Record<string, string> = {
-      findByTarget: "Promise<TranscriptionEntity | null>",
-      findByMd5: "Promise<TranscriptionEntity | null>",
-      create: "Promise<TranscriptionEntity>",
-      update: "Promise<TranscriptionEntity | null>",
+      create: "Promise<PronunciationAssessmentEntity>",
+      update: "Promise<PronunciationAssessmentEntity | null>",
       delete: "Promise<boolean>",
       count: "Promise<number>",
     };
@@ -107,4 +87,5 @@ export class DbTranscriptionIpcModule extends BaseEntityIpcModule<
 }
 
 // Export singleton instance
-export const dbTranscriptionIpcModule = new DbTranscriptionIpcModule();
+export const entityPronunciationAssessmentIpcModule =
+  new EntityPronunciationAssessmentIpcModule();

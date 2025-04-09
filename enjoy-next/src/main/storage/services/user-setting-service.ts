@@ -17,3 +17,5 @@ export class UserSettingService {
     await UserSetting.delete(key);
   }
 }
+
+export const userSettingService = new UserSettingService();

@@ -10,7 +10,7 @@ const logger = log.scope("AppInitializerIpc");
  */
 export class AppInitializerIpcModule extends BaseIpcModule {
   constructor() {
-    super("AppInitializer", "app-initializer");
+    super("AppInitializer", "appInitializer");
     logger.debug("AppInitializerIpcModule created");
   }
 

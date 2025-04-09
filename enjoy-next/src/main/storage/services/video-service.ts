@@ -46,9 +46,9 @@ export class VideoService {
     return instanceToPlain(video) as VideoEntity | null;
   }
 
-  static async findByLanguage(language: string): Promise<VideoEntity[]> {
-    const videos = await Video.find({ where: { language } });
-    return instanceToPlain(videos) as VideoEntity[];
+  static async findByMd5(md5: string): Promise<VideoEntity | null> {
+    const video = await Video.findOne({ where: { md5 } });
+    return instanceToPlain(video) as VideoEntity | null;
   }
 
   static async create(data: Partial<VideoEntity>): Promise<VideoEntity> {
@@ -81,3 +81,5 @@ export class VideoService {
     return true;
   }
 }
+
+export const videoService = new VideoService();

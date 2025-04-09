@@ -85,7 +85,7 @@ export function AudiosPage() {
         </Button>
       </div>
       <div className="grid w-full grid-cols-3 gap-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-        {data.items.map((item) => (
+        {data.items.map((item: AudioEntity) => (
           <AudioCard key={item.id} audio={item} />
         ))}
       </div>

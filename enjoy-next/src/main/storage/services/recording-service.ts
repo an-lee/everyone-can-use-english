@@ -91,3 +91,5 @@ export class RecordingService {
     return true;
   }
 }
+
+export const recordingService = new RecordingService();

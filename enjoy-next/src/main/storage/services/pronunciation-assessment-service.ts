@@ -44,3 +44,6 @@ export class PronunciationAssessmentService {
     return true;
   }
 }
+
+export const pronunciationAssessmentService =
+  new PronunciationAssessmentService();

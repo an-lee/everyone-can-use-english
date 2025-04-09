@@ -72,3 +72,5 @@ export class DocumentService {
     return true;
   }
 }
+
+export const documentService = new DocumentService();

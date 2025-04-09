@@ -7,8 +7,8 @@ log.scope("Storage/SegmentService");
 
 export class SegmentService {
   static async findAll(
-    options?: SegmentSearchOptions
-  ): Promise<SegmentPaginationResult> {
+    options?: PaginationOptions
+  ): Promise<PaginationResult<SegmentEntity>> {
     const page = options?.page || 1;
     const limit = options?.limit || 20;
     const search = options?.search;
@@ -82,3 +82,5 @@ export class SegmentService {
     return true;
   }
 }
+
+export const segmentService = new SegmentService();

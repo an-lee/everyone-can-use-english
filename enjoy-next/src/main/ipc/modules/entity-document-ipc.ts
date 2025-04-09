@@ -1,12 +1,14 @@
 import { BaseEntityIpcModule } from "./base-entity-ipc";
-import { audioService } from "@main/storage/services/audio-service";
+import { documentService } from "@main/storage/services/document-service";
 
 /**
- * IPC module for Audio entity operations
+ * IPC module for Video entity operations
  */
-export class DbAudioIpcModule extends BaseEntityIpcModule<typeof audioService> {
+export class EntityDocumentIpcModule extends BaseEntityIpcModule<
+  typeof documentService
+> {
   constructor() {
-    super("Audio", "audio", audioService);
+    super("Document", "document", documentService);
   }
 
   /**
@@ -31,7 +33,7 @@ export class DbAudioIpcModule extends BaseEntityIpcModule<typeof audioService> {
       findAll: [
         {
           name: "options",
-          type: "AudioSearchOptions",
+          type: "PaginationOptions",
           required: false,
           description: "Search and pagination options",
         },
@@ -41,23 +43,15 @@ export class DbAudioIpcModule extends BaseEntityIpcModule<typeof audioService> {
           name: "id",
           type: "string",
           required: true,
-          description: "Audio item ID",
-        },
-      ],
-      findByMd5: [
-        {
-          name: "md5",
-          type: "string",
-          required: true,
-          description: "MD5 hash of the audio file",
+          description: "Document item ID",
         },
       ],
       create: [
         {
           name: "data",
-          type: "Partial<AudioEntity>",
+          type: "Partial<DocumentEntity>",
           required: true,
-          description: "Audio item data",
+          description: "Document item data",
         },
       ],
       update: [
@@ -65,13 +59,13 @@ export class DbAudioIpcModule extends BaseEntityIpcModule<typeof audioService> {
           name: "id",
           type: "string",
           required: true,
-          description: "Audio item ID",
+          description: "Document item ID",
         },
         {
           name: "data",
-          type: "Partial<AudioEntity>",
+          type: "Partial<DocumentEntity>",
           required: true,
-          description: "Audio item data to update",
+          description: "Document item data to update",
         },
       ],
       delete: [
@@ -79,7 +73,7 @@ export class DbAudioIpcModule extends BaseEntityIpcModule<typeof audioService> {
           name: "id",
           type: "string",
           required: true,
-          description: "Audio item ID",
+          description: "Document item ID",
         },
       ],
       count: [],
@@ -94,11 +88,10 @@ export class DbAudioIpcModule extends BaseEntityIpcModule<typeof audioService> {
   protected getMethodReturnType(methodName: string): string {
     // Define return types for each method directly
     const returnTypeMap: Record<string, string> = {
-      findAll: "Promise<AudioPaginationResult>",
-      findById: "Promise<AudioEntity | null>",
-      findByMd5: "Promise<AudioEntity | null>",
-      create: "Promise<AudioEntity>",
-      update: "Promise<AudioEntity | null>",
+      findAll: "Promise<PaginationResult<DocumentEntity>>",
+      findById: "Promise<DocumentEntity | null>",
+      create: "Promise<DocumentEntity>",
+      update: "Promise<DocumentEntity | null>",
       delete: "Promise<boolean>",
       count: "Promise<number>",
     };
@@ -108,4 +101,4 @@ export class DbAudioIpcModule extends BaseEntityIpcModule<typeof audioService> {
 }
 
 // Export singleton instance
-export const dbAudioIpcModule = new DbAudioIpcModule();
+export const entityDocumentIpcModule = new EntityDocumentIpcModule();

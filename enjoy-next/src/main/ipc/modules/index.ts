@@ -8,8 +8,10 @@ export * from "./base-ipc-module";
 export * from "./base-entity-ipc";
 
 // Export entity IPC modules
-export * from "./db-audio-ipc";
-export * from "./db-transcription-ipc";
+export * from "./entity-audio-ipc";
+export * from "./entity-document-ipc";
+export * from "./entity-transcription-ipc";
+export * from "./entity-video-ipc";
 
 // Export regular IPC modules
 export * from "./app-config-ipc";
@@ -19,9 +21,30 @@ export * from "./plugin-ipc";
 export * from "./window-ipc";
 export * from "./shell-ipc";
 
-import { dbAudioIpcModule } from "./db-audio-ipc";
-import { dbTranscriptionIpcModule } from "./db-transcription-ipc";
-export const entityIpcModules = [dbAudioIpcModule, dbTranscriptionIpcModule];
+import { entityAudioIpcModule } from "./entity-audio-ipc";
+import { entityCacheObjectIpcModule } from "./entity-cache-object-ipc";
+import { entityConversationIpcModule } from "./entity-conversation-ipc";
+import { entityDocumentIpcModule } from "./entity-document-ipc";
+import { entityPronunciationAssessmentIpcModule } from "./entity-pronunciation-assessment-ipc";
+import { entityRecordingIpcModule } from "./entity-recording-ipc";
+import { entitySegmentIpcModule } from "./entity-segment-ipc";
+import { entitySpeechIpcModule } from "./entity-speech-ipc";
+import { entityTranscriptionIpcModule } from "./entity-transcription-ipc";
+import { entityUserSettingIpcModule } from "./entity-user-setting-ipc";
+import { entityVideoIpcModule } from "./entity-video-ipc";
+export const entityIpcModules = [
+  entityAudioIpcModule,
+  entityCacheObjectIpcModule,
+  entityConversationIpcModule,
+  entityDocumentIpcModule,
+  entityPronunciationAssessmentIpcModule,
+  entityRecordingIpcModule,
+  entitySegmentIpcModule,
+  entitySpeechIpcModule,
+  entityTranscriptionIpcModule,
+  entityUserSettingIpcModule,
+  entityVideoIpcModule,
+];
 
 import { appConfigIpcModule } from "./app-config-ipc";
 import { appInitializerIpcModule } from "./app-initializer-ipc";
