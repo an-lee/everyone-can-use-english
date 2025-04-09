@@ -1,5 +1,5 @@
 // Auto-generated type declarations for Electron IPC
-// DO NOT EDIT DIRECTLY - Generated on 2025-04-09T07:47:40.319Z
+// DO NOT EDIT DIRECTLY - Generated on 2025-04-09T07:52:31.380Z
 
 declare interface EnjoyAPI {
   appConfig: {
@@ -32,7 +32,7 @@ declare interface EnjoyAPI {
       count: () => Promise<number>;
     };
     cacheObject: {
-      get: (key: string) => Promise<CacheObjectEntity | null>;
+      get: (key: string) => Promise<CacheObjectEntity['value'] | null>;
       set: (key: string, value: any, ttl?: number) => Promise<void>;
       delete: (key: string) => Promise<boolean>;
     };
@@ -86,7 +86,7 @@ declare interface EnjoyAPI {
       count: () => Promise<number>;
     };
     userSetting: {
-      get: (key: string) => Promise<UserSettingEntity | null>;
+      get: (key: string) => Promise<UserSettingEntity['value'] | null>;
       set: (key: string, value: string) => Promise<UserSettingEntity | null>;
       delete: (key: string) => Promise<boolean>;
     };

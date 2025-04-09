@@ -11,7 +11,6 @@ declare interface VideoEntity {
   recordingsDuration: number;
   syncedAt?: string;
   uploadedAt?: string;
-  deletedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
