@@ -10,7 +10,9 @@ export class AudioService {
   /**
    * Find all audio items with pagination
    */
-  async findAll(options?: AudioSearchOptions): Promise<AudioPaginationResult> {
+  async findAll(
+    options?: PaginationOptions
+  ): Promise<PaginationResult<AudioEntity>> {
     const page = options?.page || 1;
     const limit = options?.limit || 20;
     const search = options?.search;

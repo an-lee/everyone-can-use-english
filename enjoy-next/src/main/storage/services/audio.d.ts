@@ -30,14 +30,3 @@ declare interface AudioSearchOptions {
   order?: "asc" | "desc";
   sort?: "created_at" | "updated_at" | "name" | "duration" | "size";
 }
-
-/**
- * Pagination result for audio items
- */
-declare interface AudioPaginationResult {
-  items: AudioEntity[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}

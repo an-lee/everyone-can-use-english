@@ -45,7 +45,11 @@ export class CacheObject extends BaseEntity {
     return cacheObject.value;
   }
 
-  static async set(key: string, value: string, ttl: number): Promise<void> {
+  static async set(
+    key: string,
+    value: object | string,
+    ttl: number = 0
+  ): Promise<void> {
     let cacheObject = await CacheObject.findOne({ where: { key } });
 
     if (typeof value === "object") {
