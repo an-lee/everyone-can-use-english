@@ -9,7 +9,7 @@ declare interface InitializationProgress {
 declare type AppStateType =
   | { status: "initializing"; progress: InitializationProgress }
   | {
-      status: "initialization_error";
+      status: "initializing_error";
       error: string;
       progress: InitializationProgress;
     }

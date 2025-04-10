@@ -63,12 +63,12 @@ export const useAppStore = create<AppState>()((set, get) => ({
 
         if (
           currentState.status === "initializing" ||
-          currentState.status === "initialization_error"
+          currentState.status === "initializing_error"
         ) {
           // We already have progress data in these states
           set({
             appState: {
-              status: "initialization_error",
+              status: "initializing_error",
               error: "Failed to load application configuration",
               progress: currentState.progress,
             },
@@ -77,7 +77,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
           // Other states don't have progress, use default
           set({
             appState: {
-              status: "initialization_error",
+              status: "initializing_error",
               error: "Failed to load application configuration",
               progress: defaultProgress,
             },
@@ -93,7 +93,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
   },
 
   setInitializationError: (error, progress) => {
-    set({ appState: { status: "initialization_error", error, progress } });
+    set({ appState: { status: "initializing_error", error, progress } });
   },
 
   setLoginRequired: () => {

@@ -1,5 +1,4 @@
-export { InitializingView } from "./initializing-view";
-export { InitializingErrorView } from "./initializing-error-view";
+export { AppInitializingView } from "./app-initializing-view";
 export { LoginView } from "./login-view";
 export { ErrorView } from "./error-view";
 export { EmptyView } from "./empty-view";
