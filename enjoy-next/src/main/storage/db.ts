@@ -14,48 +14,39 @@ const RETRY_DELAYS = [1000, 2000, 3000, 5000, 8000]; // Fibonacci-like sequence
 const MAX_RETRIES = RETRY_DELAYS.length;
 const CONNECTION_TIMEOUT = 10000; // 10 seconds timeout for connection
 
-// Database module
-export const db = {
-  dataSource: null as DataSource | null,
-  isConnecting: false,
-  autoConnected: false,
-  retryCount: 0,
-  retryTimer: null as NodeJS.Timeout | null,
-  ipcHandlersRegistered: false,
-  isInitialized: false,
-  connectionStartTime: 0,
-  operationCount: 0,
-  pingInterval: null as NodeJS.Timeout | null,
-  lastError: null as Error | null,
-  lastErrorTime: 0,
-  sessionId: "",
-  lastOperation: "init",
-  currentState: {
+class DatabaseManager {
+  private dataSource: DataSource | null = null;
+  private isConnecting = false;
+  private autoConnected = false;
+  private retryCount = 0;
+  private retryTimer: NodeJS.Timeout | null = null;
+  private isInitialized = false;
+  private connectionStartTime = 0;
+  private operationCount = 0;
+  private pingInterval: NodeJS.Timeout | null = null;
+  private lastError: Error | null = null;
+  private lastErrorTime = 0;
+  private sessionId = "";
+  private currentState: DbState = {
     state: "disconnected",
     path: null,
     error: null,
     autoConnected: false,
-  } as DbState,
+  };
 
-  // Broadcast database state to all windows
-  broadcastState: (state: DbState) => {
-    // Enhanced state change detection - focus on the most critical fields
-    const currentState = db.currentState;
+  private broadcastState(state: DbState) {
+    const currentState = this.currentState;
 
-    // Only broadcast if there's an actual meaningful change
     const isStateChange = currentState.state !== state.state;
     const isErrorChange = currentState.error !== state.error;
     const isPathChange = currentState.path !== state.path;
 
-    // Skip if this is just a metadata update but the core state is unchanged
     if (!isStateChange && !isErrorChange && !isPathChange) {
       return;
     }
 
-    // Update current state
-    db.currentState = state;
+    this.currentState = state;
 
-    // Broadcast to all windows
     logger.debug(
       `Broadcasting state change: ${currentState.state} → ${state.state}`
     );
@@ -64,44 +55,39 @@ export const db = {
         window.webContents.send(IpcChannels.DB.STATE_CHANGED, state);
       }
     });
-  },
+  }
 
-  // Connect to the database with retry logic
-  connect: async (options?: { retry?: boolean }) => {
+  public async connect(options?: { retry?: boolean }) {
     const shouldRetry = options?.retry !== false;
 
-    // Clear any existing retry timer
-    if (db.retryTimer) {
-      clearTimeout(db.retryTimer);
-      db.retryTimer = null;
+    if (this.retryTimer) {
+      clearTimeout(this.retryTimer);
+      this.retryTimer = null;
     }
 
-    // Use a lock to prevent concurrent connections
-    if (db.isConnecting) {
+    if (this.isConnecting) {
       throw new Error("Database connection is already in progress");
     }
 
-    db.isConnecting = true;
-    db.broadcastState({
-      ...db.currentState,
+    this.isConnecting = true;
+    this.broadcastState({
+      ...this.currentState,
       state: "connecting",
     });
 
     try {
-      // Check if we already have a connection
-      if (db.dataSource?.isInitialized) {
+      if (this.dataSource?.isInitialized) {
         logger.info("Database already connected");
-        db.broadcastState({
+        this.broadcastState({
           state: "connected",
           path: appConfig.dbPath(),
           error: null,
-          autoConnected: db.autoConnected,
+          autoConnected: this.autoConnected,
         });
-        db.isConnecting = false;
+        this.isConnecting = false;
         return;
       }
 
-      // Ensure the current user is set in app config before proceeding
       const currentUser = appConfig.currentUser();
       if (!currentUser) {
         throw new Error(
@@ -109,7 +95,6 @@ export const db = {
         );
       }
 
-      // We only need user.id for the database connection
       if (!currentUser.id) {
         throw new Error("User ID is required for database connection.");
       }
@@ -121,15 +106,12 @@ export const db = {
         );
       }
 
-      // Ensure the directory exists
       fs.ensureDirSync(path.dirname(dbPath));
 
-      // Make sure we have the latest path in the datasource
       AppDataSource.setOptions({
         database: dbPath,
       });
 
-      // Add connection timeout
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => {
           reject(
@@ -140,162 +122,154 @@ export const db = {
         }, CONNECTION_TIMEOUT);
       });
 
-      // Initialize the data source with timeout
-      if (db.dataSource === null) {
+      if (this.dataSource === null) {
         logger.info("Initializing new AppDataSource");
         await Promise.race([AppDataSource.initialize(), timeoutPromise]);
-        db.dataSource = AppDataSource;
+        this.dataSource = AppDataSource;
       } else {
-        // Reinitialize if previously destroyed
         logger.info("Reinitializing existing AppDataSource");
-        await Promise.race([db.dataSource.initialize(), timeoutPromise]);
+        await Promise.race([this.dataSource.initialize(), timeoutPromise]);
       }
 
-      // Reset retry count on successful connection
-      db.retryCount = 0;
+      this.retryCount = 0;
+      this.connectionStartTime = Date.now();
+      this.operationCount = 0;
+      this.sessionId = `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
 
-      // Record connection time and reset operation count
-      db.connectionStartTime = Date.now();
-      db.operationCount = 0;
+      logger.info(
+        `Database connection established (Session: ${this.sessionId})`
+      );
 
-      // Generate a new session ID
-      db.sessionId = `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-
-      logger.info(`Database connection established (Session: ${db.sessionId})`);
-
-      // Set up ping to keep connection alive
-      if (db.pingInterval) {
-        clearInterval(db.pingInterval);
+      if (this.pingInterval) {
+        clearInterval(this.pingInterval);
       }
 
-      db.pingInterval = setInterval(() => {
-        if (db.dataSource?.isInitialized) {
-          db.dataSource
+      this.pingInterval = setInterval(() => {
+        if (this.dataSource?.isInitialized) {
+          this.dataSource
             .query("SELECT 1")
             .then(() => {
               logger.debug(
-                `Database ping successful (Session: ${db.sessionId})`
+                `Database ping successful (Session: ${this.sessionId})`
               );
             })
             .catch((err) => {
               logger.warn(
-                `Database ping failed (Session: ${db.sessionId}):`,
+                `Database ping failed (Session: ${this.sessionId}):`,
                 err
               );
-              // If ping fails, update state to reflect issue
-              db.broadcastState({
-                ...db.currentState,
+              this.broadcastState({
+                ...this.currentState,
                 state: "reconnecting",
                 error: `Connection check failed: ${err.message}`,
                 lastOperation: "ping",
               });
             });
         } else {
-          // Clear interval if database is no longer connected
-          if (db.pingInterval) {
-            clearInterval(db.pingInterval);
-            db.pingInterval = null;
+          if (this.pingInterval) {
+            clearInterval(this.pingInterval);
+            this.pingInterval = null;
           }
         }
-      }, 300000); // Every 5 minutes
+      }, 300000);
 
-      db.broadcastState({
+      this.broadcastState({
         state: "connected",
         path: dbPath,
         error: null,
-        autoConnected: db.autoConnected,
-        connectionTime: db.connectionStartTime,
+        autoConnected: this.autoConnected,
+        connectionTime: this.connectionStartTime,
         stats: {
           connectionDuration: 0,
           operationCount: 0,
-          lastError: db.lastError
+          lastError: this.lastError
             ? {
-                message: db.lastError.message,
-                time: db.lastErrorTime,
+                message: this.lastError.message,
+                time: this.lastErrorTime,
               }
             : null,
         },
       });
     } catch (err) {
       logger.error(
-        `Database connection error (Session: ${db.sessionId}):`,
+        `Database connection error (Session: ${this.sessionId}):`,
         err
       );
 
-      // Record the error
-      db.lastError = err instanceof Error ? err : new Error(String(err));
-      db.lastErrorTime = Date.now();
+      this.lastError = err instanceof Error ? err : new Error(String(err));
+      this.lastErrorTime = Date.now();
 
-      // Special handling for common errors
       const errorMessage = String(err);
       if (errorMessage.includes("database is locked")) {
         logger.warn("Database lock detected, will try reconnection");
-        db.broadcastState({
+        this.broadcastState({
           state: "locked",
           path: appConfig.dbPath(),
           error: `Database is locked: ${errorMessage}`,
-          autoConnected: db.autoConnected,
-          retryCount: db.retryCount,
+          autoConnected: this.autoConnected,
+          retryCount: this.retryCount,
           retryDelay:
-            db.retryCount < MAX_RETRIES ? RETRY_DELAYS[db.retryCount] : 0,
+            this.retryCount < MAX_RETRIES ? RETRY_DELAYS[this.retryCount] : 0,
           lastOperation: "connect",
           stats: {
+            connectionDuration: 0,
+            operationCount: 0,
             lastError: {
               message: errorMessage,
-              time: db.lastErrorTime,
+              time: this.lastErrorTime,
             },
           },
         });
 
-        // Schedule a reconnection
-        if (shouldRetry && db.autoConnected) {
-          setTimeout(() => db.reconnect(), 3000);
+        if (shouldRetry && this.autoConnected) {
+          setTimeout(() => this.reconnect(), 3000);
         }
 
         throw err;
       }
 
-      // Implement retry mechanism with exponential backoff
-      if (shouldRetry && db.autoConnected && db.retryCount < MAX_RETRIES) {
-        const retryDelay = RETRY_DELAYS[db.retryCount];
-        db.retryCount++;
+      if (shouldRetry && this.autoConnected && this.retryCount < MAX_RETRIES) {
+        const retryDelay = RETRY_DELAYS[this.retryCount];
+        this.retryCount++;
 
         logger.info(
-          `Retrying database connection in ${retryDelay}ms (attempt ${db.retryCount}, Session: ${db.sessionId})`
+          `Retrying database connection in ${retryDelay}ms (attempt ${this.retryCount}, Session: ${this.sessionId})`
         );
 
-        db.broadcastState({
+        this.broadcastState({
           state: "error",
           path: appConfig.dbPath(),
           error: `Connection failed: ${err instanceof Error ? err.message : String(err)}. Retrying in ${retryDelay / 1000}s...`,
-          autoConnected: db.autoConnected,
-          retryCount: db.retryCount,
+          autoConnected: this.autoConnected,
+          retryCount: this.retryCount,
           retryDelay: retryDelay,
           lastOperation: "connect",
           stats: {
+            connectionDuration: 0,
+            operationCount: 0,
             lastError: {
               message: err instanceof Error ? err.message : String(err),
-              time: db.lastErrorTime,
+              time: this.lastErrorTime,
             },
           },
         });
 
-        // Schedule retry
-        db.retryTimer = setTimeout(() => {
-          db.connect({ retry: true });
+        this.retryTimer = setTimeout(() => {
+          this.connect({ retry: true });
         }, retryDelay);
       } else {
-        // No more retries or auto-connect is disabled
-        db.broadcastState({
+        this.broadcastState({
           state: "error",
           path: appConfig.dbPath(),
           error: err instanceof Error ? err.message : String(err),
-          autoConnected: db.autoConnected,
+          autoConnected: this.autoConnected,
           lastOperation: "connect",
           stats: {
+            connectionDuration: 0,
+            operationCount: 0,
             lastError: {
               message: err instanceof Error ? err.message : String(err),
-              time: db.lastErrorTime,
+              time: this.lastErrorTime,
             },
           },
         });
@@ -303,55 +277,48 @@ export const db = {
 
       throw err;
     } finally {
-      db.isConnecting = false;
+      this.isConnecting = false;
     }
-  },
+  }
 
-  // Disconnect from the database
-  disconnect: async () => {
-    // Clear any retry timer
-    if (db.retryTimer) {
-      clearTimeout(db.retryTimer);
-      db.retryTimer = null;
+  public async disconnect() {
+    if (this.retryTimer) {
+      clearTimeout(this.retryTimer);
+      this.retryTimer = null;
     }
 
-    // Clear ping interval
-    if (db.pingInterval) {
-      clearInterval(db.pingInterval);
-      db.pingInterval = null;
+    if (this.pingInterval) {
+      clearInterval(this.pingInterval);
+      this.pingInterval = null;
     }
 
     try {
-      if (db.dataSource?.isInitialized) {
+      if (this.dataSource?.isInitialized) {
         try {
           const disconnectStart = Date.now();
-          await db.dataSource.destroy();
+          await this.dataSource.destroy();
           logger.debug(
             `Database disconnection completed in ${Date.now() - disconnectStart}ms`
           );
         } catch (err) {
-          // If error is "Database handle is closed", just log it and continue
           if (
             err instanceof Error &&
             err.message.includes("Database handle is closed")
           ) {
             logger.warn("Database was already closed:", err.message);
           } else {
-            // For other errors, rethrow
             throw err;
           }
         }
 
-        db.dataSource = null;
+        this.dataSource = null;
+        this.retryCount = 0;
+        this.connectionStartTime = 0;
+        this.operationCount = 0;
 
-        // Reset counters and timers
-        db.retryCount = 0;
-        db.connectionStartTime = 0;
-        db.operationCount = 0;
+        logger.info(`Database connection closed (Session: ${this.sessionId})`);
 
-        logger.info(`Database connection closed (Session: ${db.sessionId})`);
-
-        db.broadcastState({
+        this.broadcastState({
           state: "disconnected",
           path: null,
           error: null,
@@ -360,21 +327,19 @@ export const db = {
           stats: {
             connectionDuration: 0,
             operationCount: 0,
-            lastError: db.lastError
+            lastError: this.lastError
               ? {
-                  message: db.lastError.message,
-                  time: db.lastErrorTime,
+                  message: this.lastError.message,
+                  time: this.lastErrorTime,
                 }
               : null,
           },
         });
 
-        // Clear session ID after disconnect completes
-        db.sessionId = "";
+        this.sessionId = "";
       } else {
-        // Make sure we also broadcast state even if datasource wasn't initialized
         logger.info("No active database connection to close");
-        db.broadcastState({
+        this.broadcastState({
           state: "disconnected",
           path: null,
           error: null,
@@ -383,85 +348,76 @@ export const db = {
         });
       }
     } catch (err) {
-      // Record the error
-      db.lastError = err instanceof Error ? err : new Error(String(err));
-      db.lastErrorTime = Date.now();
+      this.lastError = err instanceof Error ? err : new Error(String(err));
+      this.lastErrorTime = Date.now();
 
       logger.error(
-        `Database disconnection error (Session: ${db.sessionId}):`,
+        `Database disconnection error (Session: ${this.sessionId}):`,
         err
       );
-      db.broadcastState({
+      this.broadcastState({
         state: "error",
         path: appConfig.dbPath(),
         error: err instanceof Error ? err.message : String(err),
-        autoConnected: db.autoConnected,
+        autoConnected: this.autoConnected,
         lastOperation: "disconnect",
         stats: {
+          connectionDuration: 0,
+          operationCount: 0,
           lastError: {
             message: err instanceof Error ? err.message : String(err),
-            time: db.lastErrorTime,
+            time: this.lastErrorTime,
           },
         },
       });
       throw err;
     }
-  },
+  }
 
-  // Initialize the database module
-  init: () => {
-    // Ensure db is initialized only once
-    if (db.isInitialized) {
+  public init() {
+    if (this.isInitialized) {
       logger.warn("Database already initialized, skipping");
       return;
     }
 
     logger.info("Initializing database module");
 
-    // Generate a new session ID for the module
-    db.sessionId = `init-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    this.sessionId = `init-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
     logger.debug(
-      `Database module initialized with session ID: ${db.sessionId}`
+      `Database module initialized with session ID: ${this.sessionId}`
     );
 
-    // We don't need to explicitly register IPC handlers here anymore
-    // They are automatically discovered and registered by the IPC registry
-    // through the files in src/main/core/ipc/modules/
     logger.info("Database IPC handlers are managed by the IPC registry");
 
-    // Set up event listeners for login/logout based on user.id changes
     let lastUserId: number | null = null;
 
     appConfig.getUser$().subscribe(async (user) => {
       const userId = user?.id ? Number(user.id) : null;
 
-      // Only take action if user.id has changed
       if (userId !== lastUserId) {
         logger.debug(`User ID changed: ${lastUserId} -> ${userId}`);
         lastUserId = userId;
 
         if (userId) {
-          // User logged in
           logger.info(`User ${userId} logged in, connecting to database`);
           try {
-            db.autoConnected = true;
-            await db.connect({ retry: true });
+            this.autoConnected = true;
+            await this.connect({ retry: true });
           } catch (error) {
             logger.error("Failed to connect to database after login", error);
           }
         } else {
-          // User logged out
           logger.info("User logged out, disconnecting from database");
           try {
-            db.autoConnected = false;
-            db.cancelRetry();
-            await db.disconnect();
+            this.autoConnected = false;
+            this.cancelRetry();
+            await this.disconnect();
           } catch (error) {
             logger.error(
               "Failed to disconnect from database after logout",
               error
             );
-            db.broadcastState({
+            this.broadcastState({
               state: "error",
               path: appConfig.dbPath(),
               error: error instanceof Error ? error.message : String(error),
@@ -472,21 +428,19 @@ export const db = {
       }
     });
 
-    db.isInitialized = true;
+    this.isInitialized = true;
     logger.info("Database module initialized");
-  },
+  }
 
-  // Cancel any pending retry
-  cancelRetry: () => {
-    if (db.retryTimer) {
-      clearTimeout(db.retryTimer);
-      db.retryTimer = null;
+  public cancelRetry() {
+    if (this.retryTimer) {
+      clearTimeout(this.retryTimer);
+      this.retryTimer = null;
     }
-    db.retryCount = 0;
-  },
+    this.retryCount = 0;
+  }
 
-  // Backup the database
-  backup: async (options?: { force: boolean }) => {
+  public async backup(options?: { force: boolean }) {
     const force = options?.force ?? false;
 
     const dbPath = appConfig.dbPath();
@@ -503,7 +457,6 @@ export const db = {
       .filter((file) => file.startsWith(path.basename(dbPath)))
       .sort();
 
-    // Check if the last backup is older than 1 day
     const lastBackup = backupFiles.pop();
     const timestamp = lastBackup?.match(/\d{13}/)?.[0];
     if (
@@ -516,7 +469,6 @@ export const db = {
       return;
     }
 
-    // Only keep the latest 10 backups
     if (backupFiles.length >= 10) {
       fs.removeSync(path.join(backupPath, backupFiles[0]));
     }
@@ -528,106 +480,104 @@ export const db = {
     fs.copySync(dbPath, backupFilePath);
 
     logger.info(`Backup created at ${backupFilePath}`);
-  },
+  }
 
-  // Reconnect to the database after an error
-  reconnect: async () => {
-    logger.info(`Attempting database reconnection (Session: ${db.sessionId})`);
+  public async reconnect() {
+    logger.info(
+      `Attempting database reconnection (Session: ${this.sessionId})`
+    );
 
-    // Update state
-    db.broadcastState({
-      ...db.currentState,
+    this.broadcastState({
+      ...this.currentState,
       state: "reconnecting",
       lastOperation: "reconnect",
     });
 
-    // If database is currently connected, disconnect first
-    if (db.dataSource?.isInitialized) {
+    if (this.dataSource?.isInitialized) {
       try {
-        await db.disconnect();
+        await this.disconnect();
       } catch (error) {
         logger.warn("Error during reconnection disconnect:", error);
       }
     }
 
-    // Clear any retry timer
-    if (db.retryTimer) {
-      clearTimeout(db.retryTimer);
-      db.retryTimer = null;
+    if (this.retryTimer) {
+      clearTimeout(this.retryTimer);
+      this.retryTimer = null;
     }
 
-    // Attempt to reconnect
     try {
-      await db.connect({ retry: true });
+      await this.connect({ retry: true });
       logger.info(
-        `Database reconnection successful (Session: ${db.sessionId})`
+        `Database reconnection successful (Session: ${this.sessionId})`
       );
     } catch (error) {
       logger.error(
-        `Database reconnection failed (Session: ${db.sessionId}):`,
+        `Database reconnection failed (Session: ${this.sessionId}):`,
         error
       );
-      // Error handling is done in the connect method
     }
-  },
+  }
 
-  // Run database migrations
-  migrate: async () => {
-    if (!db.dataSource?.isInitialized) {
+  public async migrate() {
+    if (!this.dataSource?.isInitialized) {
       throw new Error(
         "Database not connected. Connect to database before running migrations."
       );
     }
 
-    logger.info(`Running database migrations (Session: ${db.sessionId})`);
-    db.broadcastState({
-      ...db.currentState,
+    logger.info(`Running database migrations (Session: ${this.sessionId})`);
+    this.broadcastState({
+      ...this.currentState,
       lastOperation: "migrate",
     });
 
     try {
       const startTime = Date.now();
 
-      // Run migrations
-      await db.dataSource.runMigrations();
+      await this.dataSource.runMigrations();
 
       const duration = Date.now() - startTime;
       logger.info(
-        `Database migrations completed in ${duration}ms (Session: ${db.sessionId})`
+        `Database migrations completed in ${duration}ms (Session: ${this.sessionId})`
       );
 
-      db.broadcastState({
-        ...db.currentState,
+      this.broadcastState({
+        ...this.currentState,
         lastOperation: "migrate",
       });
 
       return { success: true, duration };
     } catch (error) {
-      // Record the error
-      db.lastError = error instanceof Error ? error : new Error(String(error));
-      db.lastErrorTime = Date.now();
+      this.lastError =
+        error instanceof Error ? error : new Error(String(error));
+      this.lastErrorTime = Date.now();
 
       logger.error(
-        `Database migration error (Session: ${db.sessionId}):`,
+        `Database migration error (Session: ${this.sessionId}):`,
         error
       );
 
-      db.broadcastState({
-        ...db.currentState,
+      this.broadcastState({
+        ...this.currentState,
         state: "error",
         error: error instanceof Error ? error.message : String(error),
         lastOperation: "migrate",
         stats: {
+          connectionDuration: 0,
+          operationCount: 0,
           lastError: {
             message: error instanceof Error ? error.message : String(error),
-            time: db.lastErrorTime,
+            time: this.lastErrorTime,
           },
         },
       });
 
       throw error;
     }
-  },
-};
+  }
+}
 
+// Create and export a singleton instance
+export const db = new DatabaseManager();
 export default db;

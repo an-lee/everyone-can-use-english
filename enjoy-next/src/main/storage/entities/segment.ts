@@ -45,9 +45,6 @@ export class Segment extends BaseEntity {
   @Column({ name: "uploaded_at", type: "date" })
   uploadedAt!: Date;
 
-  @Column({ name: "deleted_at", type: "date", nullable: true })
-  deletedAt?: Date;
-
   @CreateDateColumn({ name: "created_at", type: "date" })
   createdAt!: Date;
 
