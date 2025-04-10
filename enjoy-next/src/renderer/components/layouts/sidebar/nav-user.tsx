@@ -19,10 +19,21 @@ import {
 import { useAuthStore } from "@/renderer/store";
 import { Icon } from "@iconify/react";
 import { useTranslation } from "react-i18next";
+import { useRouter } from "@tanstack/react-router";
+import { useEffect } from "react";
 
 export function NavUser() {
   const { isMobile } = useSidebar();
   const { logout, currentUser } = useAuthStore();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!currentUser) {
+      router.invalidate();
+      router.navigate({ to: "/login" });
+    }
+  }, [currentUser]);
+
   const { t } = useTranslation("components/layouts/sidebar");
 
   return (

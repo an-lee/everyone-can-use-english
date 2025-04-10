@@ -6,7 +6,7 @@ export const EmptyView = ({ message }: { message?: string }) => {
   const { t } = useTranslation("components/status-views");
 
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center gap-4">
+    <div className="w-full h-full flex flex-col items-center justify-center gap-4">
       <Icon
         icon="tabler:mood-empty"
         className="h-10 w-10 text-muted-foreground"

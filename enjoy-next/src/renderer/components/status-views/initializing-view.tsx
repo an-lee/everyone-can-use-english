@@ -1,5 +1,4 @@
 import { Icon } from "@iconify/react";
-import { AppMenubar } from "@renderer/components/layouts/menubar";
 
 interface InitializingViewProps {
   progress: InitializationProgress;
@@ -7,8 +6,7 @@ interface InitializingViewProps {
 
 export const InitializingView = ({ progress }: InitializingViewProps) => {
   return (
-    <div className="flex h-[100svh] w-screen flex-col items-center justify-center gap-4 pt-[var(--menubar-height)]">
-      <AppMenubar isAuthenticated={false} />
+    <div className="flex flex-col items-center justify-center gap-4">
       <Icon
         icon="mdi:loading"
         className="h-12 w-12 animate-spin text-primary"

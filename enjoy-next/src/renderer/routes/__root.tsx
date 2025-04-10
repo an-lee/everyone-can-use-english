@@ -1,9 +1,9 @@
 import { createRootRoute, Outlet } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-import { SidebarInset, SidebarProvider } from "@renderer/components/ui";
-import { AppSidebar } from "@/renderer/components/layouts/sidebar";
-import { AppMenubar } from "@/renderer/components/layouts/menubar";
+import { Toaster } from "@renderer/components/ui";
+
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useFontSize, useIpcError, useTheme } from "@renderer/hooks";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -14,17 +14,20 @@ const queryClient = new QueryClient({
 });
 
 export const Route = createRootRoute({
-  component: () => (
-    <QueryClientProvider client={queryClient}>
-      <SidebarProvider>
-        <AppMenubar />
-        <AppSidebar />
-        <SidebarInset>
-          <Outlet />
-        </SidebarInset>
-      </SidebarProvider>
+  component: RootComponent,
+});
 
+function RootComponent() {
+  useTheme();
+  useFontSize();
+  useIpcError();
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Outlet />
+
+      <Toaster richColors closeButton position="top-center" />
       <TanStackRouterDevtools position="bottom-right" />
     </QueryClientProvider>
-  ),
-});
+  );
+}

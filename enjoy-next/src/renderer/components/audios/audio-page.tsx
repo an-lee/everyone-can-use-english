@@ -1,3 +1,3 @@
 export function AudioPage() {
-  return <div>AudioPage</div>;
+  return <div className="p-4">AudioPage</div>;
 }

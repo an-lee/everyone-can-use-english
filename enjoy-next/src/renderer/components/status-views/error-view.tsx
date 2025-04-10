@@ -1,12 +1,11 @@
 import { Icon } from "@iconify/react";
-import { Toaster } from "@renderer/components/ui";
 import { useTranslation } from "react-i18next";
 
 export const ErrorView = ({ error }: { error: string }) => {
   const { t } = useTranslation("components/status-views");
 
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center gap-4">
+    <div className="w-full h-full flex flex-col items-center justify-center gap-4">
       <Icon icon="tabler:alert-circle" className="h-12 w-12 text-destructive" />
       <div className="text-center">
         <p className="text-lg font-medium">{t("somethingWentWrong")}</p>
@@ -18,7 +17,6 @@ export const ErrorView = ({ error }: { error: string }) => {
           {t("retry")}
         </button>
       </div>
-      <Toaster richColors closeButton position="top-center" />
     </div>
   );
 };

@@ -11,14 +11,28 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as UnauthenticatedImport } from './routes/_unauthenticated'
+import { Route as AuthenticatedImport } from './routes/_authenticated'
 import { Route as IndexImport } from './routes/index'
-import { Route as VideosIndexImport } from './routes/videos/index'
-import { Route as DocumentsIndexImport } from './routes/documents/index'
-import { Route as AudiosIndexImport } from './routes/audios/index'
-import { Route as DocumentsDocumentIdImport } from './routes/documents/$documentId'
-import { Route as AudiosAudioIdImport } from './routes/audios/$audioId'
+import { Route as UnauthenticatedLoginImport } from './routes/_unauthenticated/login'
+import { Route as AuthenticatedDashboardImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedVideosIndexImport } from './routes/_authenticated/videos/index'
+import { Route as AuthenticatedDocumentsIndexImport } from './routes/_authenticated/documents/index'
+import { Route as AuthenticatedAudiosIndexImport } from './routes/_authenticated/audios/index'
+import { Route as AuthenticatedDocumentsDocumentIdImport } from './routes/_authenticated/documents/$documentId'
+import { Route as AuthenticatedAudiosAudioIdImport } from './routes/_authenticated/audios/$audioId'
 
 // Create/Update Routes
+
+const UnauthenticatedRoute = UnauthenticatedImport.update({
+  id: '/_unauthenticated',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AuthenticatedRoute = AuthenticatedImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const IndexRoute = IndexImport.update({
   id: '/',
@@ -26,35 +40,51 @@ const IndexRoute = IndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const VideosIndexRoute = VideosIndexImport.update({
+const UnauthenticatedLoginRoute = UnauthenticatedLoginImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => UnauthenticatedRoute,
+} as any)
+
+const AuthenticatedDashboardRoute = AuthenticatedDashboardImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+
+const AuthenticatedVideosIndexRoute = AuthenticatedVideosIndexImport.update({
   id: '/videos/',
   path: '/videos/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 
-const DocumentsIndexRoute = DocumentsIndexImport.update({
-  id: '/documents/',
-  path: '/documents/',
-  getParentRoute: () => rootRoute,
-} as any)
+const AuthenticatedDocumentsIndexRoute =
+  AuthenticatedDocumentsIndexImport.update({
+    id: '/documents/',
+    path: '/documents/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
-const AudiosIndexRoute = AudiosIndexImport.update({
+const AuthenticatedAudiosIndexRoute = AuthenticatedAudiosIndexImport.update({
   id: '/audios/',
   path: '/audios/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 
-const DocumentsDocumentIdRoute = DocumentsDocumentIdImport.update({
-  id: '/documents/$documentId',
-  path: '/documents/$documentId',
-  getParentRoute: () => rootRoute,
-} as any)
+const AuthenticatedDocumentsDocumentIdRoute =
+  AuthenticatedDocumentsDocumentIdImport.update({
+    id: '/documents/$documentId',
+    path: '/documents/$documentId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
-const AudiosAudioIdRoute = AudiosAudioIdImport.update({
-  id: '/audios/$audioId',
-  path: '/audios/$audioId',
-  getParentRoute: () => rootRoute,
-} as any)
+const AuthenticatedAudiosAudioIdRoute = AuthenticatedAudiosAudioIdImport.update(
+  {
+    id: '/audios/$audioId',
+    path: '/audios/$audioId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any,
+)
 
 // Populate the FileRoutesByPath interface
 
@@ -67,78 +97,153 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
-    '/audios/$audioId': {
-      id: '/audios/$audioId'
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof AuthenticatedImport
+      parentRoute: typeof rootRoute
+    }
+    '/_unauthenticated': {
+      id: '/_unauthenticated'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof UnauthenticatedImport
+      parentRoute: typeof rootRoute
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardImport
+      parentRoute: typeof AuthenticatedImport
+    }
+    '/_unauthenticated/login': {
+      id: '/_unauthenticated/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof UnauthenticatedLoginImport
+      parentRoute: typeof UnauthenticatedImport
+    }
+    '/_authenticated/audios/$audioId': {
+      id: '/_authenticated/audios/$audioId'
       path: '/audios/$audioId'
       fullPath: '/audios/$audioId'
-      preLoaderRoute: typeof AudiosAudioIdImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof AuthenticatedAudiosAudioIdImport
+      parentRoute: typeof AuthenticatedImport
     }
-    '/documents/$documentId': {
-      id: '/documents/$documentId'
+    '/_authenticated/documents/$documentId': {
+      id: '/_authenticated/documents/$documentId'
       path: '/documents/$documentId'
       fullPath: '/documents/$documentId'
-      preLoaderRoute: typeof DocumentsDocumentIdImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof AuthenticatedDocumentsDocumentIdImport
+      parentRoute: typeof AuthenticatedImport
     }
-    '/audios/': {
-      id: '/audios/'
+    '/_authenticated/audios/': {
+      id: '/_authenticated/audios/'
       path: '/audios'
       fullPath: '/audios'
-      preLoaderRoute: typeof AudiosIndexImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof AuthenticatedAudiosIndexImport
+      parentRoute: typeof AuthenticatedImport
     }
-    '/documents/': {
-      id: '/documents/'
+    '/_authenticated/documents/': {
+      id: '/_authenticated/documents/'
       path: '/documents'
       fullPath: '/documents'
-      preLoaderRoute: typeof DocumentsIndexImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof AuthenticatedDocumentsIndexImport
+      parentRoute: typeof AuthenticatedImport
     }
-    '/videos/': {
-      id: '/videos/'
+    '/_authenticated/videos/': {
+      id: '/_authenticated/videos/'
       path: '/videos'
       fullPath: '/videos'
-      preLoaderRoute: typeof VideosIndexImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof AuthenticatedVideosIndexImport
+      parentRoute: typeof AuthenticatedImport
     }
   }
 }
 
 // Create and export the route tree
 
+interface AuthenticatedRouteChildren {
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedAudiosAudioIdRoute: typeof AuthenticatedAudiosAudioIdRoute
+  AuthenticatedDocumentsDocumentIdRoute: typeof AuthenticatedDocumentsDocumentIdRoute
+  AuthenticatedAudiosIndexRoute: typeof AuthenticatedAudiosIndexRoute
+  AuthenticatedDocumentsIndexRoute: typeof AuthenticatedDocumentsIndexRoute
+  AuthenticatedVideosIndexRoute: typeof AuthenticatedVideosIndexRoute
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedAudiosAudioIdRoute: AuthenticatedAudiosAudioIdRoute,
+  AuthenticatedDocumentsDocumentIdRoute: AuthenticatedDocumentsDocumentIdRoute,
+  AuthenticatedAudiosIndexRoute: AuthenticatedAudiosIndexRoute,
+  AuthenticatedDocumentsIndexRoute: AuthenticatedDocumentsIndexRoute,
+  AuthenticatedVideosIndexRoute: AuthenticatedVideosIndexRoute,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
+interface UnauthenticatedRouteChildren {
+  UnauthenticatedLoginRoute: typeof UnauthenticatedLoginRoute
+}
+
+const UnauthenticatedRouteChildren: UnauthenticatedRouteChildren = {
+  UnauthenticatedLoginRoute: UnauthenticatedLoginRoute,
+}
+
+const UnauthenticatedRouteWithChildren = UnauthenticatedRoute._addFileChildren(
+  UnauthenticatedRouteChildren,
+)
+
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/audios/$audioId': typeof AudiosAudioIdRoute
-  '/documents/$documentId': typeof DocumentsDocumentIdRoute
-  '/audios': typeof AudiosIndexRoute
-  '/documents': typeof DocumentsIndexRoute
-  '/videos': typeof VideosIndexRoute
+  '': typeof UnauthenticatedRouteWithChildren
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/login': typeof UnauthenticatedLoginRoute
+  '/audios/$audioId': typeof AuthenticatedAudiosAudioIdRoute
+  '/documents/$documentId': typeof AuthenticatedDocumentsDocumentIdRoute
+  '/audios': typeof AuthenticatedAudiosIndexRoute
+  '/documents': typeof AuthenticatedDocumentsIndexRoute
+  '/videos': typeof AuthenticatedVideosIndexRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/audios/$audioId': typeof AudiosAudioIdRoute
-  '/documents/$documentId': typeof DocumentsDocumentIdRoute
-  '/audios': typeof AudiosIndexRoute
-  '/documents': typeof DocumentsIndexRoute
-  '/videos': typeof VideosIndexRoute
+  '': typeof UnauthenticatedRouteWithChildren
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/login': typeof UnauthenticatedLoginRoute
+  '/audios/$audioId': typeof AuthenticatedAudiosAudioIdRoute
+  '/documents/$documentId': typeof AuthenticatedDocumentsDocumentIdRoute
+  '/audios': typeof AuthenticatedAudiosIndexRoute
+  '/documents': typeof AuthenticatedDocumentsIndexRoute
+  '/videos': typeof AuthenticatedVideosIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
-  '/audios/$audioId': typeof AudiosAudioIdRoute
-  '/documents/$documentId': typeof DocumentsDocumentIdRoute
-  '/audios/': typeof AudiosIndexRoute
-  '/documents/': typeof DocumentsIndexRoute
-  '/videos/': typeof VideosIndexRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/_unauthenticated': typeof UnauthenticatedRouteWithChildren
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_unauthenticated/login': typeof UnauthenticatedLoginRoute
+  '/_authenticated/audios/$audioId': typeof AuthenticatedAudiosAudioIdRoute
+  '/_authenticated/documents/$documentId': typeof AuthenticatedDocumentsDocumentIdRoute
+  '/_authenticated/audios/': typeof AuthenticatedAudiosIndexRoute
+  '/_authenticated/documents/': typeof AuthenticatedDocumentsIndexRoute
+  '/_authenticated/videos/': typeof AuthenticatedVideosIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | ''
+    | '/dashboard'
+    | '/login'
     | '/audios/$audioId'
     | '/documents/$documentId'
     | '/audios'
@@ -147,6 +252,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | ''
+    | '/dashboard'
+    | '/login'
     | '/audios/$audioId'
     | '/documents/$documentId'
     | '/audios'
@@ -155,30 +263,28 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/audios/$audioId'
-    | '/documents/$documentId'
-    | '/audios/'
-    | '/documents/'
-    | '/videos/'
+    | '/_authenticated'
+    | '/_unauthenticated'
+    | '/_authenticated/dashboard'
+    | '/_unauthenticated/login'
+    | '/_authenticated/audios/$audioId'
+    | '/_authenticated/documents/$documentId'
+    | '/_authenticated/audios/'
+    | '/_authenticated/documents/'
+    | '/_authenticated/videos/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AudiosAudioIdRoute: typeof AudiosAudioIdRoute
-  DocumentsDocumentIdRoute: typeof DocumentsDocumentIdRoute
-  AudiosIndexRoute: typeof AudiosIndexRoute
-  DocumentsIndexRoute: typeof DocumentsIndexRoute
-  VideosIndexRoute: typeof VideosIndexRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  UnauthenticatedRoute: typeof UnauthenticatedRouteWithChildren
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AudiosAudioIdRoute: AudiosAudioIdRoute,
-  DocumentsDocumentIdRoute: DocumentsDocumentIdRoute,
-  AudiosIndexRoute: AudiosIndexRoute,
-  DocumentsIndexRoute: DocumentsIndexRoute,
-  VideosIndexRoute: VideosIndexRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  UnauthenticatedRoute: UnauthenticatedRouteWithChildren,
 }
 
 export const routeTree = rootRoute
@@ -192,30 +298,57 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/audios/$audioId",
-        "/documents/$documentId",
-        "/audios/",
-        "/documents/",
-        "/videos/"
+        "/_authenticated",
+        "/_unauthenticated"
       ]
     },
     "/": {
       "filePath": "index.tsx"
     },
-    "/audios/$audioId": {
-      "filePath": "audios/$audioId.tsx"
+    "/_authenticated": {
+      "filePath": "_authenticated.tsx",
+      "children": [
+        "/_authenticated/dashboard",
+        "/_authenticated/audios/$audioId",
+        "/_authenticated/documents/$documentId",
+        "/_authenticated/audios/",
+        "/_authenticated/documents/",
+        "/_authenticated/videos/"
+      ]
     },
-    "/documents/$documentId": {
-      "filePath": "documents/$documentId.tsx"
+    "/_unauthenticated": {
+      "filePath": "_unauthenticated.tsx",
+      "children": [
+        "/_unauthenticated/login"
+      ]
     },
-    "/audios/": {
-      "filePath": "audios/index.tsx"
+    "/_authenticated/dashboard": {
+      "filePath": "_authenticated/dashboard.tsx",
+      "parent": "/_authenticated"
     },
-    "/documents/": {
-      "filePath": "documents/index.tsx"
+    "/_unauthenticated/login": {
+      "filePath": "_unauthenticated/login.tsx",
+      "parent": "/_unauthenticated"
     },
-    "/videos/": {
-      "filePath": "videos/index.tsx"
+    "/_authenticated/audios/$audioId": {
+      "filePath": "_authenticated/audios/$audioId.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/documents/$documentId": {
+      "filePath": "_authenticated/documents/$documentId.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/audios/": {
+      "filePath": "_authenticated/audios/index.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/documents/": {
+      "filePath": "_authenticated/documents/index.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/videos/": {
+      "filePath": "_authenticated/videos/index.tsx",
+      "parent": "/_authenticated"
     }
   }
 }

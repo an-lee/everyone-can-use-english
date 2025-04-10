@@ -1,19 +1,17 @@
 import { Icon } from "@iconify/react";
-import { AppMenubar } from "@renderer/components/layouts/menubar";
 import { useTranslation } from "react-i18next";
 
 export const InitializingErrorView = ({
-  error,
-  message,
+  error = "Unknown error",
+  message = "We couldn't initialize the application. Please try again.",
 }: {
-  error: string;
-  message: string;
+  error?: string;
+  message?: string;
 }) => {
   const { t } = useTranslation("components/status-views");
 
   return (
-    <div className="flex h-[100svh] w-screen flex-col items-center justify-center gap-4 pt-[var(--menubar-height)]">
-      <AppMenubar isAuthenticated={false} />
+    <div className="flex flex-col items-center justify-center gap-4">
       <Icon icon="mdi:alert-circle" className="h-12 w-12 text-destructive" />
       <div className="text-center">
         <p className="text-lg font-medium">
