@@ -5,7 +5,7 @@ import "@renderer/lib/i18n";
 
 // Import the generated route tree
 import { routeTree } from "./routeTree.gen";
-import { useAuthStore } from "./store";
+import { useAuthStore, useDbStore } from "./store";
 
 // Create a new router instance
 const router = createRouter({ routeTree, context: { isAuthenticated: false } });
@@ -19,11 +19,14 @@ declare module "@tanstack/react-router" {
 
 function App() {
   const { isAuthenticated } = useAuthStore();
+  const { dbState } = useDbStore();
 
   return (
     <RouterProvider
       router={router}
-      context={{ isAuthenticated: isAuthenticated() }}
+      context={{
+        isAuthenticated: isAuthenticated() && dbState.state === "connected",
+      }}
     />
   );
 }

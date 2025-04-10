@@ -95,9 +95,11 @@ const DatabaseConnectedView = () => {
 
   return (
     <div className="w-full h-full flex flex-col items-center justify-center gap-4">
-      <Icon icon="tabler:check-circle" className="h-10 w-10 text-success" />
+      <Icon icon="tabler:circle-check" className="h-10 w-10 text-success" />
       <div className="text-center">
-        <p className="text-lg font-medium">{t("databaseConnected")}</p>
+        <p className="text-sm text-muted-foreground">
+          {t("databaseConnected")}
+        </p>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useAuthStore } from "../store";
 import { useEffect } from "react";
+import { Icon } from "@iconify/react";
 
 export const Route = createFileRoute("/")({
   beforeLoad: async ({ context }) => {
@@ -13,12 +14,13 @@ export const Route = createFileRoute("/")({
   },
   component: Index,
 });
+
 function Index() {
   const { currentUser } = useAuthStore();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (currentUser) {
+    if (currentUser?.id) {
       navigate({ to: "/dashboard" });
     } else {
       navigate({ to: "/login" });
@@ -28,7 +30,10 @@ function Index() {
   return (
     <div className="flex h-[100svh] w-screen flex-col items-center justify-center gap-4">
       <img src="./assets/icon.png" alt="Enjoy" className="size-16" />
-      <h3>Welcome Home!</h3>
+      <Icon
+        icon="tabler:loader"
+        className="size-6 animate-spin text-muted-foreground"
+      />
     </div>
   );
 }
