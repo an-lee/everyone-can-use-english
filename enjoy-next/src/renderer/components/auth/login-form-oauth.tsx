@@ -9,7 +9,7 @@ export function LoginFormOauth() {
   let timer: NodeJS.Timeout | null = null;
   const { logingMethod, setLogingMethod, nonce, login } = useAuthStore();
   const { t } = useTranslation("components/auth");
-  const webApiUrl = useAppStore((state) => state.webApiUrl);
+  const webApiUrl = useAppStore((state) => state.config.webApiUrl);
   const hasOpenedRef = useRef(false);
 
   const openOauthUrl = () => {

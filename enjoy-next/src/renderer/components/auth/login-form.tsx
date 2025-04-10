@@ -13,10 +13,7 @@ import {
 } from "@renderer/components/ui";
 import { Icon } from "@iconify/react";
 import { useTranslation } from "react-i18next";
-import {
-  useAuthStore,
-  type LoginMethodType,
-} from "@/renderer/store/use-auth-store";
+import { useAuthStore } from "@renderer/store";
 import { useEffect } from "react";
 import { LoginFormOauth } from "./login-form-oauth";
 import { LoginFormCode } from "./login-form-code";
