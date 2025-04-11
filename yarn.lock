@@ -11205,6 +11205,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/validator@npm:^13.11.8":
+  version: 13.12.3
+  resolution: "@types/validator@npm:13.12.3"
+  checksum: 10c0/bc40191cd2e3c9b4b8d1f10611038ae3793462685366201940f2ef953b3229c02edcdb7c73cc5e6f762d5ecf1762a821afadaf97f71bd7fb06fae3aeb2729caf
+  languageName: node
+  linkType: hard
+
 "@types/validator@npm:^13.12.2, @types/validator@npm:^13.7.17":
   version: 13.12.2
   resolution: "@types/validator@npm:13.12.2"
@@ -13726,6 +13733,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"class-validator@npm:^0.14.1":
+  version: 0.14.1
+  resolution: "class-validator@npm:0.14.1"
+  dependencies:
+    "@types/validator": "npm:^13.11.8"
+    libphonenumber-js: "npm:^1.10.53"
+    validator: "npm:^13.9.0"
+  checksum: 10c0/946e914e47548b5081449c720ea6a4877bac63dc960e14fca4b990b56e64efe3802d12f07ec22d6420c290245b72ea2d646939239f2a3b597794e6c4c2a4f2ae
+  languageName: node
+  linkType: hard
+
 "class-variance-authority@npm:^0.7.1":
   version: 0.7.1
   resolution: "class-variance-authority@npm:0.7.1"
@@ -16156,6 +16174,7 @@ __metadata:
     axios: "npm:^1.8.4"
     camelcase-keys: "npm:^9.1.3"
     class-transformer: "npm:^0.5.1"
+    class-validator: "npm:^0.14.1"
     class-variance-authority: "npm:^0.7.1"
     clsx: "npm:^2.1.1"
     decamelize-keys: "npm:^2.0.1"
@@ -16190,6 +16209,7 @@ __metadata:
     typescript: "npm:~5.8.2"
     uuid: "npm:^9.0.1"
     vite: "npm:^6.2.4"
+    vite-plugin-static-copy: "npm:^2.3.1"
     winston: "npm:^3.17.0"
     zod: "npm:^3.24.2"
     zustand: "npm:^5.0.3"
@@ -20827,6 +20847,13 @@ __metadata:
     prelude-ls: "npm:^1.2.1"
     type-check: "npm:~0.4.0"
   checksum: 10c0/effb03cad7c89dfa5bd4f6989364bfc79994c2042ec5966cb9b95990e2edee5cd8969ddf42616a0373ac49fac1403437deaf6e9050fbbaa3546093a59b9ac94e
+  languageName: node
+  linkType: hard
+
+"libphonenumber-js@npm:^1.10.53":
+  version: 1.12.6
+  resolution: "libphonenumber-js@npm:1.12.6"
+  checksum: 10c0/7218d8ce96a19c76c677a89da41c6b55c89c07f64999b464b5fde605d2abfcbefe2afc5bbb13f08be0f5a3dfa9ac27ac9b7ab7b65450563467fa82fb91579389
   languageName: node
   linkType: hard
 
@@ -29903,6 +29930,21 @@ __metadata:
   peerDependencies:
     vite: ^5.0.0 || ^6.0.0
   checksum: 10c0/fdf6bf52617eb5e3784e89cd473ef7d6551d273576c414388457346f28344042f057cfb079e532332c04da6b04f67e262557f03279fc7b48bdaf386c8b76bbc0
+  languageName: node
+  linkType: hard
+
+"vite-plugin-static-copy@npm:^2.3.1":
+  version: 2.3.1
+  resolution: "vite-plugin-static-copy@npm:2.3.1"
+  dependencies:
+    chokidar: "npm:^3.5.3"
+    fast-glob: "npm:^3.2.11"
+    fs-extra: "npm:^11.1.0"
+    p-map: "npm:^7.0.3"
+    picocolors: "npm:^1.0.0"
+  peerDependencies:
+    vite: ^5.0.0 || ^6.0.0
+  checksum: 10c0/21bc3823b70534c09c73ff272851329242fa4e307160681950883afca78b1bb4aa156c1a81431a3cb72ad1a81d49293a63b4e3c10d19e22ec3bfbc80099cae94
   languageName: node
   linkType: hard
 

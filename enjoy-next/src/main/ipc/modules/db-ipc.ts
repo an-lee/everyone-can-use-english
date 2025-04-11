@@ -1,5 +1,5 @@
 import { BaseIpcModule, IpcMethod } from "@main/ipc/modules";
-import { db } from "@main/storage/db";
+import { db } from "@/main/storage/database-manager";
 import appConfig from "@main/core/app/config";
 
 /**

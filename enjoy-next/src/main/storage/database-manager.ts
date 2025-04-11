@@ -7,7 +7,7 @@ import appConfig from "@main/core/app/config";
 import { AppDataSource } from "@main/storage/data-source";
 import { IpcChannels } from "@shared/ipc/ipc-channels";
 
-const logger = log.scope("DB");
+const logger = log.scope("DatabaseManager");
 
 // Retry configuration
 const RETRY_DELAYS = [1000, 2000, 3000, 5000, 8000]; // Fibonacci-like sequence
@@ -108,6 +108,7 @@ class DatabaseManager {
 
       fs.ensureDirSync(path.dirname(dbPath));
 
+      // Only set the database path, keep the migrations configuration from data-source.ts
       AppDataSource.setOptions({
         database: dbPath,
       });
@@ -125,6 +126,36 @@ class DatabaseManager {
       if (this.dataSource === null) {
         logger.info("Initializing new AppDataSource");
         await Promise.race([AppDataSource.initialize(), timeoutPromise]);
+
+        logger.info("New database, running migrations");
+        const availableMigrations = AppDataSource.migrations;
+        logger.info(
+          "Available migrations:",
+          availableMigrations.length,
+          availableMigrations.map((m) => m.name)
+        );
+
+        try {
+          await AppDataSource.runMigrations();
+          logger.info("Migrations completed successfully");
+
+          // Verify table creation
+          const tablesCreated = await AppDataSource.query(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='audio'"
+          );
+          if (tablesCreated.length === 0) {
+            logger.warn("Migrations ran but expected tables were not created");
+          }
+        } catch (migrationError: unknown) {
+          logger.error(
+            migrationError instanceof Error
+              ? migrationError.message
+              : String(migrationError)
+          );
+          await AppDataSource.destroy();
+          throw migrationError;
+        }
+
         this.dataSource = AppDataSource;
       } else {
         logger.info("Reinitializing existing AppDataSource");

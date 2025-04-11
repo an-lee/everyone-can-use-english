@@ -120,3 +120,57 @@ The codebase recently underwent a significant refactoring:
    - Better propagation of errors through observable chains
    - More consistent timeout handling
    - Enhanced recovery mechanisms
+
+## Database Migrations
+
+This project uses TypeORM for database management. To create a new migration:
+
+```bash
+node src/main/scripts/create-migration.mjs MyMigrationName
+```
+
+This will:
+
+1. Create a timestamped migration file in `src/main/storage/migrations/`
+2. Update `data-source.ts` to include the new migration
+3. Set up the proper class structure for TypeORM to recognize the migration
+
+After creating a migration, edit the generated file to implement your database changes in the `up` method and the rollback logic in the `down` method.
+
+Migrations will run automatically when:
+
+1. A new database is created
+2. The `migrate()` method is called on the database manager
+
+Example migration implementation:
+
+```typescript
+// Creating a new table
+public async up(queryRunner: QueryRunner): Promise<void> {
+  await queryRunner.createTable(
+    new Table({
+      name: "users",
+      columns: [
+        new TableColumn({
+          name: "id",
+          type: "uuid",
+          isPrimary: true,
+          isGenerated: true,
+          generationStrategy: "uuid",
+        }),
+        new TableColumn({
+          name: "email",
+          type: "varchar",
+          isUnique: true,
+        }),
+        // Add more columns as needed
+      ],
+    })
+  );
+}
+
+// Reverting changes
+public async down(queryRunner: QueryRunner): Promise<void> {
+  await queryRunner.dropTable("users");
+}
+```

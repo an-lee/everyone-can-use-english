@@ -10,11 +10,8 @@
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
-    "lint": "eslint --ext .ts,.tsx .",
-    "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
-    "migration:generate": "npm run typeorm migration:generate -- -d src/main/db/datasource.ts",
-    "migration:run": "npm run typeorm migration:run -- -d src/main/db/datasource.ts",
-    "migration:revert": "npm run typeorm migration:revert -- -d src/main/db/datasource.ts"
+    "lint": "eslint --ext .js,.jsx,.ts,.tsx .",
+    "migration:create": "node src/main/scripts/create-migration.mjs"
   },
   "keywords": [],
   "author": {
@@ -52,6 +49,7 @@
     "axios": "^1.8.4",
     "camelcase-keys": "^9.1.3",
     "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "decamelize-keys": "^2.0.1",
@@ -83,6 +81,7 @@
     "typescript": "~5.8.2",
     "uuid": "^9.0.1",
     "vite": "^6.2.4",
+    "vite-plugin-static-copy": "^2.3.1",
     "winston": "^3.17.0",
     "zod": "^3.24.2",
     "zustand": "^5.0.3"

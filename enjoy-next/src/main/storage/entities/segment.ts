@@ -30,20 +30,20 @@ export class Segment extends BaseEntity {
   @Column({ name: "md5", type: "varchar" })
   md5!: string;
 
-  @Column({ name: "caption", type: "json" })
+  @Column({ name: "caption", type: "json", default: "{}" })
   caption!: Record<string, any>;
 
-  @Column({ name: "start_time", type: "integer" })
-  startTime!: number;
+  @Column({ name: "start_time", type: "integer", nullable: true })
+  startTime?: number;
 
-  @Column({ name: "end_time", type: "integer" })
-  endTime!: number;
+  @Column({ name: "end_time", type: "integer", nullable: true })
+  endTime?: number;
 
-  @Column({ name: "synced_at", type: "date" })
-  syncedAt!: Date;
+  @Column({ name: "synced_at", type: "date", nullable: true })
+  syncedAt?: Date;
 
-  @Column({ name: "uploaded_at", type: "date" })
-  uploadedAt!: Date;
+  @Column({ name: "uploaded_at", type: "date", nullable: true })
+  uploadedAt?: Date;
 
   @CreateDateColumn({ name: "created_at", type: "date" })
   createdAt!: Date;
@@ -52,11 +52,13 @@ export class Segment extends BaseEntity {
   updatedAt!: Date;
 
   get isSynced(): boolean {
-    return Boolean(this.syncedAt) && this.syncedAt >= this.updatedAt;
+    if (!this.syncedAt) return false;
+    return this.syncedAt >= this.updatedAt;
   }
 
   get isUploaded(): boolean {
-    return Boolean(this.uploadedAt) && this.uploadedAt >= this.updatedAt;
+    if (!this.uploadedAt) return false;
+    return this.uploadedAt >= this.updatedAt;
   }
 
   get src(): string {

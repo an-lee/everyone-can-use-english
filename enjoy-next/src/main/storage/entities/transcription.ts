@@ -4,6 +4,8 @@ import {
   Column,
   Index,
   PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from "typeorm";
 
 @Entity("transcriptions")
@@ -39,17 +41,15 @@ export class Transcription extends BaseEntity {
   @Column({ name: "synced_at", type: "date", nullable: true })
   syncedAt?: Date;
 
-  @Column({
+  @CreateDateColumn({
     name: "created_at",
     type: "date",
-    default: () => "CURRENT_TIMESTAMP",
   })
   createdAt!: Date;
 
-  @Column({
+  @UpdateDateColumn({
     name: "updated_at",
     type: "date",
-    default: () => "CURRENT_TIMESTAMP",
   })
   updatedAt!: Date;
 }

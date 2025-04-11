@@ -7,7 +7,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from "typeorm";
-
+import { Min } from "class-validator";
 @Entity("audios")
 export class Audio extends BaseEntity {
   @PrimaryGeneratedColumn("uuid")
@@ -35,9 +35,11 @@ export class Audio extends BaseEntity {
   @Column({ name: "cover_url", nullable: true, type: "varchar" })
   coverUrl?: string;
 
+  @Min(0)
   @Column({ name: "recordings_count", default: 0, type: "integer" })
   recordingsCount!: number;
 
+  @Min(0)
   @Column({ name: "recordings_duration", default: 0, type: "integer" })
   recordingsDuration!: number;
 

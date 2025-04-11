@@ -1,4 +1,11 @@
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import {
+  BaseEntity,
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from "typeorm";
 
 @Entity("user_settings")
 export class UserSetting extends BaseEntity {
@@ -10,6 +17,12 @@ export class UserSetting extends BaseEntity {
 
   @Column({ name: "value", type: "text" })
   value!: string;
+
+  @CreateDateColumn({ name: "created_at", type: "date" })
+  createdAt!: Date;
+
+  @UpdateDateColumn({ name: "updated_at", type: "date" })
+  updatedAt!: Date;
 
   /**
    * Get a value from settings by key path

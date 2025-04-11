@@ -1,7 +1,8 @@
-import { useDbStore } from "@/renderer/store";
+import { useDbStore } from "@renderer/store";
 import { Icon } from "@iconify/react";
 import { useTranslation } from "react-i18next";
 import { LoadingView } from "./loading-view";
+import { Progress } from "@renderer/components/ui";
 
 const MAX_RETRIES = 5;
 
@@ -60,22 +61,17 @@ const DatabaseErrorView = () => {
   return (
     <div className="w-full h-full flex flex-col items-center justify-center gap-4">
       <Icon icon="mdi:database-alert" className="h-10 w-10 text-destructive" />
-      <div className="text-center">
-        <p className="text-lg font-medium">{t("databaseError")}</p>
+      <div className="text-center max-w-sm mx-auto">
+        <p className="text-lg font-medium mb-4">{t("databaseError")}</p>
         <p className="text-sm text-muted-foreground">{error}</p>
 
         {retryCount && retryDelay ? (
-          <div className="mt-4">
+          <div className="mt-4 w-full mx-auto">
             <p className="text-xs text-muted-foreground">
               Retry attempt {retryCount} of {MAX_RETRIES}
             </p>
-            <div className="mt-2 flex h-1.5 w-48 items-center overflow-hidden rounded-full bg-muted">
-              <div
-                className="h-full bg-amber-500 transition-all duration-500"
-                style={{
-                  width: `${(retryCount / MAX_RETRIES) * 100}%`,
-                }}
-              />
+            <div className="mt-2 flex h-1.5 w-full">
+              <Progress value={(retryCount / MAX_RETRIES) * 100} />
             </div>
           </div>
         ) : (

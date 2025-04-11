@@ -3,8 +3,14 @@ import { DataSource } from "typeorm";
 import {
   Audio,
   CacheObject,
+  Chat,
+  ChatAgent,
+  ChatMember,
+  ChatMessage,
   Conversation,
   Document,
+  Message,
+  Note,
   PronunciationAssessment,
   Recording,
   Segment,
@@ -12,17 +18,25 @@ import {
   Transcription,
   UserSetting,
   Video,
-} from "@main/storage/entities";
-import appConfig from "@main/core/app/config";
+} from "./entities";
 
-export const AppDataSource = new DataSource({
+// Explicitly import migration classes
+import { InitSchema1744290634346 } from "./migrations/1744290634346-InitSchema";
+
+const AppDataSource = new DataSource({
   type: "sqlite",
-  database: appConfig.dbPath()!,
+  database: "", // This will be set at runtime in database-manager.ts
   entities: [
     Audio,
     CacheObject,
+    Chat,
+    ChatAgent,
+    ChatMember,
+    ChatMessage,
     Conversation,
     Document,
+    Message,
+    Note,
     PronunciationAssessment,
     Recording,
     Segment,
@@ -32,4 +46,9 @@ export const AppDataSource = new DataSource({
     Video,
   ],
   synchronize: false,
+  migrations: [InitSchema1744290634346],
+  migrationsTableName: "migrations",
 });
+
+export { AppDataSource };
+export default AppDataSource;

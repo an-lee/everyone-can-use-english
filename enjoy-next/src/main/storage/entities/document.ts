@@ -24,32 +24,32 @@ export class Document extends BaseEntity {
   @Column({ type: "varchar" })
   md5!: string;
 
-  @Column({ type: "varchar" })
-  source!: string;
+  @Column({ name: "source", type: "varchar", nullable: true })
+  source?: string;
 
   @Column({ type: "varchar" })
   title!: string;
 
-  @Column({ type: "varchar" })
-  coverUrl!: string;
+  @Column({ name: "cover_url", type: "varchar", nullable: true })
+  coverUrl?: string;
 
-  @Column({ type: "json" })
+  @Column({ type: "json", default: "{}" })
   metadata!: Record<string, any>;
 
-  @Column({ type: "json" })
+  @Column({ type: "json", default: "{}" })
   config!: Record<string, any>;
 
-  @Column({ type: "json" })
+  @Column({ name: "last_read_position", type: "json", default: "{}" })
   lastReadPosition!: Record<string, any>;
 
-  @Column({ type: "date" })
-  lastReadAt!: Date;
+  @Column({ name: "last_read_at", type: "date", nullable: true })
+  lastReadAt?: Date;
 
-  @Column({ type: "date" })
-  syncedAt!: Date;
+  @Column({ name: "synced_at", type: "date", nullable: true })
+  syncedAt?: Date;
 
-  @Column({ type: "date" })
-  uploadedAt!: Date;
+  @Column({ name: "uploaded_at", type: "date", nullable: true })
+  uploadedAt?: Date;
 
   @CreateDateColumn({ name: "created_at", type: "date" })
   createdAt!: Date;
@@ -96,10 +96,12 @@ export class Document extends BaseEntity {
   }
 
   get isSynced(): boolean {
-    return Boolean(this.syncedAt) && this.syncedAt >= this.updatedAt;
+    if (!this.syncedAt) return false;
+    return this.syncedAt >= this.updatedAt;
   }
 
   get isUploaded(): boolean {
-    return Boolean(this.uploadedAt) && this.uploadedAt >= this.updatedAt;
+    if (!this.uploadedAt) return false;
+    return this.uploadedAt >= this.updatedAt;
   }
 }

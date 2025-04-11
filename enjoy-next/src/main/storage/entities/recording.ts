@@ -1,5 +1,6 @@
 import { MIME_TYPES } from "@/shared/constants";
 import { appConfig } from "@main/core";
+import { Min } from "class-validator";
 import fs from "fs-extra";
 import path from "path";
 import {
@@ -37,13 +38,14 @@ export class Recording extends BaseEntity {
   @Column({ name: "filename", type: "varchar" })
   filename!: string;
 
-  @Column({ name: "reference_id", type: "integer" })
-  referenceId!: number;
+  @Column({ name: "reference_id", type: "integer", nullable: true })
+  referenceId?: number;
 
-  @Column({ name: "reference_text", type: "text" })
-  referenceText!: string;
+  @Column({ name: "reference_text", type: "text", nullable: true })
+  referenceText?: string;
 
-  @Column({ name: "duration", type: "integer" })
+  @Min(0)
+  @Column({ name: "duration", type: "integer", default: 0 })
   duration!: number;
 
   @Column({ name: "synced_at", type: "date", nullable: true })

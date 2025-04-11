@@ -3,48 +3,49 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
-import { VideoService } from "../services/video-service";
 
 @Entity("videos")
 export class Video extends BaseEntity {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
-  @Column({ name: "language", type: "varchar" })
-  language!: string;
+  @Column({ name: "language", type: "varchar", nullable: true })
+  language?: string;
 
-  @Column({ name: "source", type: "varchar" })
-  source!: string;
+  @Column({ name: "source", type: "varchar", nullable: true })
+  source?: string;
 
+  @Index({ unique: true })
   @Column({ name: "md5", type: "varchar" })
   md5!: string;
 
   @Column({ name: "name", type: "varchar" })
   name!: string;
 
-  @Column({ name: "description", type: "varchar" })
-  description!: string;
+  @Column({ name: "description", type: "varchar", nullable: true })
+  description?: string;
 
-  @Column({ name: "metadata", type: "json" })
+  @Column({ name: "metadata", type: "json", default: "{}" })
   metadata!: any;
 
-  @Column({ name: "cover_url", type: "varchar" })
-  coverUrl!: string;
+  @Column({ name: "cover_url", type: "varchar", nullable: true })
+  coverUrl?: string;
 
-  @Column({ name: "recordings_count", type: "integer" })
+  @Column({ name: "recordings_count", type: "integer", default: 0 })
   recordingsCount!: number;
 
-  @Column({ name: "recordings_duration", type: "integer" })
+  @Column({ name: "recordings_duration", type: "integer", default: 0 })
   recordingsDuration!: number;
 
-  @Column({ name: "synced_at", type: "date" })
-  syncedAt!: Date;
+  @Column({ name: "synced_at", type: "date", nullable: true })
+  syncedAt?: Date;
 
-  @Column({ name: "uploaded_at", type: "date" })
-  uploadedAt!: Date;
+  @Column({ name: "uploaded_at", type: "date", nullable: true })
+  uploadedAt?: Date;
 
   @CreateDateColumn({ name: "created_at", type: "date" })
   createdAt!: Date;

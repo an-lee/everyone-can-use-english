@@ -22,8 +22,8 @@ export class PronunciationAssessment extends BaseEntity {
   @Column({ name: "target_type", type: "varchar" })
   targetType!: string;
 
-  @Column({ name: "reference_text", type: "text" })
-  referenceText!: string;
+  @Column({ name: "reference_text", type: "text", nullable: true })
+  referenceText?: string;
 
   @Column({ name: "accuracy_score", type: "float" })
   accuracyScore!: number;
@@ -49,11 +49,11 @@ export class PronunciationAssessment extends BaseEntity {
   @Column({ name: "topic_score", type: "float", nullable: true })
   topicScore?: number;
 
-  @Column({ name: "result", type: "json" })
+  @Column({ name: "result", type: "json", default: "{}" })
   result!: Record<string, any>;
 
-  @Column({ name: "synced_at", type: "date" })
-  syncedAt!: Date;
+  @Column({ name: "synced_at", type: "date", nullable: true })
+  syncedAt?: Date;
 
   @CreateDateColumn({ name: "created_at", type: "date" })
   createdAt!: Date;

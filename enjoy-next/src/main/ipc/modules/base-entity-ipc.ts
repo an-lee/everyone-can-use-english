@@ -1,6 +1,6 @@
 import { BaseIpcModule } from "@main/ipc/modules";
 import { ipcMain } from "electron";
-import { db } from "@main/storage/db";
+import { db } from "@/main/storage/database-manager";
 import { log } from "@main/core";
 import { PreloadApiGenerator, ServiceHandlerMetadata } from "@main/ipc/preload";
 import { IpcErrorHandler } from "../core/ipc-error-handler";
