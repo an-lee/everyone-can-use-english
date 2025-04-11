@@ -35,7 +35,7 @@ export function NavMaterials({
               isActive={pathname.startsWith(item.url)}
               asChild
             >
-              <Link to={item.url}>
+              <Link to={item.url} replace={true}>
                 <Icon icon={item.icon || "tabler:playground"} />
                 <span>{item.title}</span>
               </Link>

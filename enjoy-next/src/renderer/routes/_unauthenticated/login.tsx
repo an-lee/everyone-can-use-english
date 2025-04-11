@@ -18,7 +18,7 @@ function RouteComponent() {
 
   useEffect(() => {
     if (dbState.state === "connected") {
-      router.navigate({ to: "/" });
+      router.navigate({ to: "/", replace: true });
     }
   }, [dbState.state]);
 

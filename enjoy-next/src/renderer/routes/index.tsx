@@ -1,4 +1,4 @@
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
 import { useAuthStore } from "../store";
 import { useEffect } from "react";
 import { Icon } from "@iconify/react";
@@ -9,7 +9,7 @@ export const Route = createFileRoute("/")({
       isAuthenticated: boolean;
     };
     if (!isAuthenticated) {
-      throw redirect({ to: "/login" });
+      throw redirect({ to: "/login", replace: true });
     }
   },
   component: Index,
@@ -17,13 +17,13 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const { currentUser } = useAuthStore();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   useEffect(() => {
     if (currentUser?.id) {
-      navigate({ to: "/dashboard" });
+      router.navigate({ to: "/dashboard", replace: true });
     } else {
-      navigate({ to: "/login" });
+      router.navigate({ to: "/login", replace: true });
     }
   }, [currentUser]);
 
