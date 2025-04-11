@@ -17,16 +17,3 @@ declare interface AudioEntity {
   createdAt: string;
   updatedAt: string;
 }
-
-/**
- * Audio search options
- */
-declare interface AudioSearchOptions {
-  page?: number;
-  limit?: number;
-  search?: string;
-  language?: string;
-  source?: string;
-  order?: "asc" | "desc";
-  sort?: "created_at" | "updated_at" | "name" | "duration" | "size";
-}

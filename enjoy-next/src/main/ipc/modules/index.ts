@@ -23,8 +23,12 @@ export * from "./shell-ipc";
 
 import { entityAudioIpcModule } from "./entity-audio-ipc";
 import { entityCacheObjectIpcModule } from "./entity-cache-object-ipc";
+import { entityChatAgentIpcModule } from "./entity-chat-agent-ipc";
+import { entityChatMessageIpcModule } from "./entity-chat-message-ipc";
+import { entityChatMemberIpcModule } from "./entity-chat-member-ipc";
 import { entityConversationIpcModule } from "./entity-conversation-ipc";
 import { entityDocumentIpcModule } from "./entity-document-ipc";
+import { entityNoteIpcModule } from "./entity-note-ipc";
 import { entityPronunciationAssessmentIpcModule } from "./entity-pronunciation-assessment-ipc";
 import { entityRecordingIpcModule } from "./entity-recording-ipc";
 import { entitySegmentIpcModule } from "./entity-segment-ipc";
@@ -35,8 +39,12 @@ import { entityVideoIpcModule } from "./entity-video-ipc";
 export const entityIpcModules = [
   entityAudioIpcModule,
   entityCacheObjectIpcModule,
+  entityChatAgentIpcModule,
+  entityChatMessageIpcModule,
+  entityChatMemberIpcModule,
   entityConversationIpcModule,
   entityDocumentIpcModule,
+  entityNoteIpcModule,
   entityPronunciationAssessmentIpcModule,
   entityRecordingIpcModule,
   entitySegmentIpcModule,

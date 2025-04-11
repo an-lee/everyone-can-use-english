@@ -1,5 +1,5 @@
 // Auto-generated type declarations for Electron IPC
-// DO NOT EDIT DIRECTLY - Generated on 2025-04-11T02:32:50.951Z
+// DO NOT EDIT DIRECTLY - Generated on 2025-04-11T03:10:18.497Z
 
 declare interface EnjoyAPI {
   appConfig: {
@@ -36,6 +36,30 @@ declare interface EnjoyAPI {
       set: (key: string, value: any, ttl?: number) => Promise<void>;
       delete: (key: string) => Promise<boolean>;
     };
+    chatAgent: {
+      findAll: (options?: PaginationOptions) => Promise<PaginationResult<ChatAgentEntity>>;
+      findById: (id: string) => Promise<ChatAgentEntity | null>;
+      create: (data: Partial<ChatAgentEntity>) => Promise<ChatAgentEntity>;
+      update: (id: string, data: Partial<ChatAgentEntity>) => Promise<ChatAgentEntity | null>;
+      delete: (id: string) => Promise<boolean>;
+      count: () => Promise<number>;
+    };
+    chatMessage: {
+      findAll: (options?: ChatMessageFindAllOptions) => Promise<PaginationResult<ChatMessageEntity>>;
+      findById: (id: string) => Promise<ChatMessageEntity | null>;
+      create: (data: Partial<ChatMessageEntity>) => Promise<ChatMessageEntity>;
+      update: (id: string, data: Partial<ChatMessageEntity>) => Promise<ChatMessageEntity | null>;
+      delete: (id: string) => Promise<boolean>;
+      count: () => Promise<number>;
+    };
+    chatMember: {
+      findAll: (options?: ChatMemberFindAllOptions) => Promise<ChatMemberEntity[]>;
+      findById: (id: string) => Promise<ChatMemberEntity | null>;
+      create: (data: Partial<ChatMemberEntity>) => Promise<ChatMemberEntity>;
+      update: (id: string, data: Partial<ChatMemberEntity>) => Promise<ChatMemberEntity | null>;
+      delete: (id: string) => Promise<boolean>;
+      count: () => Promise<number>;
+    };
     conversation: {
       findAll: (options?: PaginationOptions) => Promise<PaginationResult<ConversationEntity>>;
       findById: (id: string) => Promise<ConversationEntity | null>;
@@ -50,6 +74,14 @@ declare interface EnjoyAPI {
       create: (data: Partial<DocumentEntity>) => Promise<DocumentEntity>;
       update: (id: string, data: Partial<DocumentEntity>) => Promise<DocumentEntity | null>;
       delete: (id: string) => Promise<boolean>;
+    };
+    note: {
+      findAll: (options?: NoteFindAllOptions) => Promise<PaginationResult<NoteEntity>>;
+      findById: (id: string) => Promise<NoteEntity | null>;
+      create: (data: Partial<NoteEntity>) => Promise<NoteEntity>;
+      update: (id: string, data: Partial<NoteEntity>) => Promise<NoteEntity | null>;
+      delete: (id: string) => Promise<boolean>;
+      count: () => Promise<number>;
     };
     pronunciationAssessment: {
       create: (data: Partial<PronunciationAssessmentEntity>) => Promise<PronunciationAssessmentEntity>;

@@ -1,5 +1,5 @@
 // Auto-generated preload API for Electron IPC
-// DO NOT EDIT DIRECTLY - Generated on 2025-04-11T02:32:50.952Z
+// DO NOT EDIT DIRECTLY - Generated on 2025-04-11T03:10:18.499Z
 
 import { ipcRenderer } from 'electron';
 
@@ -42,6 +42,30 @@ export const DbAPI = {
     set: (key: string, value: any, ttl?: number) => ipcRenderer.invoke('db:cacheObject:set', key, value, ttl),
     delete: (key: string) => ipcRenderer.invoke('db:cacheObject:delete', key),
   },
+  chatAgent: {
+    findAll: (options?: PaginationOptions) => ipcRenderer.invoke('db:chat_agent:findAll', options),
+    findById: (id: string) => ipcRenderer.invoke('db:chat_agent:findById', id),
+    create: (data: Partial<ChatAgentEntity>) => ipcRenderer.invoke('db:chat_agent:create', data),
+    update: (id: string, data: Partial<ChatAgentEntity>) => ipcRenderer.invoke('db:chat_agent:update', id, data),
+    delete: (id: string) => ipcRenderer.invoke('db:chat_agent:delete', id),
+    count: () => ipcRenderer.invoke('db:chat_agent:count'),
+  },
+  chatMessage: {
+    findAll: (options?: ChatMessageFindAllOptions) => ipcRenderer.invoke('db:chat_message:findAll', options),
+    findById: (id: string) => ipcRenderer.invoke('db:chat_message:findById', id),
+    create: (data: Partial<ChatMessageEntity>) => ipcRenderer.invoke('db:chat_message:create', data),
+    update: (id: string, data: Partial<ChatMessageEntity>) => ipcRenderer.invoke('db:chat_message:update', id, data),
+    delete: (id: string) => ipcRenderer.invoke('db:chat_message:delete', id),
+    count: () => ipcRenderer.invoke('db:chat_message:count'),
+  },
+  chatMember: {
+    findAll: (options?: ChatMemberFindAllOptions) => ipcRenderer.invoke('db:chat_member:findAll', options),
+    findById: (id: string) => ipcRenderer.invoke('db:chat_member:findById', id),
+    create: (data: Partial<ChatMemberEntity>) => ipcRenderer.invoke('db:chat_member:create', data),
+    update: (id: string, data: Partial<ChatMemberEntity>) => ipcRenderer.invoke('db:chat_member:update', id, data),
+    delete: (id: string) => ipcRenderer.invoke('db:chat_member:delete', id),
+    count: () => ipcRenderer.invoke('db:chat_member:count'),
+  },
   conversation: {
     findAll: (options?: PaginationOptions) => ipcRenderer.invoke('db:conversation:findAll', options),
     findById: (id: string) => ipcRenderer.invoke('db:conversation:findById', id),
@@ -56,6 +80,14 @@ export const DbAPI = {
     create: (data: Partial<DocumentEntity>) => ipcRenderer.invoke('db:document:create', data),
     update: (id: string, data: Partial<DocumentEntity>) => ipcRenderer.invoke('db:document:update', id, data),
     delete: (id: string) => ipcRenderer.invoke('db:document:delete', id),
+  },
+  note: {
+    findAll: (options?: NoteFindAllOptions) => ipcRenderer.invoke('db:note:findAll', options),
+    findById: (id: string) => ipcRenderer.invoke('db:note:findById', id),
+    create: (data: Partial<NoteEntity>) => ipcRenderer.invoke('db:note:create', data),
+    update: (id: string, data: Partial<NoteEntity>) => ipcRenderer.invoke('db:note:update', id, data),
+    delete: (id: string) => ipcRenderer.invoke('db:note:delete', id),
+    count: () => ipcRenderer.invoke('db:note:count'),
   },
   pronunciationAssessment: {
     create: (data: Partial<PronunciationAssessmentEntity>) => ipcRenderer.invoke('db:pronunciationAssessment:create', data),

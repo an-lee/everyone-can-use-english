@@ -7,6 +7,10 @@ import { instanceToPlain } from "class-transformer";
  * Simple Audio service for managing audio files
  */
 export class AudioService {
+  constructor() {
+    log.scope("Storage/AudioService");
+  }
+
   /**
    * Find all audio items with pagination
    */

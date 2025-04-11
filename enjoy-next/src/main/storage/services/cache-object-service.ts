@@ -1,5 +1,4 @@
 import { CacheObject } from "@main/storage/entities/cache-object";
-import { instanceToPlain } from "class-transformer";
 import { log } from "@main/core";
 
 log.scope("Storage/CacheObjectService");
