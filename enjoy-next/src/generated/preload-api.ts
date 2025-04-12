@@ -1,5 +1,5 @@
 // Auto-generated preload API for Electron IPC
-// DO NOT EDIT DIRECTLY - Generated on 2025-04-11T03:10:18.499Z
+// DO NOT EDIT DIRECTLY - Generated on 2025-04-11T03:24:52.531Z
 
 import { ipcRenderer } from 'electron';
 
@@ -117,7 +117,7 @@ export const DbAPI = {
   },
   transcription: {
     findByTarget: (targetId: string, targetType: string) => ipcRenderer.invoke('db:transcription:findByTarget', targetId, targetType),
-    findByMd5: (targetMd5: string) => ipcRenderer.invoke('db:transcription:findByMd5', targetMd5),
+    findByTargetMd5: (targetMd5: string) => ipcRenderer.invoke('db:transcription:findByTargetMd5', targetMd5),
     create: (data: Partial<TranscriptionEntity>) => ipcRenderer.invoke('db:transcription:create', data),
     update: (id: string, data: Partial<TranscriptionEntity>) => ipcRenderer.invoke('db:transcription:update', id, data),
     delete: (id: string) => ipcRenderer.invoke('db:transcription:delete', id),

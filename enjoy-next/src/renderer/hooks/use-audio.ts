@@ -10,7 +10,7 @@ export const useAudios = (options?: {
   order?: "asc" | "desc";
   sort?: "created_at" | "updated_at" | "name" | "duration" | "size";
 }) => {
-  return useQuery<AudioPaginationResult>({
+  return useQuery<PaginationResult<AudioEntity>>({
     queryKey: ["audios", options],
     queryFn: async () => {
       if (!window.EnjoyAPI) {
@@ -25,7 +25,7 @@ export const useAudios = (options?: {
  * Get a single audio by ID
  */
 export const useAudioById = (id: string | null) => {
-  return useQuery<AudioType | null>({
+  return useQuery<AudioEntity | null>({
     queryKey: ["audio", id],
     queryFn: async () => {
       if (!id || !window.EnjoyAPI) {

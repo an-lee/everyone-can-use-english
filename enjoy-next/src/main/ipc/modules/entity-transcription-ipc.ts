@@ -44,7 +44,7 @@ export class EntityTranscriptionIpcModule extends BaseEntityIpcModule<
           description: "Target type",
         },
       ],
-      findByMd5: [
+      findByTargetMd5: [
         {
           name: "targetMd5",
           type: "string",

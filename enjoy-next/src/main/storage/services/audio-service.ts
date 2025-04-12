@@ -55,6 +55,7 @@ export class AudioService {
    * Find audio item by ID
    */
   async findById(id: string): Promise<AudioEntity | null> {
+    log.info(`Finding audio by ID: ${id}`);
     const audio = await Audio.findOne({ where: { id } });
     if (!audio) {
       return null;

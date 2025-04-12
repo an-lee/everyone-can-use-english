@@ -16,7 +16,9 @@ export class TranscriptionService {
       : null;
   }
 
-  async findByMd5(targetMd5: string): Promise<TranscriptionEntity | null> {
+  async findByTargetMd5(
+    targetMd5: string
+  ): Promise<TranscriptionEntity | null> {
     const transcription = await Transcription.findOne({
       where: { targetMd5 },
     });

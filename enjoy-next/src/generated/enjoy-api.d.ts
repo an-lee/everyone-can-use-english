@@ -1,5 +1,5 @@
 // Auto-generated type declarations for Electron IPC
-// DO NOT EDIT DIRECTLY - Generated on 2025-04-11T03:10:18.497Z
+// DO NOT EDIT DIRECTLY - Generated on 2025-04-11T03:24:52.529Z
 
 declare interface EnjoyAPI {
   appConfig: {
@@ -111,7 +111,7 @@ declare interface EnjoyAPI {
     };
     transcription: {
       findByTarget: (targetId: string, targetType: string) => Promise<TranscriptionEntity | null>;
-      findByMd5: (targetMd5: string) => Promise<TranscriptionEntity | null>;
+      findByTargetMd5: (targetMd5: string) => Promise<any>;
       create: (data: Partial<TranscriptionEntity>) => Promise<TranscriptionEntity>;
       update: (id: string, data: Partial<TranscriptionEntity>) => Promise<TranscriptionEntity | null>;
       delete: (id: string) => Promise<boolean>;
