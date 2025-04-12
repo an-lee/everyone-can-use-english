@@ -1,10 +1,10 @@
 import { chatMessageService } from "@main/storage/services/chat-message-service";
-import { BaseEntityIpcModule } from "./base-entity-ipc";
+import { EntityBaseIpcModule } from "./entity-base-ipc";
 
 /**
  * IPC module for ChatMessage entity operations
  */
-export class EntityChatMessageIpcModule extends BaseEntityIpcModule<
+export class EntityChatMessageIpcModule extends EntityBaseIpcModule<
   typeof chatMessageService
 > {
   constructor() {

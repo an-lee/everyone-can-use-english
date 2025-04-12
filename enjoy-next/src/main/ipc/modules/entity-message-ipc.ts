@@ -1,10 +1,10 @@
 import { messageService } from "@main/storage/services/message-service";
-import { BaseEntityIpcModule } from "./base-entity-ipc";
+import { EntityBaseIpcModule } from "./entity-base-ipc";
 
 /**
  * IPC module for Message entity operations
  */
-export class EntityMessageIpcModule extends BaseEntityIpcModule<
+export class EntityMessageIpcModule extends EntityBaseIpcModule<
   typeof messageService
 > {
   constructor() {

@@ -1,10 +1,10 @@
-import { BaseEntityIpcModule } from "./base-entity-ipc";
+import { EntityBaseIpcModule } from "./entity-base-ipc";
 import { pronunciationAssessmentService } from "@main/storage/services/pronunciation-assessment-service";
 
 /**
  * IPC module for Video entity operations
  */
-export class EntityPronunciationAssessmentIpcModule extends BaseEntityIpcModule<
+export class EntityPronunciationAssessmentIpcModule extends EntityBaseIpcModule<
   typeof pronunciationAssessmentService
 > {
   constructor() {

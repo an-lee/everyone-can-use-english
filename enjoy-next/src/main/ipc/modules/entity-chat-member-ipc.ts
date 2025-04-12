@@ -1,10 +1,10 @@
-import { BaseEntityIpcModule } from "./base-entity-ipc";
+import { EntityBaseIpcModule } from "./entity-base-ipc";
 import { chatMemberService } from "@main/storage/services/chat-member-service";
 
 /**
  * IPC module for Audio entity operations
  */
-export class EntityChatMemberIpcModule extends BaseEntityIpcModule<
+export class EntityChatMemberIpcModule extends EntityBaseIpcModule<
   typeof chatMemberService
 > {
   constructor() {

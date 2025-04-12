@@ -1,10 +1,10 @@
-import { BaseEntityIpcModule } from "./base-entity-ipc";
+import { EntityBaseIpcModule } from "./entity-base-ipc";
 import { speechService } from "@main/storage/services/speech-service";
 
 /**
  * IPC module for Video entity operations
  */
-export class EntitySpeechIpcModule extends BaseEntityIpcModule<
+export class EntitySpeechIpcModule extends EntityBaseIpcModule<
   typeof speechService
 > {
   constructor() {

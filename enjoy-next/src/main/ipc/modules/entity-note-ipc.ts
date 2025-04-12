@@ -1,10 +1,10 @@
 import { noteService } from "@main/storage/services/note-service";
-import { BaseEntityIpcModule } from "./base-entity-ipc";
+import { EntityBaseIpcModule } from "./entity-base-ipc";
 
 /**
  * IPC module for Message entity operations
  */
-export class EntityNoteIpcModule extends BaseEntityIpcModule<
+export class EntityNoteIpcModule extends EntityBaseIpcModule<
   typeof noteService
 > {
   constructor() {

@@ -15,7 +15,14 @@ const MAX_RETRIES = RETRY_DELAYS.length;
 const CONNECTION_TIMEOUT = 10000; // 10 seconds timeout for connection
 
 class DatabaseManager {
-  private dataSource: DataSource | null = null;
+  public dataSource: DataSource | null = null;
+  public currentState: DbState = {
+    state: "disconnected",
+    path: null,
+    error: null,
+    autoConnected: false,
+  };
+
   private isConnecting = false;
   private autoConnected = false;
   private retryCount = 0;
@@ -27,12 +34,6 @@ class DatabaseManager {
   private lastError: Error | null = null;
   private lastErrorTime = 0;
   private sessionId = "";
-  private currentState: DbState = {
-    state: "disconnected",
-    path: null,
-    error: null,
-    autoConnected: false,
-  };
 
   private broadcastState(state: DbState) {
     const currentState = this.currentState;

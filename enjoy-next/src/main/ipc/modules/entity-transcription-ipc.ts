@@ -1,10 +1,10 @@
-import { BaseEntityIpcModule } from "./base-entity-ipc";
+import { EntityBaseIpcModule } from "./entity-base-ipc";
 import { transcriptionService } from "@main/storage/services/transcription-service";
 
 /**
  * IPC module for Transcription entity operations
  */
-export class EntityTranscriptionIpcModule extends BaseEntityIpcModule<
+export class EntityTranscriptionIpcModule extends EntityBaseIpcModule<
   typeof transcriptionService
 > {
   constructor() {

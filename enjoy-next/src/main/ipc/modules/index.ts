@@ -5,7 +5,7 @@
 
 // Export base modules
 export * from "./base-ipc-module";
-export * from "./base-entity-ipc";
+export * from "./entity-base-ipc";
 
 // Export entity IPC modules
 export * from "./entity-audio-ipc";

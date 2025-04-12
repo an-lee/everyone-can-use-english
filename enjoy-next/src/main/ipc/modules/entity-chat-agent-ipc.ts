@@ -1,7 +1,7 @@
 import { chatAgentService } from "@/main/storage/services/chat-agent-service";
-import { BaseEntityIpcModule } from "./base-entity-ipc";
+import { EntityBaseIpcModule } from "./entity-base-ipc";
 
-export class EntityChatAgentIpcModule extends BaseEntityIpcModule<
+export class EntityChatAgentIpcModule extends EntityBaseIpcModule<
   typeof chatAgentService
 > {
   constructor() {

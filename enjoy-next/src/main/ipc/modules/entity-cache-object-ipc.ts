@@ -1,10 +1,10 @@
-import { BaseEntityIpcModule } from "./base-entity-ipc";
+import { EntityBaseIpcModule } from "./entity-base-ipc";
 import { cacheObjectService } from "@main/storage/services/cache-object-service";
 
 /**
  * IPC module for Video entity operations
  */
-export class EntityCacheObjectIpcModule extends BaseEntityIpcModule<
+export class EntityCacheObjectIpcModule extends EntityBaseIpcModule<
   typeof cacheObjectService
 > {
   constructor() {

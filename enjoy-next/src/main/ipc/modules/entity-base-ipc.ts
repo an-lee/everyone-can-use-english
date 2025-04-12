@@ -1,5 +1,5 @@
 import { BaseIpcModule } from "@main/ipc/modules";
-import { ipcMain } from "electron";
+import { ipcMain, IpcMainInvokeEvent } from "electron";
 import { db } from "@/main/storage/database-manager";
 import { log } from "@main/core";
 import { PreloadApiGenerator, ServiceHandlerMetadata } from "@main/ipc/preload";
@@ -9,12 +9,12 @@ import { IpcErrorHandler } from "../core/ipc-error-handler";
  * Base class for entity-specific IPC modules
  * This provides common functionality for all entity service IPC modules
  */
-export abstract class BaseEntityIpcModule<
+export abstract class EntityBaseIpcModule<
   T extends object,
 > extends BaseIpcModule {
   protected service: T;
   protected registeredHandlers: Set<string> = new Set();
-  protected logger = log.scope("BaseEntityIpcModule");
+  protected logger = log.scope("EntityBaseIpcModule");
   protected entityName: string;
   protected servicePrefix: string;
 
@@ -59,7 +59,7 @@ export abstract class BaseEntityIpcModule<
       }
 
       // Create handler function that checks DB connection before calling service method
-      const handler = async (...args: any[]) => {
+      const handler = async (_event: IpcMainInvokeEvent, ...args: any[]) => {
         try {
           // Check if database is connected
           if (!db.dataSource?.isInitialized) {

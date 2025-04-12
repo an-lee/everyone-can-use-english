@@ -39,7 +39,7 @@ export const myIpcModule = new MyIpcModule();
 
 ## Entity IPC Modules
 
-Entity IPC modules extend the `BaseEntityIpcModule` class and are designed to handle database entity operations. Each entity gets its own module, making the system more modular and maintainable.
+Entity IPC modules extend the `EntityBaseIpcModule` class and are designed to handle database entity operations. Each entity gets its own module, making the system more modular and maintainable.
 
 ### Adding a New Entity IPC Module
 
@@ -93,10 +93,10 @@ Create an entity IPC module for your service with explicit metadata:
 
 ```typescript
 // src/main/ipc/modules/db-todo-ipc.ts
-import { BaseEntityIpcModule } from "./base-entity-ipc";
+import { EntityBaseIpcModule } from "./base-entity-ipc";
 import { todoService } from "@main/storage/services/todo-service";
 
-export class DbTodoIpcModule extends BaseEntityIpcModule<typeof todoService> {
+export class DbTodoIpcModule extends EntityBaseIpcModule<typeof todoService> {
   constructor() {
     super("Todo", "todo", todoService);
   }

@@ -1,10 +1,10 @@
-import { BaseEntityIpcModule } from "./base-entity-ipc";
+import { EntityBaseIpcModule } from "./entity-base-ipc";
 import { conversationService } from "@main/storage/services/conversation-service";
 
 /**
  * IPC module for Conversation entity operations
  */
-export class EntityConversationIpcModule extends BaseEntityIpcModule<
+export class EntityConversationIpcModule extends EntityBaseIpcModule<
   typeof conversationService
 > {
   constructor() {

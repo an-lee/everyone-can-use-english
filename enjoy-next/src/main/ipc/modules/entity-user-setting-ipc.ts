@@ -1,10 +1,10 @@
-import { BaseEntityIpcModule } from "./base-entity-ipc";
+import { EntityBaseIpcModule } from "./entity-base-ipc";
 import { userSettingService } from "@main/storage/services/user-setting-service";
 
 /**
  * IPC module for Video entity operations
  */
-export class EntityUserSettingIpcModule extends BaseEntityIpcModule<
+export class EntityUserSettingIpcModule extends EntityBaseIpcModule<
   typeof userSettingService
 > {
   constructor() {

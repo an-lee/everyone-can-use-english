@@ -113,7 +113,7 @@ export class AppConfigIpcModule extends BaseIpcModule {
     },
   })
   userDataPath(_event: any, subPath?: string): string | null {
-    return appConfig.userDataPath(subPath);
+    return appConfig.userDataPath(subPath || "");
   }
 
   @IpcMethod({
