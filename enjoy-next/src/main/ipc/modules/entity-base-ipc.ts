@@ -69,6 +69,7 @@ export abstract class EntityBaseIpcModule<
             );
           }
 
+          // Ignore the first default argument (event) from IPC
           return await (this.service as any)[methodName](...args);
         } catch (error: any) {
           throw error;
