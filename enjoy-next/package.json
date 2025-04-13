@@ -53,6 +53,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "decamelize-keys": "^2.0.1",
+    "echogarden": "^2.5.0",
     "electron": "35.1.2",
     "electron-squirrel-startup": "^1.0.1",
     "electron-store": "^10.0.1",

@@ -8,6 +8,10 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 import { Min } from "class-validator";
+import path from "path";
+import { appConfig } from "@/main/core/app/config";
+import fs from "fs-extra";
+
 @Entity("audios")
 export class Audio extends BaseEntity {
   @PrimaryGeneratedColumn("uuid")
@@ -60,4 +64,62 @@ export class Audio extends BaseEntity {
     type: "date",
   })
   updatedAt!: Date;
+
+  get extname(): string {
+    return (
+      this.metadata?.extname || (this.source && path.extname(this.source)) || ""
+    );
+  }
+
+  get filename(): string {
+    return this.md5 + this.extname;
+  }
+
+  get filePath(): string | null {
+    return this.compressedFilePath || this.originalFilePath;
+  }
+
+  get compressedFilePath(): string | null {
+    const file = path.join(
+      appConfig.userDataPath("audios")!,
+      this.md5 + ".compressed.mp3"
+    );
+
+    if (fs.existsSync(file)) {
+      return file;
+    } else {
+      return null;
+    }
+  }
+
+  get originalFilePath(): string | null {
+    const file = path.join(
+      appConfig.userDataPath("audios")!,
+      this.md5 + this.extname
+    );
+
+    if (fs.existsSync(file)) {
+      return file;
+    } else {
+      return null;
+    }
+  }
+
+  get src(): string | null {
+    if (this.compressedFilePath) {
+      return `enjoy://${path.posix.join(
+        "library",
+        "audios",
+        this.md5 + ".compressed.mp3"
+      )}`;
+    } else if (this.originalFilePath) {
+      return `enjoy://${path.posix.join(
+        "library",
+        "audios",
+        this.md5 + this.extname
+      )}`;
+    } else {
+      return null;
+    }
+  }
 }

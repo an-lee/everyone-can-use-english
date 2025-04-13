@@ -1,8 +1,9 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, net, protocol } from "electron";
 import path from "node:path";
 import started from "electron-squirrel-startup";
 import log from "@/main/core/utils/logger";
 import { mainAppLoader } from "@main/core/main-app-loader";
+import { appConfig } from "@main/core";
 
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
 declare const MAIN_WINDOW_VITE_NAME: string;
@@ -16,6 +17,23 @@ const logger = log.scope("main");
 if (started) {
   app.quit();
 }
+
+// Register protocol handler
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: "enjoy",
+    privileges: {
+      standard: true,
+      secure: true,
+      bypassCSP: true,
+      allowServiceWorkers: true,
+      supportFetchAPI: true,
+      stream: true,
+      codeCache: true,
+      corsEnabled: true,
+    },
+  },
+]);
 
 // Store reference to main window
 let mainWindow: BrowserWindow | null = null;
@@ -84,7 +102,29 @@ const initApp = async () => {
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
-app.on("ready", initApp);
+app.on("ready", async () => {
+  await initApp();
+
+  // Register protocol handler
+  protocol.handle("enjoy", (request) => {
+    let url = request.url.replace("enjoy://", "");
+    if (
+      url.match(
+        /library\/(audios|videos|recordings|speeches|segments|documents)/g
+      )
+    ) {
+      url = url.replace("library/", "");
+      url = path.join(appConfig.userDataPath()!, url);
+    } else if (url.startsWith("library")) {
+      url = url.replace("library/", "");
+      url = path.join(appConfig.libraryPath(), url);
+    }
+
+    logger.info(`Protocol handler, fetching from ${url}`);
+
+    return net.fetch(`file:///${url}`);
+  });
+});
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits

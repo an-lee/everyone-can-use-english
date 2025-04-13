@@ -43,7 +43,13 @@ export class AudioService {
       .getManyAndCount();
 
     return {
-      items: audios.map((audio) => instanceToPlain(audio) as AudioEntity),
+      items: audios.map((audio) => {
+        const plain = instanceToPlain(audio);
+        return {
+          ...plain,
+          src: audio.src,
+        } as AudioEntity;
+      }),
       total,
       page,
       limit,
@@ -61,7 +67,11 @@ export class AudioService {
       return null;
     }
 
-    return instanceToPlain(audio) as AudioEntity;
+    const plain = instanceToPlain(audio);
+    return {
+      ...plain,
+      src: audio.src,
+    } as AudioEntity;
   }
 
   /**

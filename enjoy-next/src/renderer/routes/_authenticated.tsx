@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-import { SidebarInset } from "@renderer/components/ui";
+import { ScrollArea, SidebarInset } from "@renderer/components/ui";
 import { AppSidebar } from "@renderer/components/layouts/sidebar";
 import { SidebarProvider } from "@renderer/components/ui/sidebar";
 import { AppMenubar } from "@renderer/components/layouts/menubar/app-menubar";
@@ -13,8 +13,10 @@ function RouteComponent() {
     <SidebarProvider>
       <AppMenubar isAuthenticated={true} />
       <AppSidebar />
-      <SidebarInset>
-        <Outlet />
+      <SidebarInset className="overflow-x-hidden overflow-y-hidden max-h-[calc(100svh-var(--menubar-height))]">
+        <ScrollArea className="h-full">
+          <Outlet />
+        </ScrollArea>
       </SidebarInset>
     </SidebarProvider>
   );

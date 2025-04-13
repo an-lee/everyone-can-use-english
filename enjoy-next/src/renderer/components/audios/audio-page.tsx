@@ -1,14 +1,13 @@
-import { useAudioById, useTranscriptionByTarget } from "@/renderer/hooks";
+import { useAudioById } from "@/renderer/hooks";
 import { ErrorView, LoadingView } from "@renderer/components/status-views";
+import { TranscriptionPanel } from "../transcriptions";
+import { AudioPlayer } from "./audio-player";
+import { ScrollArea } from "../ui/scroll-area";
 
 export function AudioPage(props: { audioId: string }) {
   const { audioId } = props;
 
   const { data, isLoading, error } = useAudioById(audioId);
-  const { data: transcription } = useTranscriptionByTarget(
-    data?.id || "",
-    "audio"
-  );
 
   if (isLoading) {
     return <LoadingView />;
@@ -19,9 +18,12 @@ export function AudioPage(props: { audioId: string }) {
   }
 
   return (
-    <div className="p-4">
-      <div className="flex items-center gap-4">
-        <h1 className="text-2xl font-bold">{audioId}</h1>
+    <div className="w-full flex flex-col relative h-[calc(100svh-var(--menubar-height))] overflow-hidden">
+      <ScrollArea className="flex-1 pb-14">
+        <TranscriptionPanel targetId={data?.id || ""} targetType="Audio" />
+      </ScrollArea>
+      <div className="absolute bottom-0 left-0 w-full border-t shadow-sm bg-background h-14">
+        {data && <AudioPlayer audio={data} />}
       </div>
     </div>
   );

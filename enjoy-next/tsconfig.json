@@ -22,7 +22,7 @@
       "@types/*": ["src/types/*"],
       "@generated/*": ["src/generated/*"]
     },
-    "types": ["vite/client"],
+    "types": ["vite/client", "./node_modules/echogarden/dist/api/API.d.ts"],
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "useDefineForClassFields": false

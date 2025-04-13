@@ -16,4 +16,8 @@ declare interface AudioEntity {
   uploadedAt?: string;
   createdAt: string;
   updatedAt: string;
+  src?: string;
+  filePath?: string;
+  compressedFilePath?: string;
+  originalFilePath?: string;
 }
