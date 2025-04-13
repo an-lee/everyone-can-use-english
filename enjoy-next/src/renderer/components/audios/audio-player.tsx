@@ -58,7 +58,7 @@ export function AudioPlayer(props: { audio: AudioEntity }) {
       <div className="flex-1 flex items-center justify-center gap-2">
         <Button
           onClick={togglePlay}
-          variant="ghost"
+          variant="secondary"
           size="icon"
           className="rounded-full"
         >

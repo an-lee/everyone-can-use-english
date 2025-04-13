@@ -18,7 +18,7 @@ export function TranscriptionPanel(props: {
   if (isError) return <div>{error.message}</div>;
 
   return (
-    <div className="w-full max-w-screen-md mx-auto">
+    <div className="w-full max-w-screen-md mx-auto px-6">
       {transcription && (
         <TranscriptionTimeline timeline={transcription.result.timeline} />
       )}
