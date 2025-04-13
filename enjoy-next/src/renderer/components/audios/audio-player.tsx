@@ -4,41 +4,18 @@ import { useMediaPlayer } from "@renderer/store/use-media-player";
 import { useEffect, useRef } from "react";
 import { Slider } from "../ui/slider";
 import { secondsToTimestamp } from "@/renderer/lib/utils";
+import { useMediaElement } from "@/renderer/hooks";
 
 export function AudioPlayer(props: { audio: AudioEntity }) {
   const { audio } = props;
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const {
-    isPlaying,
-    setIsPlaying,
-    src,
-    setSrc,
-    currentTime,
-    setCurrentTime,
-    duration,
-    setDuration,
-  } = useMediaPlayer();
-
-  const togglePlay = () => {
-    if (!audioRef.current) return;
-    if (audioRef.current.paused) {
-      audioRef.current.play();
-    } else {
-      audioRef.current.pause();
-    }
-  };
+  const ref = useMediaElement();
+  const { currentTime, duration, isPlaying, togglePlay } = useMediaPlayer();
 
   useEffect(() => {
-    if (audio.src) {
-      setSrc(audio.src);
+    if (ref.current && audio.src) {
+      ref.current.src = audio.src;
     }
-  }, [audio?.src]);
-
-  useEffect(() => {
-    if (audioRef.current && audio.src) {
-      audioRef.current.src = audio.src;
-    }
-  }, [audio?.src, audioRef.current]);
+  }, [audio?.src, ref.current]);
 
   return (
     <div className="flex flex-col h-full">
@@ -49,8 +26,8 @@ export function AudioPlayer(props: { audio: AudioEntity }) {
           step={0.1}
           onValueChange={(values) => {
             const value = values[0];
-            if (audioRef.current) {
-              audioRef.current.currentTime = value;
+            if (ref.current) {
+              ref.current.currentTime = value;
             }
           }}
         />
@@ -71,26 +48,7 @@ export function AudioPlayer(props: { audio: AudioEntity }) {
         <div className="text-sm text-muted-foreground min-w-max">
           {secondsToTimestamp(currentTime)} / {secondsToTimestamp(duration)}
         </div>
-        <audio
-          ref={audioRef}
-          onTimeUpdate={(e) => {
-            setCurrentTime(e.currentTarget.currentTime || 0);
-          }}
-          onLoadedMetadata={(e) => {
-            setDuration(e.currentTarget.duration || 0);
-          }}
-          onEnded={() => {
-            setIsPlaying(false);
-            setCurrentTime(0);
-          }}
-          onPause={() => {
-            setIsPlaying(false);
-          }}
-          onPlay={() => {
-            setIsPlaying(true);
-          }}
-          className="hidden"
-        />
+        <audio ref={ref} className="hidden" />
       </div>
     </div>
   );

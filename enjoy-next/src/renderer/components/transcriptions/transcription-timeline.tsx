@@ -1,4 +1,5 @@
-import { secondsToTimestamp } from "@/renderer/lib/utils";
+import { secondsToTimestamp } from "@renderer/lib/utils";
+import { useMediaPlayer } from "@renderer/store/use-media-player";
 
 export function TranscriptionTimeline(props: {
   timeline: Timeline;
@@ -86,9 +87,13 @@ function TranscriptionSentence(props: {
   index: number;
 }) {
   const { sentence, index } = props;
+  const { seek } = useMediaPlayer();
 
   return (
-    <div className="flex flex-col gap-1 py-2 cursor-pointer">
+    <div
+      className="flex flex-col gap-1 py-2 cursor-pointer"
+      onClick={() => seek(sentence.startTime)}
+    >
       <div className="flex items-center gap-2">
         <div className="text-sm text-muted-foreground font-mono">
           #{index + 1}
