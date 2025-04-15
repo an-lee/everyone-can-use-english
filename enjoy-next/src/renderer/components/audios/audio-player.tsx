@@ -1,26 +1,29 @@
 import { Icon } from "@iconify/react";
 import { Button } from "@renderer/components/ui/button";
 import { useMediaPlayer } from "@renderer/store/use-media-player";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { Slider } from "../ui/slider";
 import { secondsToTimestamp } from "@/renderer/lib/utils";
-import { useMediaElement } from "@/renderer/hooks";
+import { useMediaControls } from "@/renderer/hooks/use-media-controls";
 
 export function AudioPlayer(props: { audio: AudioEntity }) {
   const { audio } = props;
-  const ref = useMediaElement();
-  const { currentTime, duration, isPlaying, togglePlay } = useMediaPlayer();
+  const { ref, togglePlay, destroy } = useMediaControls(audio.src!);
+  const { currentTime, duration, isPlaying, loading, seeking, interactable } =
+    useMediaPlayer();
 
   useEffect(() => {
-    if (ref.current && audio.src) {
-      ref.current.src = audio.src;
-    }
-  }, [audio?.src, ref.current]);
+    console.log("audio-player", audio.src);
+    return () => {
+      destroy();
+    };
+  }, [audio.src]);
 
   return (
     <div className="flex flex-col h-full">
       <div className="">
         <Slider
+          disabled={loading || seeking || !interactable}
           value={[currentTime]}
           max={duration}
           step={0.1}
@@ -38,8 +41,11 @@ export function AudioPlayer(props: { audio: AudioEntity }) {
           variant="secondary"
           size="icon"
           className="rounded-full"
+          disabled={loading || seeking || !audio?.src || !interactable}
         >
-          {isPlaying ? (
+          {!interactable ? (
+            <Icon icon="tabler:loader-2" className="animate-spin" />
+          ) : isPlaying ? (
             <Icon icon="tabler:player-pause-filled" />
           ) : (
             <Icon icon="tabler:player-play-filled" />
@@ -48,7 +54,7 @@ export function AudioPlayer(props: { audio: AudioEntity }) {
         <div className="text-sm text-muted-foreground min-w-max">
           {secondsToTimestamp(currentTime)} / {secondsToTimestamp(duration)}
         </div>
-        <audio ref={ref} className="hidden" />
+        <audio ref={ref} preload="auto" className="hidden" />
       </div>
     </div>
   );

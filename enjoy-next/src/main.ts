@@ -4,6 +4,7 @@ import started from "electron-squirrel-startup";
 import log from "@/main/core/utils/logger";
 import { mainAppLoader } from "@main/core/main-app-loader";
 import { appConfig } from "@main/core";
+import fs from "fs-extra";
 
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
 declare const MAIN_WINDOW_VITE_NAME: string;
@@ -108,21 +109,75 @@ app.on("ready", async () => {
   // Register protocol handler
   protocol.handle("enjoy", (request) => {
     let url = request.url.replace("enjoy://", "");
+    let filePath;
+
     if (
       url.match(
         /library\/(audios|videos|recordings|speeches|segments|documents)/g
       )
     ) {
       url = url.replace("library/", "");
-      url = path.join(appConfig.userDataPath()!, url);
+      filePath = path.join(appConfig.userDataPath()!, url);
     } else if (url.startsWith("library")) {
       url = url.replace("library/", "");
-      url = path.join(appConfig.libraryPath(), url);
+      filePath = path.join(appConfig.libraryPath(), url);
+    } else {
+      logger.error(`Invalid protocol URL format: ${request.url}`);
+      return new Response("Invalid URL format", { status: 400 });
     }
 
-    logger.info(`Protocol handler, fetching from ${url}`);
+    logger.info(`Protocol handler, fetching from ${filePath}`);
 
-    return net.fetch(`file:///${url}`);
+    try {
+      if (!fs.existsSync(filePath)) {
+        logger.error(`File not found: ${filePath}`);
+        return new Response("File not found", { status: 404 });
+      }
+
+      const stat = fs.statSync(filePath);
+      if (!stat.isFile()) {
+        logger.error(`Not a file: ${filePath}`);
+        return new Response("Not a file", { status: 404 });
+      }
+
+      if (stat.size === 0) {
+        logger.error(`Empty file: ${filePath}`);
+        return new Response("Empty file", { status: 404 });
+      }
+
+      // Determine content type based on file extension
+      const ext = path.extname(filePath).toLowerCase();
+      let contentType = "application/octet-stream";
+      if (ext === ".mp3") contentType = "audio/mpeg";
+      else if (ext === ".wav") contentType = "audio/wav";
+      else if (ext === ".ogg") contentType = "audio/ogg";
+      else if (ext === ".mp4") contentType = "video/mp4";
+      else if (ext === ".txt") contentType = "text/plain";
+      else if (ext === ".pdf") contentType = "application/pdf";
+      else if (ext === ".md") contentType = "text/markdown";
+      else if (ext === ".epub") contentType = "application/epub+zip";
+
+      // Read file as a buffer to ensure it's fully available
+      const fileContent = fs.readFileSync(filePath);
+
+      return new Response(fileContent, {
+        status: 200,
+        headers: {
+          "Content-Type": contentType,
+          "Content-Length": String(stat.size),
+        },
+      });
+    } catch (error) {
+      logger.error(`Error accessing file ${filePath}:`, error);
+      return new Response(
+        `File not found or inaccessible: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+        {
+          status: 404,
+        }
+      );
+    }
   });
 });
 

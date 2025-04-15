@@ -31,7 +31,7 @@ export function TranscriptionTimeline(props: {
         if (entry.type === "sentence") {
           return (
             <TranscriptionSentence
-              key={entry.id}
+              key={`sentence-${index + i}`}
               sentence={entry}
               index={index + i}
             />
@@ -87,12 +87,14 @@ function TranscriptionSentence(props: {
   index: number;
 }) {
   const { sentence, index } = props;
-  const { seek } = useMediaPlayer();
+  const { setActiveRange } = useMediaPlayer();
 
   return (
     <div
       className="flex flex-col gap-1 py-2 cursor-pointer"
-      onClick={() => seek(sentence.startTime)}
+      onClick={() => {
+        setActiveRange({ start: sentence.startTime, end: sentence.endTime });
+      }}
     >
       <div className="flex items-center gap-2">
         <div className="text-sm text-muted-foreground font-mono">
@@ -106,7 +108,7 @@ function TranscriptionSentence(props: {
       <div className="flex items-center gap-2 flex-wrap">
         {props.sentence.timeline?.map((entry, index) => {
           if (!entry.timeline) return null;
-          return <TranscriptionWord key={entry.id} word={entry} />;
+          return <TranscriptionWord key={`word-${index}`} word={entry} />;
         })}
       </div>
     </div>

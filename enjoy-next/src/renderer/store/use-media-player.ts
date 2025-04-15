@@ -5,6 +5,15 @@ type MediaPlayerState = {
   setMediaElement: (mediaElement: HTMLVideoElement | HTMLAudioElement) => void;
   clearMediaElement: () => void;
 
+  loading: boolean;
+  setLoading: (loading: boolean) => void;
+
+  seeking: boolean;
+  setSeeking: (seeking: boolean) => void;
+
+  interactable: boolean;
+  setInteractable: (interactable: boolean) => void;
+
   currentTime: number;
   setCurrentTime: (currentTime: number) => void;
 
@@ -13,20 +22,40 @@ type MediaPlayerState = {
 
   isPlaying: boolean;
   setIsPlaying: (isPlaying: boolean) => void;
-  togglePlay: () => void;
 
   activeRange: { start: number; end: number };
   setActiveRange: (activeRange: { start: number; end: number }) => void;
 
-  seek: (time: number) => void;
+  error: Error | null;
+  setError: (error: Error | null) => void;
+
+  reset: () => void;
 };
 
 export const useMediaPlayer = create<MediaPlayerState>((set, get) => ({
   mediaElement: null,
 
-  setMediaElement: (mediaElement: HTMLVideoElement | HTMLAudioElement) =>
-    set({ mediaElement }),
-  clearMediaElement: () => set({ mediaElement: null }),
+  setMediaElement: (mediaElement: HTMLVideoElement | HTMLAudioElement) => {
+    set({ mediaElement });
+    if (window) {
+      (window as any).MEDIA_ELEMENT = mediaElement;
+    }
+  },
+  clearMediaElement: () => {
+    set({ mediaElement: null });
+    if (window) {
+      (window as any).MEDIA_ELEMENT = null;
+    }
+  },
+
+  loading: false,
+  setLoading: (loading: boolean) => set({ loading }),
+
+  seeking: false,
+  setSeeking: (seeking: boolean) => set({ seeking }),
+
+  interactable: false,
+  setInteractable: (interactable: boolean) => set({ interactable }),
 
   currentTime: 0,
   setCurrentTime: (currentTime: number) => set({ currentTime }),
@@ -38,25 +67,24 @@ export const useMediaPlayer = create<MediaPlayerState>((set, get) => ({
   setIsPlaying: (isPlaying: boolean) => set({ isPlaying }),
 
   activeRange: { start: 0, end: 0 },
-  setActiveRange: (activeRange: { start: number; end: number }) =>
-    set({ activeRange }),
-
-  togglePlay: () => {
-    const mediaElement = get().mediaElement;
-    const isPlaying = get().isPlaying;
-
-    if (mediaElement) {
-      if (isPlaying) {
-        mediaElement.pause();
-      } else {
-        mediaElement.play();
-      }
-    }
+  setActiveRange: (activeRange: { start: number; end: number }) => {
+    console.debug("Setting active range", activeRange);
+    set({ activeRange });
   },
-  seek: (time: number) => {
-    const mediaElement = get().mediaElement;
-    if (mediaElement) {
-      mediaElement.currentTime = time;
-    }
+
+  error: null,
+  setError: (error: Error | null) => set({ error }),
+
+  reset: () => {
+    console.debug("Resetting media player");
+    set({
+      mediaElement: null,
+      loading: false,
+      currentTime: 0,
+      duration: 0,
+      isPlaying: false,
+      activeRange: { start: 0, end: 0 },
+      error: null,
+    });
   },
 }));
