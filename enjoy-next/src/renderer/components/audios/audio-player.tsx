@@ -12,6 +12,8 @@ export function AudioPlayer(props: { audio: AudioEntity }) {
   const { currentTime, duration, isPlaying, loading, seeking, interactable } =
     useMediaPlayer();
 
+  const playable = !loading && !seeking && interactable;
+
   useEffect(() => {
     console.log("audio-player", audio.src);
     return () => {
@@ -23,7 +25,7 @@ export function AudioPlayer(props: { audio: AudioEntity }) {
     <div className="flex flex-col h-full">
       <div className="">
         <Slider
-          disabled={loading || seeking || !interactable}
+          disabled={!playable}
           value={[currentTime]}
           max={duration}
           step={0.1}
@@ -41,9 +43,9 @@ export function AudioPlayer(props: { audio: AudioEntity }) {
           variant="secondary"
           size="icon"
           className="rounded-full"
-          disabled={loading || seeking || !audio?.src || !interactable}
+          disabled={!playable}
         >
-          {!interactable ? (
+          {!playable ? (
             <Icon icon="tabler:loader-2" className="animate-spin" />
           ) : isPlaying ? (
             <Icon icon="tabler:player-pause-filled" />

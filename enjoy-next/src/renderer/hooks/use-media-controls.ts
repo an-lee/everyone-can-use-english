@@ -104,19 +104,18 @@ export const useMediaControls = (
           media.src
         );
         ref.current.load();
-      } else if (loadingTime.current > RETRY_INTERVAL) {
-        console.debug(
-          "loadingTime is greater than RETRY_INTERVAL, reloading",
-          loadingTime.current
-        );
-        loadingTime.current = 0;
-        ref.current.load();
+      } else if (loadingTime.current > CHECKING_INTERVAL * 10) {
+        toast.error("Media is taking too long to load, please wait");
+        throw new Error("Media is taking too long to load, please wait");
+      } else if (loadingTime.current > CHECKING_INTERVAL * 5) {
+        return false;
+      } else if (loadingTime.current > CHECKING_INTERVAL * 5) {
+        toast.warning("Media is taking too long to load, please wait");
       } else {
-        console.debug(
-          "Still loading, adding to loadingTime",
-          loadingTime.current
-        );
         loadingTime.current += CHECKING_INTERVAL;
+        console.debug(
+          `Still loading, used ${loadingTime.current}ms to check interactability`
+        );
       }
 
       return canInteract;
@@ -129,7 +128,7 @@ export const useMediaControls = (
           }`
         )
       );
-      return false;
+      throw error;
     }
   };
 
@@ -147,20 +146,22 @@ export const useMediaControls = (
 
     const element = ref.current;
     if (element.seeking) {
-      console.debug("seeking is true");
+      console.debug("Media is seeking, skipping seek");
       return false;
     }
 
     if (element.currentTime === time) {
-      console.debug("currentTime is already at the desired time");
+      console.debug(
+        "CurrentTime is already at the desired time, skipping seek"
+      );
       return true;
     }
 
     const seekable = element.seekable;
     if (seekable.length === 0) {
-      console.debug("seekable is empty");
+      console.debug("Media seekable is empty, reloading");
       ref.current.load();
-      toast.error("Media is not loaded yet");
+      toast.warning("Media is not loaded yet");
       return false;
     }
 
@@ -181,6 +182,7 @@ export const useMediaControls = (
       return false;
     }
 
+    setSeeking(true);
     const safeTime = Math.ceil(Math.max(0, time) * 1000) / 1000.0;
     element.currentTime = safeTime;
 
@@ -268,7 +270,7 @@ export const useMediaControls = (
     },
     error: (event: Event) => {
       const element = event.target as HTMLVideoElement | HTMLAudioElement;
-      console.debug("Media element error:", element.error);
+      console.error("Media element error:", element.error);
       setError(
         new Error(
           `Media element error: ${element.error?.message} ${element.error?.code}`
@@ -305,7 +307,6 @@ export const useMediaControls = (
 
   // Main effect for media element setup
   useEffect(() => {
-    console.log("useMediaElement", src);
     if (!ref.current) return;
 
     // Register the element with the store
@@ -321,12 +322,20 @@ export const useMediaControls = (
 
     // Run an initial check
     setInteractable(false);
-    checkInteractability();
+    try {
+      checkInteractability();
+    } catch (error) {
+      console.error("Error checking media interactability:", error);
+    }
 
     // Set up a periodic check for the first few seconds
     // This helps in cases where events aren't reliably fired
     const checkInterval = setInterval(() => {
-      if (checkInteractability()) {
+      try {
+        if (checkInteractability()) {
+          clearInterval(checkInterval);
+        }
+      } catch (error) {
         clearInterval(checkInterval);
       }
     }, CHECKING_INTERVAL);
@@ -344,7 +353,6 @@ export const useMediaControls = (
   }, [src]);
 
   useEffect(() => {
-    console.debug("useEffect activeRange", activeRange);
     if (!ref.current) return;
 
     seek(activeRange.start);
