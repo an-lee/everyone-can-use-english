@@ -12,6 +12,8 @@ type MediaTranscriptionState = {
 
   previousSentence: () => TimelineEntry | null;
   nextSentence: () => TimelineEntry | null;
+
+  reset: () => void;
 };
 
 export const useMediaTranscription = create<MediaTranscriptionState>(
@@ -38,6 +40,10 @@ export const useMediaTranscription = create<MediaTranscriptionState>(
         return null;
       }
       return sentences[currentIndex + 1];
+    },
+
+    reset: () => {
+      set({ currentTime: 0, currentIndex: 0, sentences: [] });
     },
   })
 );

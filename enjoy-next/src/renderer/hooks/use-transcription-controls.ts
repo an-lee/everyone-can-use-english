@@ -7,7 +7,7 @@ export const useTranscriptionControls = (props: {
   targetId: string;
   targetType: string;
 }) => {
-  const { currentIndex, setCurrentIndex, sentences, setSentences } =
+  const { currentIndex, setCurrentIndex, sentences, setSentences, reset } =
     useMediaTranscription();
   const { currentTime, setActiveRange } = useMediaPlayer();
 
@@ -28,6 +28,10 @@ export const useTranscriptionControls = (props: {
   useEffect(() => {
     if (!transcription) return;
     setSentences(sentencesTimeline(transcription));
+
+    return () => {
+      reset();
+    };
   }, [transcription]);
 
   useEffect(() => {

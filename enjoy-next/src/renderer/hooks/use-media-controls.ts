@@ -166,9 +166,10 @@ export const useMediaControls = (
 
     const seekable = element.seekable;
     if (seekable.length === 0) {
-      console.debug("Media seekable is empty, reloading");
-      ref.current.load();
-      toast.warning("Media is not loaded yet");
+      if (element.readyState === HTMLMediaElement.HAVE_ENOUGH_DATA) {
+        console.debug("Media seekable is empty, reloading");
+        ref.current.load();
+      }
       return false;
     }
 

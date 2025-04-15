@@ -19,9 +19,10 @@ export function AudioPage(props: { audioId: string }) {
 
   return (
     <div className="w-full flex flex-col relative h-[calc(100svh-var(--menubar-height))] overflow-hidden bg-muted/50">
-      <ScrollArea className="flex-1 pb-14 pt-6">
+      <ScrollArea className="flex-1">
+        <div className="h-4"></div>
         <TranscriptionPanel targetId={data?.id || ""} targetType="Audio" />
-        <div className="h-14"></div>
+        <div className="h-28"></div>
       </ScrollArea>
       <div className="absolute bottom-0 left-0 w-full border-t shadow-sm bg-background h-14">
         {data && <AudioPlayer audio={data} />}
