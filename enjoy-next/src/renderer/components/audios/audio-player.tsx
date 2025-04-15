@@ -44,7 +44,7 @@ export function AudioPlayer(props: { audio: AudioEntity }) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="mb-1">
+      <div className="">
         <Slider
           disabled={!playable}
           value={[currentTime]}
@@ -112,10 +112,10 @@ export function AudioPlayer(props: { audio: AudioEntity }) {
         </div>
         <div className="flex-1 flex items-center gap-1"></div>
         <div className="flex-1 flex items-center justify-end gap-1">
-          <Button variant="ghost" size="sm" className="p-0">
+          <Button variant="outline" size="sm" className="">
             {t("shadowMode")}
           </Button>
-          <Button variant="ghost" size="sm" className="p-0">
+          <Button variant="outline" size="sm" className="">
             {t("readMode")}
           </Button>
         </div>
