@@ -34,12 +34,27 @@ export const useTranscriptionControls = (props: {
     };
   }, [transcription]);
 
+  /*
+   * This effect is used to find the index of the sentence that is currently being spoken
+   * If the current time is between the start and end of the sentence, set the current index to the sentence
+   */
   useEffect(() => {
     if (!sentences) return;
-    const index = sentences.findIndex(
-      (sentence) =>
-        currentTime >= sentence.startTime && currentTime <= sentence.endTime
+
+    let index = sentences.findIndex(
+      (sentence) => currentTime >= sentence.startTime
     );
+
+    if (index < 0) return;
+
+    for (let i = index; i < sentences.length; i++) {
+      if (currentTime >= sentences[i].startTime) {
+        index = i;
+      } else {
+        break;
+      }
+    }
+
     if (index !== currentIndex) {
       setCurrentIndex(index);
     }
@@ -59,7 +74,7 @@ const sentencesTimeline = (
   transcription: TranscriptionEntity
 ): TimelineEntry[] => {
   // Flatten the timeline
-  return transcription.result.timeline.flatMap((entry) => {
+  return (transcription.result.timeline || []).flatMap((entry) => {
     if (entry.type === "sentence") {
       return [entry];
     }

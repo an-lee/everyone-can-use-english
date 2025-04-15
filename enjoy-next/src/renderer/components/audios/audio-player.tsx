@@ -5,8 +5,10 @@ import { useEffect, useState } from "react";
 import { Slider } from "../ui/slider";
 import { secondsToTimestamp } from "@/renderer/lib/utils";
 import { useMediaControls } from "@/renderer/hooks/use-media-controls";
-
+import { useTranslation } from "react-i18next";
 export function AudioPlayer(props: { audio: AudioEntity }) {
+  const { t } = useTranslation("components/audios");
+
   const [playable, setPlayable] = useState(false);
   const { audio } = props;
   const {
@@ -107,6 +109,15 @@ export function AudioPlayer(props: { audio: AudioEntity }) {
           <div className="text-xs min-w-max">
             {secondsToTimestamp(currentTime)} / {secondsToTimestamp(duration)}
           </div>
+        </div>
+        <div className="flex-1 flex items-center gap-1"></div>
+        <div className="flex-1 flex items-center justify-end gap-1">
+          <Button variant="ghost" size="sm" className="p-0">
+            {t("shadowMode")}
+          </Button>
+          <Button variant="ghost" size="sm" className="p-0">
+            {t("readMode")}
+          </Button>
         </div>
       </div>
 

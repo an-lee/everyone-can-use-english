@@ -56,8 +56,8 @@ export function AudiosPage() {
             <SelectValue placeholder={t("sort_by")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="created_at">{t("created_at")}</SelectItem>
-            <SelectItem value="updated_at">{t("updated_at")}</SelectItem>
+            <SelectItem value="created_at">{t("createdAt")}</SelectItem>
+            <SelectItem value="updated_at">{t("updatedAt")}</SelectItem>
             <SelectItem value="name">{t("name")}</SelectItem>
             <SelectItem value="duration">{t("duration")}</SelectItem>
           </SelectContent>
@@ -81,7 +81,7 @@ export function AudiosPage() {
         />
         <Button>
           <Icon icon="tabler:plus" />
-          {t("add_audio")}
+          {t("addAudio")}
         </Button>
       </div>
       <div className="grid w-full grid-cols-3 gap-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
