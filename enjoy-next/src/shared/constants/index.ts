@@ -1,3 +1,5 @@
+export * from "./ipa";
+
 export const DATABASE_NAME = "enjoy_database";
 export const LIBRARY_PATH_SUFFIX = "EnjoyLibrary";
 export const STORAGE_WORKER_ENDPOINT = "https://storage.enjoy.bot";

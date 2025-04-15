@@ -1,5 +1,9 @@
 import { useMediaPlayer } from "@/renderer/store";
-import { cn, secondsToTimestamp } from "@renderer/lib/utils";
+import {
+  cn,
+  convertWordIpaToNormal,
+  secondsToTimestamp,
+} from "@renderer/lib/utils";
 import { useEffect, useRef } from "react";
 
 export function TranscriptionSentence(props: {
@@ -44,7 +48,7 @@ export function TranscriptionActiveSentence(props: {
 
   return (
     <div ref={ref} className="flex flex-col p-4 rounded-lg bg-background">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 mb-4">
         <div className="text-sm text-muted-foreground font-mono">
           #{index + 1}
         </div>
@@ -53,7 +57,12 @@ export function TranscriptionActiveSentence(props: {
           {secondsToTimestamp(sentence.endTime)}
         </div>
       </div>
-      <div className="flex items-center gap-2 flex-wrap">
+
+      <div className="font-serif text-base italic text-muted-foreground mb-4">
+        <p>{sentence.text}</p>
+      </div>
+
+      <div className="flex items-center gap-2 flex-wrap mb-4">
         {props.sentence.timeline?.map((entry, index) => {
           if (!entry.timeline) return null;
           return (
@@ -74,9 +83,13 @@ export function TranscriptionActiveSentence(props: {
 export function TranscriptionWord(props: {
   word: TimelineEntry;
   active: boolean;
+  onClick?: () => void;
 }) {
   return (
-    <div className="flex flex-col gap-0.5">
+    <div
+      className="flex flex-col cursor-pointer select-none"
+      onClick={props.onClick}
+    >
       <div
         className={cn(
           "font-serif text-lg min-w-max border-b-2 border-transparent",
@@ -88,7 +101,10 @@ export function TranscriptionWord(props: {
       <div className="flex items-center gap-1 min-w-max h-4">
         {props.word.timeline?.map((entry, index) => {
           if (!entry.timeline) return null;
-          return <TranscriptionToken key={index} token={entry} />;
+          if (entry.type === "token") {
+            return <TranscriptionToken key={index} token={entry} />;
+          }
+          return null;
         })}
       </div>
     </div>
@@ -96,9 +112,12 @@ export function TranscriptionWord(props: {
 }
 
 export function TranscriptionToken(props: { token: TimelineEntry }) {
+  const ipas = convertWordIpaToNormal(
+    props.token.timeline?.map((entry) => entry.text) || []
+  );
   return (
     <div className="text-sm text-muted-foreground font-code min-w-max">
-      {props.token.text}
+      {ipas.join("")}
     </div>
   );
 }

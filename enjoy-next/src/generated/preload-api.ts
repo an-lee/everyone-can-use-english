@@ -1,5 +1,5 @@
 // Auto-generated preload API for Electron IPC
-// DO NOT EDIT DIRECTLY - Generated on 2025-04-15T03:32:55.974Z
+// DO NOT EDIT DIRECTLY - Generated on 2025-04-15T08:20:20.988Z
 
 import { ipcRenderer } from 'electron';
 

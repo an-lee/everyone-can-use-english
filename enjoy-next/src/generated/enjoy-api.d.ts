@@ -1,5 +1,5 @@
 // Auto-generated type declarations for Electron IPC
-// DO NOT EDIT DIRECTLY - Generated on 2025-04-15T03:32:55.972Z
+// DO NOT EDIT DIRECTLY - Generated on 2025-04-15T08:20:20.987Z
 
 declare interface EnjoyAPI {
   appConfig: {
