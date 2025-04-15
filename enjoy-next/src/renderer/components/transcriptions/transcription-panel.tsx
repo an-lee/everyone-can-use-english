@@ -1,5 +1,8 @@
-import { useTranscriptionByTarget } from "@/renderer/hooks/use-transcription";
-import { TranscriptionTimeline } from "./transcription-timeline";
+import { useTranscriptionControls } from "@/renderer/hooks/use-transcription-controls";
+import {
+  TranscriptionActiveSentence,
+  TranscriptionSentence,
+} from "./transcription-timeline";
 
 export function TranscriptionPanel(props: {
   targetId: string;
@@ -7,20 +10,32 @@ export function TranscriptionPanel(props: {
 }) {
   const { targetId, targetType } = props;
 
-  const {
-    data: transcription,
-    isLoading,
-    isError,
-    error,
-  } = useTranscriptionByTarget(targetId, targetType);
+  const { sentences, isLoading, error, currentIndex, activateSentence } =
+    useTranscriptionControls({
+      targetId,
+      targetType,
+    });
 
   if (isLoading) return <div>Loading...</div>;
-  if (isError) return <div>{error.message}</div>;
+  if (error) return <div>{error.message}</div>;
 
   return (
     <div className="w-full max-w-screen-md mx-auto px-6">
-      {transcription && (
-        <TranscriptionTimeline timeline={transcription.result.timeline} />
+      {sentences.map((sentence: TimelineEntry, index: number) =>
+        index === currentIndex ? (
+          <TranscriptionActiveSentence
+            key={`sentence-${index}`}
+            sentence={sentence}
+            index={index}
+          />
+        ) : (
+          <TranscriptionSentence
+            key={`sentence-${index}`}
+            sentence={sentence}
+            index={index}
+            onClick={() => activateSentence(sentence)}
+          />
+        )
       )}
     </div>
   );

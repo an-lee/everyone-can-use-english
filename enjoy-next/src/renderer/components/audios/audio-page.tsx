@@ -18,8 +18,8 @@ export function AudioPage(props: { audioId: string }) {
   }
 
   return (
-    <div className="w-full flex flex-col relative h-[calc(100svh-var(--menubar-height))] overflow-hidden">
-      <ScrollArea className="flex-1 pb-14">
+    <div className="w-full flex flex-col relative h-[calc(100svh-var(--menubar-height))] overflow-hidden bg-muted/50">
+      <ScrollArea className="flex-1 pb-14 pt-6">
         <TranscriptionPanel targetId={data?.id || ""} targetType="Audio" />
         <div className="h-14"></div>
       </ScrollArea>

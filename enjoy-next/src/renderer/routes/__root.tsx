@@ -27,7 +27,7 @@ function RootComponent() {
       <Outlet />
 
       <Toaster richColors closeButton position="top-center" />
-      <TanStackRouterDevtools position="bottom-right" />
+      <TanStackRouterDevtools position="top-right" />
     </QueryClientProvider>
   );
 }

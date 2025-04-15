@@ -1,20 +1,23 @@
 import { useMediaPlayer } from "@renderer/store/use-media-player";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
+import { useMediaTranscription } from "../store/use-media-transcription";
 
 type MediaEventHandler = (e: Event) => void;
 type EventHandlers = Record<string, MediaEventHandler>;
 
 const TIME_THRESHOLD = 0.01;
 const CHECKING_INTERVAL = 500;
-const RETRY_INTERVAL = 5000;
 
 export const useMediaControls = (
   src: string
 ): {
   ref: React.RefObject<HTMLVideoElement | HTMLAudioElement | null>;
   togglePlay: () => Promise<void> | void;
+  toggleLooping: () => void;
   destroy: () => void;
+  playNextSentence: () => void;
+  playPreviousSentence: () => void;
 } => {
   const loadingTime = useRef(0);
 
@@ -30,7 +33,11 @@ export const useMediaControls = (
     setError,
     setInteractable,
     reset,
+    setLooping,
+    looping,
   } = useMediaPlayer();
+
+  const { nextSentence, previousSentence } = useMediaTranscription();
 
   const ref = useRef<HTMLVideoElement | HTMLAudioElement | null>(null);
 
@@ -281,7 +288,6 @@ export const useMediaControls = (
   };
 
   const handleRangeConstraint = (e: Event) => {
-    console.debug("handleRangeConstraint", activeRange);
     const element = e.target as HTMLVideoElement | HTMLAudioElement;
     if (
       element.currentTime >= activeRange.end ||
@@ -294,15 +300,48 @@ export const useMediaControls = (
         activeRange.end
       );
 
-      if (!seek(activeRange.start)) {
+      const seeked = seek(activeRange.start);
+
+      if (seeked) {
+        console.debug("Successfully sought to start");
+        if (looping) {
+          console.debug("Looping is", looping);
+          element.play();
+        } else {
+          console.debug("Looping is", looping);
+          element.pause();
+        }
+      } else {
         console.debug(
           "Failed to seek to start, resetting active range to 0 and duration"
         );
         setActiveRange({ start: 0, end: element.duration });
-      } else {
-        console.debug("Successfully sought to start");
       }
     }
+  };
+
+  const playNextSentence = () => {
+    const sentence = nextSentence();
+    if (!sentence) return;
+    setActiveRange({
+      start: sentence.startTime,
+      end: sentence.endTime,
+      autoPlay: true,
+    });
+  };
+
+  const playPreviousSentence = () => {
+    const sentence = previousSentence();
+    if (!sentence) return;
+    setActiveRange({
+      start: sentence.startTime,
+      end: sentence.endTime,
+      autoPlay: true,
+    });
+  };
+
+  const toggleLooping = () => {
+    setLooping(!looping);
   };
 
   // Main effect for media element setup
@@ -356,12 +395,22 @@ export const useMediaControls = (
     if (!ref.current) return;
 
     seek(activeRange.start);
+    if (activeRange.autoPlay) {
+      ref.current.play();
+    }
     ref.current.addEventListener("timeupdate", handleRangeConstraint);
 
     return () => {
       ref.current?.removeEventListener("timeupdate", handleRangeConstraint);
     };
-  }, [activeRange, src]);
+  }, [activeRange, src, looping]);
 
-  return { ref, togglePlay, destroy };
+  return {
+    ref,
+    togglePlay,
+    destroy,
+    toggleLooping,
+    playNextSentence,
+    playPreviousSentence,
+  };
 };

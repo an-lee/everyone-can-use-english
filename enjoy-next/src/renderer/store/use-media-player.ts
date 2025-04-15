@@ -23,8 +23,15 @@ type MediaPlayerState = {
   isPlaying: boolean;
   setIsPlaying: (isPlaying: boolean) => void;
 
-  activeRange: { start: number; end: number };
-  setActiveRange: (activeRange: { start: number; end: number }) => void;
+  activeRange: { start: number; end: number; autoPlay?: boolean };
+  setActiveRange: (activeRange: {
+    start: number;
+    end: number;
+    autoPlay?: boolean;
+  }) => void;
+
+  looping: boolean;
+  setLooping: (looping: boolean) => void;
 
   error: Error | null;
   setError: (error: Error | null) => void;
@@ -66,24 +73,30 @@ export const useMediaPlayer = create<MediaPlayerState>((set, get) => ({
   isPlaying: false,
   setIsPlaying: (isPlaying: boolean) => set({ isPlaying }),
 
-  activeRange: { start: 0, end: 0 },
-  setActiveRange: (activeRange: { start: number; end: number }) => {
+  activeRange: { start: 0, end: 0, autoPlay: false },
+  setActiveRange: (activeRange: {
+    start: number;
+    end: number;
+    autoPlay?: boolean;
+  }) => {
     console.debug("Setting active range", activeRange);
     set({ activeRange });
   },
+
+  looping: false,
+  setLooping: (looping: boolean) => set({ looping }),
 
   error: null,
   setError: (error: Error | null) => set({ error }),
 
   reset: () => {
-    console.debug("Resetting media player");
     set({
       mediaElement: null,
       loading: false,
       currentTime: 0,
       duration: 0,
       isPlaying: false,
-      activeRange: { start: 0, end: 0 },
+      activeRange: { start: 0, end: 0, autoPlay: false },
       error: null,
     });
   },
