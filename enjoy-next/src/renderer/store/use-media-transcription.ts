@@ -10,6 +10,9 @@ type MediaTranscriptionState = {
   sentences: TimelineEntry[];
   setSentences: (sentences: TimelineEntry[]) => void;
 
+  selectedWords: number[];
+  setSelectedWords: (selectedWords: number[]) => void;
+
   previousSentence: () => TimelineEntry | null;
   nextSentence: () => TimelineEntry | null;
 
@@ -26,6 +29,9 @@ export const useMediaTranscription = create<MediaTranscriptionState>(
 
     sentences: [],
     setSentences: (sentences) => set({ sentences }),
+
+    selectedWords: [],
+    setSelectedWords: (selectedWords) => set({ selectedWords }),
 
     previousSentence: () => {
       const { currentIndex, sentences } = get();

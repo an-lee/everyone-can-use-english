@@ -15,11 +15,17 @@ export function TranscriptionPanel(props: {
 }) {
   const { targetId, targetType } = props;
 
-  const { sentences, isLoading, error, currentIndex, activateSentence } =
-    useTranscriptionControls({
-      targetId,
-      targetType,
-    });
+  const {
+    sentences,
+    isLoading,
+    error,
+    currentIndex,
+    activateSentence,
+    selectWord,
+  } = useTranscriptionControls({
+    targetId,
+    targetType,
+  });
 
   if (isLoading) return <LoadingView />;
   if (error) return <ErrorView error={error.message} />;
@@ -34,6 +40,7 @@ export function TranscriptionPanel(props: {
             key={`sentence-${index}`}
             sentence={sentence}
             index={index}
+            selectWord={selectWord}
           />
         ) : (
           <TranscriptionSentence

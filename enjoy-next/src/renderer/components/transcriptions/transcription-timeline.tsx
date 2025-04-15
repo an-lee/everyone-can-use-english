@@ -1,3 +1,4 @@
+import { useMediaTranscription } from "@/renderer/store/use-media-transcription";
 import { useMediaPlayer } from "@/renderer/store";
 import {
   cn,
@@ -35,9 +36,11 @@ export function TranscriptionSentence(props: {
 export function TranscriptionActiveSentence(props: {
   sentence: TimelineEntry;
   index: number;
+  selectWord: (wordIndex: number) => void;
 }) {
-  const { sentence, index } = props;
+  const { sentence, index, selectWord } = props;
   const { currentTime } = useMediaPlayer();
+  const { selectedWords } = useMediaTranscription();
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -62,7 +65,7 @@ export function TranscriptionActiveSentence(props: {
         <p>{sentence.text}</p>
       </div>
 
-      <div className="flex items-center gap-2 flex-wrap mb-4">
+      <div className="flex items-center flex-wrap mb-4">
         {props.sentence.timeline?.map((entry, index) => {
           if (!entry.timeline) return null;
           return (
@@ -72,6 +75,8 @@ export function TranscriptionActiveSentence(props: {
               active={
                 currentTime >= entry.startTime && currentTime <= entry.endTime
               }
+              selected={selectedWords.includes(index)}
+              onClick={() => selectWord(index)}
             />
           );
         })}
@@ -83,11 +88,15 @@ export function TranscriptionActiveSentence(props: {
 export function TranscriptionWord(props: {
   word: TimelineEntry;
   active: boolean;
+  selected: boolean;
   onClick?: () => void;
 }) {
   return (
     <div
-      className="flex flex-col cursor-pointer select-none"
+      className={cn(
+        "flex flex-col cursor-pointer select-none px-1 py-0.5",
+        props.selected && "bg-red-500/20"
+      )}
       onClick={props.onClick}
     >
       <div
