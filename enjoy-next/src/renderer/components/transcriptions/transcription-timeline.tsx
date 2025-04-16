@@ -6,6 +6,7 @@ import {
   secondsToTimestamp,
 } from "@renderer/lib/utils";
 import { useEffect, useRef } from "react";
+import { useMediaFrequencies } from "@/renderer/hooks";
 
 export function TranscriptionSentence(props: {
   sentence: TimelineEntry;
@@ -38,10 +39,18 @@ export function TranscriptionActiveSentence(props: {
   index: number;
   selectWord: (wordIndex: number) => void;
 }) {
+  const { mediaElement } = useMediaPlayer();
+
   const { sentence, index, selectWord } = props;
   const { currentTime } = useMediaPlayer();
   const { selectedWords } = useMediaTranscription();
   const ref = useRef<HTMLDivElement>(null);
+
+  const {
+    data: frequencies,
+    isLoading: frequenciesLoading,
+    error: frequenciesError,
+  } = useMediaFrequencies(mediaElement?.src || "");
 
   useEffect(() => {
     if (!ref.current) return;

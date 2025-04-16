@@ -5,3 +5,5 @@ export * from "./use-ipc-error";
 export * from "./use-audio";
 export * from "./use-transcription";
 export * from "./use-media-controls";
+
+export * from "./use-ffmpeg";

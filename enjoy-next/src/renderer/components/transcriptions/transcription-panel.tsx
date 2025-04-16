@@ -8,6 +8,8 @@ import {
   ErrorView,
   LoadingView,
 } from "@renderer/components/status-views";
+import { useMediaFrequencies } from "@/renderer/hooks";
+import { useMediaPlayer } from "@/renderer/store/use-media-player";
 
 export function TranscriptionPanel(props: {
   targetId: string;

@@ -2,6 +2,7 @@ import { useMediaPlayer } from "@renderer/store/use-media-player";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { useMediaTranscription } from "../store/use-media-transcription";
+import { useMediaFrequencies } from "./use-ffmpeg";
 
 type MediaEventHandler = (e: Event) => void;
 type EventHandlers = Record<string, MediaEventHandler>;
