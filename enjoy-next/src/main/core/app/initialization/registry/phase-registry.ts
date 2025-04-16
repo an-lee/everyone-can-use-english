@@ -5,16 +5,6 @@ import db from "@main/storage";
 // Configure logger
 const logger = log.scope("PhaseRegistry");
 
-// Definition of initialization phases
-export type InitPhase = {
-  id: string;
-  name: string;
-  description: string;
-  dependencies: string[];
-  execute: () => Promise<void>;
-  timeout?: number; // Optional timeout in milliseconds
-};
-
 /**
  * Registry for initialization phases
  * Manages registration, dependencies, and provides access to phases

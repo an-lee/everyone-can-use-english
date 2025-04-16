@@ -1,17 +1,11 @@
-import {
-  HookFunction,
-  InitHookType,
-  InitPhase,
-} from "@main/core/app/initialization";
-
-export enum PluginLifecycle {
+declare enum PluginLifecycle {
   UNLOADED = "unloaded",
   LOADED = "loaded",
   ACTIVE = "active",
   ERROR = "error",
 }
 
-export interface PluginManifest {
+declare interface PluginManifest {
   id: string;
   name: string;
   version: string;
@@ -30,25 +24,25 @@ export interface PluginManifest {
   };
 }
 
-export interface PluginCommand {
+declare interface PluginCommand {
   id: string;
   title: string;
   keybinding?: string;
 }
 
-export interface PluginMenu {
+declare interface PluginMenu {
   mainMenu?: PluginMenuItem[];
   contextMenu?: PluginMenuItem[];
 }
 
-export interface PluginMenuItem {
+declare interface PluginMenuItem {
   id: string;
   command: string;
   group?: string;
   when?: string;
 }
 
-export interface PluginConfiguration {
+declare interface PluginConfiguration {
   id: string;
   title: string;
   type: "string" | "number" | "boolean" | "array" | "object";
@@ -56,18 +50,18 @@ export interface PluginConfiguration {
   description?: string;
 }
 
-export interface PluginViews {
+declare interface PluginViews {
   sidebar?: PluginViewItem[];
   panel?: PluginViewItem[];
 }
 
-export interface PluginViewItem {
+declare interface PluginViewItem {
   id: string;
   title: string;
   icon?: string;
 }
 
-export interface IPlugin {
+declare interface IPlugin {
   id: string;
   manifest: PluginManifest;
   isBuiltIn: boolean;
@@ -94,7 +88,7 @@ export interface IPlugin {
   setConfig<T>(key: string, value: T): void;
 }
 
-export interface PluginContext {
+declare interface PluginContext {
   /**
    * Register a command that can be invoked by the user
    */

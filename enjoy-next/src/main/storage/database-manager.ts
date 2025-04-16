@@ -16,6 +16,7 @@ const CONNECTION_TIMEOUT = 10000; // 10 seconds timeout for connection
 
 class DatabaseManager {
   public dataSource: DataSource | null = null;
+  public isInitialized = false;
   public currentState: DbState = {
     state: "disconnected",
     path: null,
@@ -27,7 +28,6 @@ class DatabaseManager {
   private autoConnected = false;
   private retryCount = 0;
   private retryTimer: NodeJS.Timeout | null = null;
-  private isInitialized = false;
   private connectionStartTime = 0;
   private operationCount = 0;
   private pingInterval: NodeJS.Timeout | null = null;

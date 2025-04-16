@@ -1,5 +1,4 @@
-import { BasePlugin } from "../../main/core/plugin/base-plugin";
-import { PluginContext, PluginManifest } from "../../types/plugin";
+import { BasePlugin } from "@main/plugin/core/base-plugin";
 import { dialog } from "electron";
 
 export default class HelloWorldPlugin extends BasePlugin {

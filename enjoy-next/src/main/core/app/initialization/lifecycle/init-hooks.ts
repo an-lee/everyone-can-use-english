@@ -5,20 +5,6 @@ import { takeUntil, Subject } from "rxjs";
 
 const logger = log.scope("InitHooks");
 
-// Hook types
-export enum InitHookType {
-  // Global hooks
-  BEFORE_INIT = "before:init",
-  AFTER_INIT = "after:init",
-  INIT_FAILED = "init:failed",
-
-  // Phase-specific hooks
-  BEFORE_PHASE = "before:phase",
-  AFTER_PHASE = "after:phase",
-  PHASE_FAILED = "phase:failed",
-  PHASE_TIMEOUT = "phase:timeout",
-}
-
 // Hook function types
 export type BeforeInitHook = () => Promise<void> | void;
 export type AfterInitHook = () => Promise<void> | void;
@@ -33,25 +19,6 @@ export type PhaseTimeoutHook = (
   phaseId: string,
   timeout: number
 ) => Promise<void> | void;
-
-// Union type for all hook types
-export type HookFunction =
-  | BeforeInitHook
-  | AfterInitHook
-  | InitFailedHook
-  | BeforePhaseHook
-  | AfterPhaseHook
-  | PhaseFailedHook
-  | PhaseTimeoutHook;
-
-// Hook registration entry
-type HookEntry = {
-  id: string;
-  type: InitHookType;
-  pluginId?: string;
-  order: number;
-  fn: HookFunction;
-};
 
 class InitHookManager {
   private hooks: HookEntry[] = [];

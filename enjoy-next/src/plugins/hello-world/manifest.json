@@ -1,9 +1,9 @@
 {
-  "id": "hello-world",
-  "name": "Hello World",
+  "id": "ffmpeg",
+  "name": "FFmpeg",
   "version": "1.0.0",
-  "description": "A sample plugin that demonstrates the plugin system",
-  "author": "Enjoy Developer",
+  "description": "FFmpeg plugin, for audio and video processing",
+  "author": "Enjoy",
   "main": "index.js",
   "contributes": {
     "commands": [

@@ -1,6 +1,5 @@
-import { InitPhase } from "@main/core/app/initialization/registry";
 import { log } from "@main/core/utils";
-import { db } from "@/main/storage/database-manager";
+import { db } from "@main/storage/database-manager";
 
 // Configure logger
 const logger = log.scope("DbInitPhase");

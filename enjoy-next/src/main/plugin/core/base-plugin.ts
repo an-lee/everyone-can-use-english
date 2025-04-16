@@ -6,7 +6,7 @@ import {
   PluginLifecycle,
   PluginManifest,
   PluginContext,
-} from "@main/plugin/types";
+} from "@/main/plugin/plugin";
 import { log } from "@main/core/utils";
 
 const logger = log.scope("base-plugin");

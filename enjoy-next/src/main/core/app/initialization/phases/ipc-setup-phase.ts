@@ -1,4 +1,3 @@
-import { InitPhase } from "@main/core/app/initialization/registry";
 import { log } from "@main/core/utils";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -37,7 +36,7 @@ export class IpcSetupPhase implements InitPhase {
         );
 
         const { default: PreloadApiGenerator } = await import(
-          "@/main/ipc/preload/preload-generator"
+          "@main/ipc/preload/preload-generator"
         );
         await PreloadApiGenerator.generatePreloadApi(outputPath);
         logger.info(`Generated preload API at ${outputPath}`);
