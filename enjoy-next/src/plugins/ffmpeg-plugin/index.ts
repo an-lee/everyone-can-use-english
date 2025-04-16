@@ -1,7 +1,6 @@
-import { dialog } from "electron";
 import { log } from "@main/core/utils";
 import { BasePlugin } from "@main/plugin/core/base-plugin";
-import { Ffmpeg } from "./ffmpeg";
+import { commands } from "./ffmpeg";
 
 // No need to define the enum locally as we're importing it now
 
@@ -23,19 +22,9 @@ export default class FFmpegPlugin extends BasePlugin {
     // Call parent activate method
     await super.activate();
 
-    const ffmpeg = new Ffmpeg();
     // Register commands
-    this.context.registerCommand("showGreeting", () => {
-      dialog.showMessageBox({
-        type: "info",
-        title: "FFmpeg",
-        message: "FFmpeg plugin is ready!",
-        buttons: ["OK"],
-      });
-    });
-
-    this.context.registerCommand("ping", () => {
-      return ffmpeg.checkCommand();
+    commands.forEach((command) => {
+      this.context.registerCommand(command.name, command.function);
     });
 
     // Subscribe to events

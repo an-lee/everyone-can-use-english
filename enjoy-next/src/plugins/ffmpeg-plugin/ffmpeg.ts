@@ -1,6 +1,6 @@
 import FluentFfmpeg from "fluent-ffmpeg";
 import { log } from "@main/core/utils";
-import { getFfmpegPath } from "./ffmpeg-utils";
+import { getFfmpegPath } from "./utils";
 
 export class Ffmpeg {
   public executable = FluentFfmpeg();
@@ -44,3 +44,12 @@ export class Ffmpeg {
     });
   }
 }
+
+const ffmpeg = new Ffmpeg();
+
+export const commands = [
+  {
+    name: "checkCommand",
+    function: () => ffmpeg.checkCommand(),
+  },
+];
