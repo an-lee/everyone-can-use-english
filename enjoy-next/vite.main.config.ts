@@ -63,4 +63,9 @@ export default defineConfig({
       "@generated": resolve(__dirname, "./src/generated"),
     },
   },
+  // Define __dirname for ES modules
+  define: {
+    "process.env": {},
+    __dirname: JSON.stringify(__dirname),
+  },
 });

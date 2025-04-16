@@ -1,11 +1,13 @@
 import { dialog } from "electron";
 import { log } from "@main/core/utils";
 import { BasePlugin } from "@main/plugin/core/base-plugin";
-import { PluginLifecycle } from "@main/plugin/plugin.enum";
+import { Ffmpeg } from "./ffmpeg";
 
 // No need to define the enum locally as we're importing it now
 
 export default class FFmpegPlugin extends BasePlugin {
+  protected logger = log.scope("ffmpeg-plugin");
+
   constructor(manifest: PluginManifest, isBuiltIn: boolean) {
     super(manifest, isBuiltIn);
   }
@@ -14,13 +16,14 @@ export default class FFmpegPlugin extends BasePlugin {
     // Call parent method first to get context set up
     await super.load(context);
 
-    log.scope("ffmpeg-plugin").info("FFmpeg plugin loaded");
+    this.logger.info("FFmpeg plugin loaded");
   }
 
   async activate(): Promise<void> {
     // Call parent activate method
     await super.activate();
 
+    const ffmpeg = new Ffmpeg();
     // Register commands
     this.context.registerCommand("showGreeting", () => {
       dialog.showMessageBox({
@@ -31,17 +34,21 @@ export default class FFmpegPlugin extends BasePlugin {
       });
     });
 
-    // Subscribe to events
-    this.context.subscribe("app:ready", () => {
-      console.log("FFmpeg plugin is ready!");
+    this.context.registerCommand("ping", () => {
+      return ffmpeg.checkCommand();
     });
 
-    log.scope("ffmpeg-plugin").info("FFmpeg plugin activated");
+    // Subscribe to events
+    this.context.subscribe("app:ready", () => {
+      this.logger.info("FFmpeg plugin is ready!");
+    });
+
+    this.logger.info("FFmpeg plugin activated");
   }
 
   async deactivate(): Promise<void> {
     // Clean up resources
-    log.scope("ffmpeg-plugin").info("FFmpeg plugin deactivating");
+    this.logger.info("FFmpeg plugin deactivating");
 
     // Call parent deactivate method
     await super.deactivate();

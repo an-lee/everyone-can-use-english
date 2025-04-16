@@ -261,3 +261,60 @@ Plugins can be distributed as:
 - ZIP archives containing the plugin directory
 - NPM packages with a specific structure
 - Repositories that can be cloned into the plugins directory
+
+## Executing Plugin Commands
+
+Commands registered by plugins can be executed in various ways:
+
+### From the Main Process
+
+In the main Electron process, you can execute plugin commands using the exported function from the plugin context:
+
+```typescript
+import { executeCommand } from "src/main/plugin/core/plugin-context";
+
+// Execute a command by its full ID (format: pluginId.commandName)
+await executeCommand("my-plugin.myCommand", ...args);
+```
+
+The command ID follows the pattern `pluginId.commandName`, where:
+
+- `pluginId` is the unique ID of the plugin (from manifest.json)
+- `commandName` is the ID provided when registering the command
+
+### From the Renderer Process
+
+In the renderer process, you can execute plugin commands through the IPC bridge:
+
+```typescript
+// Using the exposed API in the renderer
+window.EnjoyAPI.plugin.executeCommand("my-plugin.myCommand", ...args);
+```
+
+The Enjoy API is exposed to the renderer process via the preload script and provides access to plugin functionality.
+
+### Command Execution Flow
+
+When a command is executed:
+
+1. The command is looked up in the registered commands registry
+2. The associated callback function is invoked with any provided arguments
+3. The result is returned to the caller
+4. A `command:executed` event is emitted that can be listened for
+
+### Example Usage
+
+```typescript
+// In a plugin's activate function
+context.registerCommand("greet", (name) => {
+  return `Hello, ${name}!`;
+});
+
+// From the main process
+const greeting = await executeCommand("my-plugin.greet", "World");
+console.log(greeting); // Outputs: "Hello, World!"
+
+// From the renderer process
+const greeting = await window.EnjoyAPI.plugin.executeCommand("my-plugin.greet", "World");
+console.log(greeting); // Outputs: "Hello, World!"
+```

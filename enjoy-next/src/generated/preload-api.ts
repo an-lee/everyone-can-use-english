@@ -1,5 +1,5 @@
 // Auto-generated preload API for Electron IPC
-// DO NOT EDIT DIRECTLY - Generated on 2025-04-16T04:57:43.402Z
+// DO NOT EDIT DIRECTLY - Generated on 2025-04-16T05:50:38.768Z
 
 import { ipcRenderer } from 'electron';
 
@@ -142,6 +142,10 @@ export const DbAPI = {
 export const PluginAPI = {
   getAll: () => ipcRenderer.invoke('plugin:getAll'),
   get: (pluginId: string) => ipcRenderer.invoke('plugin:get', pluginId),
+  activate: (pluginId: string) => ipcRenderer.invoke('plugin:activate', pluginId),
+  deactivate: (pluginId: string) => ipcRenderer.invoke('plugin:deactivate', pluginId),
+  reload: (pluginId: string) => ipcRenderer.invoke('plugin:reload', pluginId),
+  executeCommand: (pluginId: string, commandId: string, args: any[]) => ipcRenderer.invoke('plugin:executeCommand', pluginId, commandId, args),
 };
 
 // Window API

@@ -1,3 +1,4 @@
+import { executeCommand } from "@main/plugin/core";
 import { BaseIpcModule, IpcMethod } from "@main/ipc/modules/base-ipc-module";
 import pluginManager from "@main/plugin/manager/plugin-manager";
 
@@ -113,6 +114,47 @@ export class PluginIpcModule extends BaseIpcModule {
     }
     await plugin.deactivate();
     await plugin.activate();
+  }
+
+  @IpcMethod({
+    description: "Executes a command for a plugin",
+    parameters: [
+      {
+        name: "pluginId",
+        type: "string",
+        description: "Plugin ID",
+        required: true,
+      },
+      {
+        name: "commandId",
+        type: "string",
+        description: "Command ID",
+        required: true,
+      },
+      {
+        name: "args",
+        type: "any[]",
+        description: "Command arguments",
+        required: true,
+      },
+    ],
+    returns: {
+      type: "any",
+      description: "Command result",
+    },
+  })
+  async executeCommand(
+    _event: any,
+    pluginId: string,
+    commandId: string,
+    args?: any[]
+  ): Promise<any> {
+    const result = await executeCommand(
+      `${pluginId}.${commandId}`,
+      ...(args || [])
+    );
+    this.logger.debug(`Command executed: ${commandId} with result: ${result}`);
+    return result;
   }
 }
 
