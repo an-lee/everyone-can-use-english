@@ -7,11 +7,26 @@ import {
 import { TranscriptionPanel } from "../transcriptions";
 import { AudioPlayer } from "./audio-player";
 import { ScrollArea } from "../ui/scroll-area";
+import { useEffect } from "react";
 
 export function AudioPage(props: { audioId: string }) {
   const { audioId } = props;
 
   const { data, isLoading, error } = useAudioById(audioId);
+
+  useEffect(() => {
+    if (data) {
+      console.log("data", data);
+      window.EnjoyAPI.plugin
+        .executeCommand("ffmpeg-plugin", "getFrequencyData", [data.src])
+        .then((url) => {
+          console.log(url);
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    }
+  }, [data]);
 
   if (isLoading) {
     return <LoadingView />;

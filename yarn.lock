@@ -17202,6 +17202,7 @@ __metadata:
     lodash: "npm:^4.17.21"
     lucide-react: "npm:^0.487.0"
     next-themes: "npm:^0.4.6"
+    pitchfinder: "npm:^2.3.2"
     radix-ui: "npm:^1.1.3"
     react: "npm:^19.1.0"
     react-dom: "npm:^19.1.0"

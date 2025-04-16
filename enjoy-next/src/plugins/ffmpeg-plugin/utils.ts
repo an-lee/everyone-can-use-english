@@ -1,3 +1,4 @@
+import Pitchfinder from "pitchfinder";
 import { createRequire } from "module";
 import { log } from "@main/core/utils";
 
@@ -26,3 +27,47 @@ export function getFfmpegPath(): string | null {
     return null;
   }
 }
+
+export const extractFrequencies = (props: {
+  peaks: Float32Array;
+  sampleRate: number;
+}): (number | null)[] => {
+  const { peaks, sampleRate } = props;
+
+  const detectPitch = Pitchfinder.AMDF({
+    sampleRate,
+    sensitivity: 0.05,
+  });
+  const duration = peaks.length / sampleRate;
+  const bpm = peaks.length / duration / 60;
+
+  const frequencies = Pitchfinder.frequencies(detectPitch, peaks, {
+    tempo: bpm,
+    quantization: bpm,
+  });
+
+  const cleanedFrequencies = removeNoise(frequencies);
+
+  return cleanedFrequencies;
+};
+
+export const removeNoise = (
+  numbers: (number | null)[],
+  threshold: number = 0.2
+): (number | null)[] => {
+  numbers.forEach((num, i) => {
+    if (i === 0) return;
+    if (typeof num !== "number") return;
+
+    const prevNum = numbers[i - 1] || num;
+    const nextNum = numbers[i + 1] || num;
+    const avgNeighbor = (prevNum + nextNum) / 2.0;
+    const deviation = Math.abs(num - avgNeighbor);
+
+    if (deviation > threshold * avgNeighbor) {
+      numbers[i] = null;
+    }
+  });
+
+  return numbers;
+};
