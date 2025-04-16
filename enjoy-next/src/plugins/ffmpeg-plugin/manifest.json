@@ -1,6 +1,6 @@
 {
-  "id": "ffmpeg",
-  "name": "FFmpeg",
+  "id": "ffmpeg-plugin",
+  "name": "FFmpeg Plugin",
   "version": "1.0.0",
   "description": "FFmpeg plugin, for audio and video processing",
   "author": "Enjoy",
@@ -15,7 +15,7 @@
     "menus": {
       "mainMenu": [
         {
-          "id": "helloWorld",
+          "id": "ffmpeg",
           "command": "showGreeting"
         }
       ]

@@ -1,7 +1,7 @@
 import { BasePlugin } from "@main/plugin/core/base-plugin";
 import { dialog } from "electron";
 
-export default class HelloWorldPlugin extends BasePlugin {
+export default class FFmpegPlugin extends BasePlugin {
   constructor(manifest: PluginManifest, isBuiltIn: boolean) {
     super(manifest, isBuiltIn);
   }
@@ -14,15 +14,15 @@ export default class HelloWorldPlugin extends BasePlugin {
     this.context.registerCommand("showGreeting", () => {
       dialog.showMessageBox({
         type: "info",
-        title: "Hello World",
-        message: "Hello from the Hello World plugin!",
+        title: "FFmpeg",
+        message: "FFmpeg plugin is ready!",
         buttons: ["OK"],
       });
     });
 
     // Subscribe to events
     this.context.subscribe("app:ready", () => {
-      console.log("Hello World plugin is ready!");
+      console.log("FFmpeg plugin is ready!");
     });
   }
 

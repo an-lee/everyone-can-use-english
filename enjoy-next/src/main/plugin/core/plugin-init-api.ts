@@ -1,11 +1,5 @@
 import { log } from "@main/core/utils";
-import {
-  initHooks,
-  InitPhase,
-  initObservables,
-  InitHookType,
-  HookFunction,
-} from "@main/core/app/initialization";
+import { initHooks, initObservables } from "@main/core/app/initialization";
 import { pluginPhaseAdapter } from "@main/plugin/core";
 import { from, firstValueFrom, timeout, catchError } from "rxjs";
 
