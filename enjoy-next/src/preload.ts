@@ -11,6 +11,7 @@ import {
   WindowAPI,
   ShellAPI,
   AppinitializerAPI,
+  PluginAPI,
 } from "@generated/preload-api";
 
 // Create the events API - this isn't part of the generated API
@@ -52,6 +53,9 @@ const combinedAPI = {
 
   // Add events API
   events: eventsAPI,
+
+  // Add plugin API
+  plugin: PluginAPI,
 };
 
 // Expose the combined API to the renderer process
