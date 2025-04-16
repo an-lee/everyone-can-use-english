@@ -135,7 +135,7 @@ export class PluginIpcModule extends BaseIpcModule {
         name: "args",
         type: "any[]",
         description: "Command arguments",
-        required: true,
+        required: false,
       },
     ],
     returns: {
@@ -149,12 +149,19 @@ export class PluginIpcModule extends BaseIpcModule {
     commandId: string,
     args?: any[]
   ): Promise<any> {
-    const result = await executeCommand(
-      `${pluginId}.${commandId}`,
-      ...(args || [])
-    );
-    this.logger.debug(`Command executed: ${commandId} with result: ${result}`);
-    return result;
+    try {
+      const result = await executeCommand(
+        `${pluginId}.${commandId}`,
+        ...(args || [])
+      );
+      this.logger.debug(
+        `Command executed: ${commandId} with result: ${result}`
+      );
+      return result;
+    } catch (error) {
+      this.logger.error(`Error executing command: ${commandId}`, error);
+      throw error;
+    }
   }
 }
 

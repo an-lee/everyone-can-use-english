@@ -90,3 +90,6 @@ typings/
 
 # Electron-Forge
 out/
+
+# generated
+src/generated/*.ts
