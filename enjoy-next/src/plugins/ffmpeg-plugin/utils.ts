@@ -31,43 +31,95 @@ export function getFfmpegPath(): string | null {
 export const extractFrequencies = (props: {
   peaks: Float32Array;
   sampleRate: number;
+  options?: {
+    sensitivity?: number;
+  };
 }): (number | null)[] => {
-  const { peaks, sampleRate } = props;
+  const { peaks, sampleRate, options = {} } = props;
+  const { sensitivity = 0.05 } = options;
 
-  const detectPitch = Pitchfinder.AMDF({
+  // For language learning, YIN algorithm is more accurate for tonal detection
+  const detectPitch = Pitchfinder.YIN({
     sampleRate,
-    sensitivity: 0.05,
+    threshold: sensitivity,
+    probabilityThreshold: 0.1,
   });
-  const duration = peaks.length / sampleRate;
-  const bpm = peaks.length / duration / 60;
+
+  const timeStep = 0.01; // 10ms time steps for better resolution of speech
+  const quantization = 1 / timeStep;
 
   const frequencies = Pitchfinder.frequencies(detectPitch, peaks, {
-    tempo: bpm,
-    quantization: bpm,
+    tempo: 60, // Fixed tempo to ensure consistent time steps
+    quantization: quantization,
   });
 
-  const cleanedFrequencies = removeNoise(frequencies);
+  // Clean the frequencies data for better visualization
+  const cleanedFrequencies = removeNoiseWithSmoothing(frequencies);
 
   return cleanedFrequencies;
 };
 
-export const removeNoise = (
-  numbers: (number | null)[],
-  threshold: number = 0.2
+// Enhanced noise removal with smoothing for clearer pitch contours
+export const removeNoiseWithSmoothing = (
+  frequencies: (number | null)[],
+  options: {
+    outlierThreshold?: number;
+    windowSize?: number;
+    minFrequency?: number;
+    maxFrequency?: number;
+  } = {}
 ): (number | null)[] => {
-  numbers.forEach((num, i) => {
-    if (i === 0) return;
-    if (typeof num !== "number") return;
+  const {
+    outlierThreshold = 0.2,
+    windowSize = 3,
+    minFrequency = 75,
+    maxFrequency = 500,
+  } = options;
 
-    const prevNum = numbers[i - 1] || num;
-    const nextNum = numbers[i + 1] || num;
-    const avgNeighbor = (prevNum + nextNum) / 2.0;
-    const deviation = Math.abs(num - avgNeighbor);
+  // Filter out frequencies outside the human voice range
+  const filtered = frequencies.map((freq) =>
+    freq !== null && freq >= minFrequency && freq <= maxFrequency ? freq : null
+  );
 
-    if (deviation > threshold * avgNeighbor) {
-      numbers[i] = null;
+  // First pass: Remove outliers
+  filtered.forEach((freq, i) => {
+    if (i === 0 || i === filtered.length - 1 || freq === null) return;
+
+    const neighbors: number[] = [];
+    for (
+      let j = Math.max(0, i - windowSize);
+      j <= Math.min(filtered.length - 1, i + windowSize);
+      j++
+    ) {
+      if (j !== i && filtered[j] !== null) {
+        neighbors.push(filtered[j] as number);
+      }
+    }
+
+    // Skip if not enough neighbors for comparison
+    if (neighbors.length < 2) return;
+
+    const avgNeighbor =
+      neighbors.reduce((sum, val) => sum + val, 0) / neighbors.length;
+    const deviation = Math.abs(freq - avgNeighbor);
+
+    if (deviation > outlierThreshold * avgNeighbor) {
+      filtered[i] = null;
     }
   });
 
-  return numbers;
+  // Second pass: Interpolate small gaps
+  for (let i = 1; i < filtered.length - 1; i++) {
+    if (
+      filtered[i] === null &&
+      filtered[i - 1] !== null &&
+      filtered[i + 1] !== null
+    ) {
+      // Interpolate single null values between two valid values
+      filtered[i] =
+        ((filtered[i - 1] as number) + (filtered[i + 1] as number)) / 2;
+    }
+  }
+
+  return filtered;
 };

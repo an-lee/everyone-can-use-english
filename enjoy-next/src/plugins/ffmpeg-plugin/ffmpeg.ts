@@ -5,6 +5,7 @@ import { extractFrequencies, getFfmpegPath } from "./utils";
 import { appConfig, enjoyUrlToPath, pathToEnjoyUrl } from "@/main/core";
 import path from "path";
 import fs from "fs";
+import { app } from "electron";
 
 export class Ffmpeg {
   public executable = FluentFfmpeg();
@@ -52,10 +53,19 @@ export class Ffmpeg {
     url: string,
     options: {
       sampleRate?: number;
-      windowSize?: number;
+      sensitivity?: number;
+      minFrequency?: number;
+      maxFrequency?: number;
+      filterType?: "basic" | "language" | "tonal";
     } = {}
-  ): Promise<{ frequencies: (number | null)[] }> {
-    this.logger.debug(`Getting frequency data for ${url}`);
+  ): Promise<{
+    frequencies: (number | null)[];
+    metadata: { duration: number; timeStep: number };
+  }> {
+    const { filterType = "language" } = options;
+    this.logger.debug(
+      `Getting frequency data for ${url} with mode: ${filterType}`
+    );
 
     const filePath = enjoyUrlToPath(url);
     if (!fs.existsSync(filePath)) {
@@ -69,18 +79,28 @@ export class Ffmpeg {
     }
 
     const baseName = path.basename(filePath);
-    const outputPath = path.join(appConfig.cachePath(), `${baseName}.pcm`);
+    const outputPath = path.join(app.getPath("temp"), `${baseName}.pcm`);
 
-    const sampleRate = options.sampleRate || 44100;
+    // Parameters optimized for language learning
+    const sampleRate = options.sampleRate || 22050; // Higher than voice minimum for better tonal accuracy
+
+    // Choose audio filter based on language type
+    let audioFilter = "highpass=f=60,lowpass=f=4000,dynaudnorm=f=150:g=15";
+
+    if (filterType === "tonal") {
+      // More precise for tonal languages (Chinese, Vietnamese, etc.)
+      audioFilter = "highpass=f=60,lowpass=f=5000,dynaudnorm=f=200:g=15:p=0.95";
+    }
 
     return new Promise((resolve, reject) => {
       this.executable
         .input(filePath)
-        .outputOptions(`-ar ${sampleRate}`) // Set sample rate
-        .outputOptions("-ac 1") // Convert to mono
-        .outputOptions("-map 0:a") // Select audio stream
-        .outputOptions("-c:a pcm_f32le") // Use 32-bit float PCM
-        .outputOptions("-f f32le") // Raw 32-bit float output format
+        .outputOptions(`-ar ${sampleRate}`)
+        .outputOptions("-ac 1")
+        .outputOptions("-map 0:a")
+        .outputOptions(`-af ${audioFilter}`)
+        .outputOptions("-c:a pcm_f32le")
+        .outputOptions("-f f32le")
         .output(outputPath)
         .on("start", (commandLine) => {
           this.logger.debug(`FFmpeg process started: ${commandLine}`);
@@ -88,29 +108,35 @@ export class Ffmpeg {
         .on("end", () => {
           if (fs.existsSync(outputPath)) {
             try {
-              // Read the raw PCM data
               const buffer = fs.readFileSync(outputPath);
               const peaks = new Float32Array(buffer.buffer);
 
               const frequencies = extractFrequencies({
                 peaks,
                 sampleRate,
+                options: {
+                  sensitivity: options.sensitivity,
+                },
               });
 
+              // Calculate metadata for visualization
+              const duration = peaks.length / sampleRate;
+              const timeStep = 0.01; // 10ms steps
+
               this.logger.debug(
-                `Extracted ${frequencies.length} frequency points`
+                `Extracted ${frequencies.filter((f) => f !== null).length} valid frequency points from ${frequencies.length} total`
               );
-              resolve({ frequencies });
+
+              resolve({
+                frequencies,
+                metadata: {
+                  duration,
+                  timeStep,
+                },
+              });
             } catch (err) {
               this.logger.error(`Error processing PCM data: ${err}`);
               reject(err);
-            } finally {
-              // Clean up temp file
-              try {
-                fs.unlinkSync(outputPath);
-              } catch (e) {
-                this.logger.warn(`Failed to delete temp file: ${outputPath}`);
-              }
             }
           } else {
             this.logger.error("No output from FFmpeg");
