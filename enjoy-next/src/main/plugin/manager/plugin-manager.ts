@@ -8,7 +8,7 @@ import {
   pluginObservables,
 } from "@main/plugin/core";
 import { Subscription } from "rxjs";
-import { PluginLifecycle } from "@main/plugin/plugin-types";
+import { PluginLifecycle } from "@main/plugin/plugin.enum";
 
 const logger = log.scope("plugin-manager");
 

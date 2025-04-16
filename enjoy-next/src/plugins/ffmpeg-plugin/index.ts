@@ -1,6 +1,7 @@
 import { dialog } from "electron";
 import { log } from "@main/core/utils";
-import { BasePlugin, PluginLifecycle } from "./plugin-deps";
+import { BasePlugin } from "@main/plugin/core/base-plugin";
+import { PluginLifecycle } from "@main/plugin/plugin.enum";
 
 // No need to define the enum locally as we're importing it now
 

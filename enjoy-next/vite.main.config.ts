@@ -26,31 +26,7 @@ const createPluginEntries = () => {
       __dirname,
       `./src/plugins/${plugin}/index.ts`
     );
-
-    // Also include the plugin dependencies file if it exists
-    const depsFile = resolve(
-      __dirname,
-      `./src/plugins/${plugin}/plugin-deps.ts`
-    );
-    try {
-      if (
-        readdirSync(resolve(__dirname, `./src/plugins/${plugin}`)).includes(
-          "plugin-deps.ts"
-        )
-      ) {
-        entries[`plugins/${plugin}/plugin-deps`] = depsFile;
-      }
-    } catch (error) {
-      // Skip if file doesn't exist
-    }
   });
-
-  // Add plugin-types as a separate entry point to ensure it's included
-  entries["plugin-types"] = resolve(
-    __dirname,
-    "./src/main/plugin/plugin-types.ts"
-  );
-
   return entries;
 };
 

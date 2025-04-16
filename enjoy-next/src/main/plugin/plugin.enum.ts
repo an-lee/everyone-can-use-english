@@ -21,9 +21,7 @@ export enum InitHookType {
 }
 
 // Export types as a namespace for plugins to use
-export const PluginTypes = {
+export const PluginEnum = {
   PluginLifecycle,
   InitHookType,
 };
-
-export default PluginTypes;

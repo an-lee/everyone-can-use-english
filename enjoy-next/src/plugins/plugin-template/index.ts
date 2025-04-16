@@ -7,7 +7,8 @@
 
 import { dialog } from "electron";
 import { log } from "@main/core/utils";
-import { BasePlugin, PluginLifecycle } from "./plugin-deps";
+import { BasePlugin } from "@main/plugin/core/base-plugin";
+import { PluginLifecycle } from "@main/plugin/plugin.enum";
 
 // Create a scoped logger for this plugin
 const logger = log.scope("plugin-template");
