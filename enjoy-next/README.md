@@ -17,12 +17,14 @@ The application uses a phased initialization system that allows for orderly star
 
 ### Plugin System
 
-The plugin architecture allows for modular extension of application functionality:
+The application supports a flexible plugin system that allows both built-in and third-party plugins:
 
-- **Plugin Manager**: Handles loading and lifecycle management of plugins
-- **Plugin Context**: Provides a controlled API surface for plugins
-- **Observable-based Events**: Uses RxJS for reactive communication between plugins and the core app
-- **Resource Management**: Ensures proper cleanup when plugins are deactivated
+- **Built-in plugins**: Developed in TypeScript as part of the application codebase
+- **Third-party plugins**: Written in JavaScript and installed by users at runtime
+
+The build system automatically transpiles built-in TypeScript plugins to JavaScript, which are then loaded at runtime using dynamic imports.
+
+For more information, see the [Plugin Documentation](./PLUGINS.md) and check out the [example plugins](./example-plugins/).
 
 ### Event Sourcing
 

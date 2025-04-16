@@ -1,87 +1,52 @@
-# Plugin System Architecture
+# Enjoy Plugin System
 
-## Overview
+This document explains how to create and use plugins for the Enjoy application.
 
-The plugin system is designed to extend the functionality of the Enjoy application. It allows both built-in and user-installed plugins to add features, commands, views, and more to the application.
+## Plugin Types
 
-## Architecture
+Enjoy supports two types of plugins:
 
-The plugin system consists of several key components:
-
-### 1. Plugin Manager
-
-Located at `src/main/core/plugin-manager.ts`, the Plugin Manager is responsible for:
-
-- Loading built-in plugins from the application's source directory
-- Loading user plugins from the user data directory
-- Activating and deactivating plugins
-- Managing the plugin lifecycle
-
-### 2. Plugin Types
-
-Located at `src/main/core/plugin-types.ts`, this file defines the interfaces and types used by the plugin system:
-
-- `PluginLifecycle`: Enum representing the possible states of a plugin (unloaded, loaded, active, error)
-- `PluginManifest`: Interface describing the plugin's metadata and contributions
-- `IPlugin`: Interface that all plugins must implement
-- `PluginContext`: Interface providing APIs for plugins to interact with the application
-
-### 3. Base Plugin
-
-Located at `src/main/core/base-plugin.ts`, the Base Plugin class implements the `IPlugin` interface and provides common functionality for all plugins, such as:
-
-- Configuration storage and retrieval
-- Lifecycle management
-- Event handling
-
-### 4. Plugin Context
-
-Located at `src/main/core/plugin-context.ts`, the Plugin Context provides APIs for plugins to interact with the application:
-
-- Registering commands
-- Registering views
-- Publishing and subscribing to events
-- Accessing services
-- Storage handling
-
-### 5. IPC Handlers
-
-Located at `src/main/core/ipc-handlers.ts`, the IPC Handlers enable communication between the main process and renderer process for plugin-related operations:
-
-- Getting the list of plugins
-- Executing plugin commands
-- Notifying the renderer of plugin events
+1. **Built-in Plugins**: These are developed as part of the application codebase using TypeScript and bundled during build.
+2. **Third-party Plugins**: These are written in JavaScript and installed by users at runtime.
 
 ## Plugin Structure
 
-A plugin consists of:
+A valid plugin must have the following structure:
 
-1. A `manifest.json` file that describes the plugin and its contributions
-2. A main JavaScript/TypeScript file that exports a class extending the `BasePlugin` class
-3. Optional additional files for the plugin's functionality
+```
+my-plugin/
+├── manifest.json     # Plugin metadata
+├── index.js          # Main plugin entry point (for third-party plugins)
+└── ... (other files)
+```
 
-Example manifest.json:
+### Manifest Format
+
+The `manifest.json` file must include:
 
 ```json
 {
-  "id": "hello-world",
-  "name": "Hello World",
+  "id": "unique-plugin-id",
+  "name": "My Plugin",
   "version": "1.0.0",
-  "description": "A sample plugin that demonstrates the plugin system",
-  "author": "Enjoy Developer",
   "main": "index.js",
+  "description": "Description of the plugin",
+  "author": "Author Name",
+  "engines": {
+    "app": ">=1.0.0"
+  },
   "contributes": {
     "commands": [
       {
-        "id": "showGreeting",
-        "title": "Show Greeting"
+        "id": "myCommand",
+        "title": "My Command"
       }
     ],
     "menus": {
       "mainMenu": [
         {
-          "id": "helloWorld",
-          "command": "showGreeting"
+          "id": "myPlugin",
+          "command": "myCommand"
         }
       ]
     }
@@ -89,72 +54,245 @@ Example manifest.json:
 }
 ```
 
-Example plugin implementation:
+## Creating a Third-Party Plugin
+
+Third-party plugins are loaded at runtime using ES modules. These plugins don't need to be compiled as part of the application build.
+
+### Plugin Entry Point Formats
+
+You can structure your plugin in several ways:
+
+#### 1. Object-based Plugin
+
+```javascript
+export default {
+  async activate(context) {
+    // Initialize plugin
+    
+    // Register commands
+    context.registerCommand("myCommand", () => {
+      console.log("Command executed!");
+    });
+    
+    // Optional: return cleanup function
+    return {
+      async deactivate() {
+        // Cleanup resources
+      }
+    };
+  }
+};
+```
+
+#### 2. Function-based Plugin (Factory Pattern)
+
+```javascript
+export default function createPlugin(manifest, isBuiltIn) {
+  return {
+    async activate(context) {
+      // Initialize plugin
+      
+      // Register commands
+      context.registerCommand("myCommand", () => {
+        console.log("Command executed!");
+      });
+    },
+    
+    async deactivate() {
+      // Cleanup resources
+    }
+  };
+}
+```
+
+### Plugin API
+
+Plugins have access to various APIs through the plugin context:
+
+- `context.registerCommand(id, callback)`: Register a command
+- `context.registerView(id, component)`: Register a UI view
+- `context.subscribe(event, callback)`: Subscribe to events
+- `context.publish(event, ...args)`: Publish events
+- `context.registerInitPhase(phase)`: Register an initialization phase
+- `context.waitForPhase(phaseId)`: Wait for an initialization phase to complete
+- `context.getStoragePath()`: Get the plugin's storage directory
+
+## Installing Third-Party Plugins
+
+To install a third-party plugin:
+
+1. Create a folder with your plugin name in:
+   - Windows: `%APPDATA%\enjoy-next\plugins\`
+   - macOS: `~/Library/Application Support/enjoy-next/plugins/`
+   - Linux: `~/.config/enjoy-next/plugins/`
+2. Add your plugin files to this folder (at minimum, manifest.json and index.js)
+3. Restart the application
+
+## Developing Built-in Plugins
+
+Built-in plugins are developed within the application codebase using TypeScript and compiled during the build process.
+
+### Creating a Built-in Plugin
+
+1. Create a new directory in `src/plugins/` for your plugin
+2. Create a `manifest.json` file with plugin metadata
+3. Create an `index.ts` file with your plugin implementation
+4. Create a `plugin-deps.ts` file to bundle plugin dependencies
+
+### Built-in Plugin Structure
+
+A built-in plugin should have the following structure:
+
+```
+src/plugins/my-plugin/
+├── manifest.json     # Plugin metadata
+├── index.ts          # Main plugin implementation
+├── plugin-deps.ts    # Plugin dependencies (re-exports)
+└── ... (other files)
+```
+
+### Class-based Plugin Implementation
+
+For built-in plugins, the recommended approach is to extend the `BasePlugin` class:
 
 ```typescript
-import { BasePlugin } from '../../main/core/base-plugin';
-import { PluginContext, PluginManifest } from '../../main/core/plugin-types';
+import { dialog } from "electron";
+import { log } from "@main/core/utils";
+import { BasePlugin, PluginLifecycle } from "./plugin-deps";
 
-export default class HelloWorldPlugin extends BasePlugin {
+export default class MyPlugin extends BasePlugin {
   constructor(manifest: PluginManifest, isBuiltIn: boolean) {
     super(manifest, isBuiltIn);
   }
-  
+
+  async load(context: PluginContext): Promise<void> {
+    // Call parent method first to get context set up
+    await super.load(context);
+    
+    // Your setup code
+    log.scope("my-plugin").info("Plugin loaded");
+  }
+
   async activate(): Promise<void> {
+    // Call parent activate method
     await super.activate();
     
     // Register commands
-    this.context.registerCommand('showGreeting', () => {
-      console.log('Hello from the plugin!');
+    this.context.registerCommand("myCommand", () => {
+      console.log("Command executed!");
     });
+    
+    log.scope("my-plugin").info("Plugin activated");
   }
-  
+
   async deactivate(): Promise<void> {
+    // Clean up resources
+    log.scope("my-plugin").info("Plugin deactivating");
+    
+    // Call parent deactivate method
     await super.deactivate();
   }
 }
 ```
 
-## Plugin Lifecycle
+### Plugin Dependencies File
 
-1. **Loading**: The plugin manager discovers and loads plugins during application startup
-2. **Activation**: After loading, plugins are activated and can register commands, views, etc.
-3. **Use**: Users interact with the plugin through the application
-4. **Deactivation**: When the application is closing, plugins are deactivated to clean up resources
-
-## Creating a New Plugin
-
-To create a new plugin:
-
-1. Create a new directory with the plugin's name in either:
-   - `src/plugins/` for built-in plugins
-   - `%APPDATA%/enjoy-next/plugins/` for user plugins
-
-2. Create a `manifest.json` file in the plugin directory with the required metadata
-
-3. Create the main plugin file (as specified in the manifest) that exports a class extending `BasePlugin`
-
-4. Implement the plugin's functionality using the Plugin Context API
-
-## Renderer Integration
-
-The plugin system integrates with the renderer process through the preload script, which exposes an API for:
-
-- Getting the list of plugins
-- Executing plugin commands
-- Subscribing to plugin events
-
-Example usage in renderer:
+To ensure all necessary dependencies are properly bundled for your plugin, create a `plugin-deps.ts` file:
 
 ```typescript
-// Get all plugins
-const plugins = await window.enjoy.plugins.getPlugins();
+/**
+ * This file bundles all needed plugin dependencies
+ * This helps ensure that dependencies are included in the plugin build
+ */
+export { PluginLifecycle } from "@main/plugin/plugin-types";
+export { BasePlugin } from "@main/plugin/core/base-plugin";
 
-// Execute a command
-await window.enjoy.plugins.executeCommand('hello-world.showGreeting');
-
-// Listen for events
-window.enjoy.events.on('plugin:activated', (plugin) => {
-  console.log(`Plugin ${plugin.name} activated`);
-});
+// Re-export types to make them available to the plugin
+export interface IPluginDeps {
+  PluginLifecycle: typeof import("@main/plugin/plugin-types").PluginLifecycle;
+  BasePlugin: typeof import("@main/plugin/core/base-plugin").BasePlugin;
+}
 ```
+
+## Plugin Lifecycle
+
+Plugins go through the following lifecycle:
+
+1. **Discovery**: Plugins are discovered in the built-in and user plugin directories
+2. **Loading**: The manifest is read and the main module is loaded
+3. **Initialization**: For class-based plugins, the `load(context)` method is called
+4. **Activation**: The plugin's `activate()` method is called
+5. **Active**: Plugin is running and can interact with the application
+6. **Deactivation**: Plugin's `deactivate()` method is called for cleanup
+7. **Unloaded**: Plugin resources are released
+
+## Build Process
+
+The build system automatically transpiles built-in TypeScript plugins to JavaScript. Each plugin in the `src/plugins/` directory is built as a separate entry point:
+
+1. Vite identifies all directories in `src/plugins/`
+2. For each plugin, it creates entry points for `index.ts` and `plugin-deps.ts`
+3. The build output preserves the directory structure in `.vite/build/plugins/`
+4. At runtime, the plugin manager loads these compiled JS files
+
+## Plugin Manager Implementation
+
+The plugin manager handles the loading and lifecycle of both built-in and third-party plugins:
+
+1. **Path Resolution**:
+   - Built-in plugins: `.vite/build/plugins/` directory in the app package
+   - Third-party plugins: `plugins/` directory in the user data folder
+
+2. **Plugin Loading**:
+   - Discovers plugin directories
+   - Reads manifest files
+   - Dynamically imports plugin modules using ES module imports
+
+3. **Plugin Registration**:
+   - Handles different export formats (class, object, factory function)
+   - Creates plugin context for each plugin
+   - Manages plugin lifecycle state
+
+## Best Practices
+
+When developing plugins:
+
+1. **Use the Correct Pattern**:
+   - For built-in plugins: Use class inheritance with `BasePlugin`
+   - For third-party plugins: Use the object or factory pattern
+
+2. **Bundle Dependencies**:
+   - Always create a `plugin-deps.ts` file for built-in plugins
+   - Import from this file in your plugin to ensure dependencies are included
+
+3. **Proper Cleanup**:
+   - Always implement proper cleanup in the `deactivate` method
+   - Unsubscribe from events, release resources, and clear timers
+
+4. **Error Handling**:
+   - Catch and log errors in your plugin methods
+   - Don't let exceptions bubble up to the plugin manager
+
+5. **Versioning**:
+   - Use semantic versioning for your plugins
+   - Specify the required application version in the `engines` field
+
+## Example Plugins
+
+See the example plugins in the `example-plugins/` directory for complete working examples.
+
+## Troubleshooting
+
+Common issues and solutions:
+
+### Built-in Plugin Issues
+
+- **"X is not defined" errors**: Ensure you're importing all dependencies via `plugin-deps.ts`
+- **Plugin not loading**: Check that your plugin directory structure matches the expected format
+- **Circular dependencies**: Avoid circular imports in your plugin code
+
+### Third-party Plugin Issues
+
+- **Plugin not found**: Ensure it's in the correct user plugins directory
+- **Import errors**: Third-party plugins must use ES module syntax (export default)
+- **Context errors**: Only use API methods provided by the plugin context

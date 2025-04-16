@@ -8,6 +8,7 @@ import {
   pluginObservables,
 } from "@main/plugin/core";
 import { Subscription } from "rxjs";
+import { PluginLifecycle } from "@main/plugin/plugin-types";
 
 const logger = log.scope("plugin-manager");
 
@@ -26,7 +27,25 @@ export class PluginManager {
 
   constructor() {
     this.pluginsDir = path.join(app.getPath("userData"), "plugins");
-    this.builtInPluginsDir = path.join(app.getAppPath(), "src", "plugins");
+
+    // Determine built-in plugins directory based on app packaging status
+    if (app.isPackaged) {
+      // In production, use the bundled plugins directory
+      this.builtInPluginsDir = path.join(
+        app.getAppPath(),
+        ".vite",
+        "build",
+        "plugins"
+      );
+    } else {
+      // In development, directly use the transpiled output
+      this.builtInPluginsDir = path.join(
+        app.getAppPath(),
+        ".vite",
+        "build",
+        "plugins"
+      );
+    }
 
     // Ensure the plugins directory exists
     fs.ensureDirSync(this.pluginsDir);
@@ -66,33 +85,106 @@ export class PluginManager {
 
   async loadBuiltInPlugins() {
     logger.info("Loading built-in plugins");
-    if (!fs.existsSync(this.builtInPluginsDir)) return;
 
-    const pluginDirs = fs
-      .readdirSync(this.builtInPluginsDir, { withFileTypes: true })
-      .filter((dirent) => dirent.isDirectory())
-      .map((dirent) => path.join(this.builtInPluginsDir, dirent.name));
+    try {
+      if (!fs.existsSync(this.builtInPluginsDir)) {
+        logger.warn(
+          `Built-in plugins directory not found: ${this.builtInPluginsDir}`
+        );
+        return;
+      }
 
-    for (const pluginDir of pluginDirs) {
-      await this.loadPlugin(pluginDir, true);
+      const pluginDirs = fs
+        .readdirSync(this.builtInPluginsDir, { withFileTypes: true })
+        .filter((dirent) => dirent.isDirectory())
+        .map((dirent) => path.join(this.builtInPluginsDir, dirent.name));
+
+      for (const pluginDir of pluginDirs) {
+        await this.loadBuiltInPlugin(pluginDir);
+      }
+    } catch (error) {
+      logger.error("Error loading built-in plugins:", error);
+    }
+  }
+
+  async loadBuiltInPlugin(pluginDir: string) {
+    try {
+      const manifestPath = path.join(
+        app.getAppPath(),
+        "src",
+        "plugins",
+        path.basename(pluginDir),
+        "manifest.json"
+      );
+
+      if (!fs.existsSync(manifestPath)) {
+        logger.warn(
+          `No manifest.json found for built-in plugin at ${manifestPath}`
+        );
+        return;
+      }
+
+      const manifest: PluginManifest = await fs.readJSON(manifestPath);
+
+      if (
+        !manifest.id ||
+        !manifest.name ||
+        !manifest.version ||
+        !manifest.main
+      ) {
+        logger.warn(
+          `Invalid manifest.json for built-in plugin ${path.basename(pluginDir)}`
+        );
+        return;
+      }
+
+      if (this.plugins.has(manifest.id)) {
+        logger.warn(`Plugin with ID ${manifest.id} already loaded`);
+        return;
+      }
+
+      // Path to the transpiled JS file
+      const pluginMainPath = path.join(pluginDir, "index.js");
+
+      if (!fs.existsSync(pluginMainPath)) {
+        logger.warn(`Built-in plugin main file not found: ${pluginMainPath}`);
+        return;
+      }
+
+      // Dynamic import of the built-in plugin using the transpiled JS
+      const pluginModule = await import(`file://${pluginMainPath}`);
+      await this.registerPlugin(pluginModule, manifest, true, pluginDir);
+    } catch (error) {
+      logger.error(`Failed to load built-in plugin from ${pluginDir}`, error);
     }
   }
 
   async loadUserPlugins() {
     logger.info("Loading user plugins");
-    if (!fs.existsSync(this.pluginsDir)) return;
 
-    const pluginDirs = fs
-      .readdirSync(this.pluginsDir, { withFileTypes: true })
-      .filter((dirent) => dirent.isDirectory())
-      .map((dirent) => path.join(this.pluginsDir, dirent.name));
+    try {
+      if (!fs.existsSync(this.pluginsDir)) {
+        logger.info(
+          `User plugins directory not found, creating: ${this.pluginsDir}`
+        );
+        fs.ensureDirSync(this.pluginsDir);
+        return;
+      }
 
-    for (const pluginDir of pluginDirs) {
-      await this.loadPlugin(pluginDir, false);
+      const pluginDirs = fs
+        .readdirSync(this.pluginsDir, { withFileTypes: true })
+        .filter((dirent) => dirent.isDirectory())
+        .map((dirent) => path.join(this.pluginsDir, dirent.name));
+
+      for (const pluginDir of pluginDirs) {
+        await this.loadUserPlugin(pluginDir);
+      }
+    } catch (error) {
+      logger.error("Error loading user plugins:", error);
     }
   }
 
-  async loadPlugin(pluginDir: string, isBuiltIn: boolean) {
+  async loadUserPlugin(pluginDir: string) {
     try {
       const manifestPath = path.join(pluginDir, "manifest.json");
 
@@ -119,94 +211,211 @@ export class PluginManager {
       }
 
       const pluginMainPath = path.join(pluginDir, manifest.main);
+
       if (!fs.existsSync(pluginMainPath)) {
         logger.warn(`Plugin main file not found: ${pluginMainPath}`);
         return;
       }
 
-      // Dynamic import of the plugin
-      const pluginModule = await import(pluginMainPath);
-      const pluginExport = pluginModule.default;
-
-      if (!pluginExport || typeof pluginExport.activate !== "function") {
-        logger.warn(
-          `Plugin ${manifest.id} does not export an activate function`
-        );
-        return;
-      }
-
-      // Create the plugin context
-      const context = createPluginContext(manifest, isBuiltIn);
-
-      // Store the cleanup handler
-      this.contextCleanupHandlers.set(manifest.id, context);
-
-      // Create the plugin entry
-      const plugin: PluginInternal = {
-        id: manifest.id,
-        manifest,
-        isBuiltIn,
-        lifecycle: PluginLifecycle.LOADED,
-
-        async activate(): Promise<void> {
-          try {
-            this.lifecycle = PluginLifecycle.ACTIVE;
-
-            // Call the plugin's activate function
-            const result = await pluginExport.activate(context);
-
-            // Store cleanup function if returned by plugin
-            if (result && typeof result.deactivate === "function") {
-              this.cleanupFunc = result.deactivate;
-            }
-
-            // Emit plugin activated event
-            pluginObservables.emitPluginActivated(manifest.id);
-          } catch (error) {
-            logger.error(`Failed to activate plugin ${manifest.id}:`, error);
-            this.lifecycle = PluginLifecycle.ERROR;
-            throw error;
-          }
-        },
-
-        async deactivate(): Promise<void> {
-          try {
-            // Call the plugin's deactivate function if available
-            if (this.cleanupFunc) {
-              await this.cleanupFunc();
-            }
-
-            // Emit plugin deactivated event - this will trigger cleanup
-            pluginObservables.emitPluginDeactivated(manifest.id);
-
-            this.lifecycle = PluginLifecycle.LOADED;
-          } catch (error) {
-            logger.error(`Failed to deactivate plugin ${manifest.id}:`, error);
-            this.lifecycle = PluginLifecycle.ERROR;
-            throw error;
-          }
-        },
-
-        getConfig<T>(key: string): T | undefined {
-          // Simple implementation - would need proper storage
-          return undefined;
-        },
-
-        setConfig<T>(key: string, value: T): void {
-          // Simple implementation - would need proper storage
-        },
-      };
-
-      this.plugins.set(manifest.id, plugin);
-
-      // Emit plugin loaded event
-      pluginObservables.emitPluginLoaded(manifest.id, pluginDir, manifest);
-
-      logger.info(
-        `Loaded plugin: ${manifest.name} (${manifest.id}) v${manifest.version}`
-      );
+      // For user plugins, we import directly from the file system
+      const pluginModule = await import(`file://${pluginMainPath}`);
+      await this.registerPlugin(pluginModule, manifest, false, pluginDir);
     } catch (error) {
-      logger.error(`Failed to load plugin from ${pluginDir}`, error);
+      logger.error(`Failed to load user plugin from ${pluginDir}`, error);
+    }
+  }
+
+  async registerPlugin(
+    pluginModule: any,
+    manifest: PluginManifest,
+    isBuiltIn: boolean,
+    pluginDir: string
+  ) {
+    const pluginExport = pluginModule.default;
+
+    if (!pluginExport) {
+      logger.warn(`Plugin ${manifest.id} does not export a default value`);
+      return;
+    }
+
+    // Handle different plugin export formats
+    if (typeof pluginExport === "function") {
+      // Handle class-based plugins (from built-in TypeScript)
+      if (
+        pluginExport.prototype &&
+        typeof pluginExport.prototype.activate === "function"
+      ) {
+        const PluginClass = pluginExport;
+        try {
+          const pluginInstance = new PluginClass(manifest, isBuiltIn);
+          const context = createPluginContext(manifest, isBuiltIn);
+
+          // Store the cleanup handler
+          this.contextCleanupHandlers.set(manifest.id, context);
+
+          // Call load method if it exists
+          if (typeof pluginInstance.load === "function") {
+            await pluginInstance.load(context);
+          }
+
+          this.plugins.set(manifest.id, pluginInstance);
+
+          // Emit plugin loaded event
+          pluginObservables.emitPluginLoaded(manifest.id, pluginDir, manifest);
+
+          logger.info(
+            `Loaded class-based plugin: ${manifest.name} (${manifest.id}) v${manifest.version}`
+          );
+        } catch (error) {
+          logger.error(
+            `Failed to instantiate plugin class for ${manifest.id}:`,
+            error
+          );
+        }
+      } else {
+        // Handle function-based plugins (factory function pattern)
+        try {
+          const pluginInstance = pluginExport(manifest, isBuiltIn);
+          if (pluginInstance && typeof pluginInstance.activate === "function") {
+            const context = createPluginContext(manifest, isBuiltIn);
+
+            // Store the cleanup handler
+            this.contextCleanupHandlers.set(manifest.id, context);
+
+            // Create the plugin entry with context injected
+            const plugin: PluginInternal = {
+              ...pluginInstance,
+              id: manifest.id,
+              manifest,
+              isBuiltIn,
+              lifecycle: PluginLifecycle.LOADED,
+
+              // Ensure these functions are bound to the plugin instance
+              activate: () => pluginInstance.activate(context),
+              deactivate: () =>
+                pluginInstance.deactivate?.() || Promise.resolve(),
+            };
+
+            this.plugins.set(manifest.id, plugin);
+
+            // Emit plugin loaded event
+            pluginObservables.emitPluginLoaded(
+              manifest.id,
+              pluginDir,
+              manifest
+            );
+
+            logger.info(
+              `Loaded factory function plugin: ${manifest.name} (${manifest.id}) v${manifest.version}`
+            );
+          } else {
+            logger.warn(
+              `Factory function for plugin ${manifest.id} doesn't return a valid plugin object`
+            );
+          }
+        } catch (error) {
+          logger.error(
+            `Failed to execute factory function for plugin ${manifest.id}:`,
+            error
+          );
+        }
+      }
+    } else if (typeof pluginExport === "object") {
+      // Handle object-based plugins (simple object with activate method)
+      if (typeof pluginExport.activate === "function") {
+        try {
+          // Create the plugin context
+          const context = createPluginContext(manifest, isBuiltIn);
+
+          // Store the cleanup handler
+          this.contextCleanupHandlers.set(manifest.id, context);
+
+          // Create the plugin entry
+          const plugin: PluginInternal = {
+            id: manifest.id,
+            manifest,
+            isBuiltIn,
+            lifecycle: PluginLifecycle.LOADED,
+
+            async activate(): Promise<void> {
+              try {
+                this.lifecycle = PluginLifecycle.ACTIVE;
+
+                // Call the plugin's activate function
+                const result = await pluginExport.activate(context);
+
+                // Store cleanup function if returned by plugin
+                if (result && typeof result.deactivate === "function") {
+                  this.cleanupFunc = result.deactivate;
+                }
+
+                // Emit plugin activated event
+                pluginObservables.emitPluginActivated(manifest.id);
+              } catch (error) {
+                logger.error(
+                  `Failed to activate plugin ${manifest.id}:`,
+                  error
+                );
+                this.lifecycle = PluginLifecycle.ERROR;
+                throw error;
+              }
+            },
+
+            async deactivate(): Promise<void> {
+              try {
+                // Call the plugin's deactivate function if available
+                if (this.cleanupFunc) {
+                  await this.cleanupFunc();
+                } else if (typeof pluginExport.deactivate === "function") {
+                  await pluginExport.deactivate();
+                }
+
+                // Emit plugin deactivated event - this will trigger cleanup
+                pluginObservables.emitPluginDeactivated(manifest.id);
+
+                this.lifecycle = PluginLifecycle.LOADED;
+              } catch (error) {
+                logger.error(
+                  `Failed to deactivate plugin ${manifest.id}:`,
+                  error
+                );
+                this.lifecycle = PluginLifecycle.ERROR;
+                throw error;
+              }
+            },
+
+            getConfig<T>(key: string): T | undefined {
+              // Implement config access
+              return pluginExport.getConfig?.(key) as T | undefined;
+            },
+
+            setConfig<T>(key: string, value: T): void {
+              // Implement config setting
+              pluginExport.setConfig?.(key, value);
+            },
+          };
+
+          this.plugins.set(manifest.id, plugin);
+
+          // Emit plugin loaded event
+          pluginObservables.emitPluginLoaded(manifest.id, pluginDir, manifest);
+
+          logger.info(
+            `Loaded object-based plugin: ${manifest.name} (${manifest.id}) v${manifest.version}`
+          );
+        } catch (error) {
+          logger.error(
+            `Failed to initialize object-based plugin ${manifest.id}:`,
+            error
+          );
+        }
+      } else {
+        logger.warn(`Plugin ${manifest.id} does not have an activate function`);
+      }
+    } else {
+      logger.warn(
+        `Plugin ${manifest.id} has an unsupported export type: ${typeof pluginExport}`
+      );
     }
   }
 
@@ -267,6 +476,15 @@ export class PluginManager {
     this.contextCleanupHandlers.clear();
 
     logger.info("Plugin manager cleaned up successfully");
+  }
+
+  async loadPlugin(pluginDir: string, isBuiltIn: boolean) {
+    // This method is kept for backward compatibility
+    if (isBuiltIn) {
+      await this.loadBuiltInPlugin(pluginDir);
+    } else {
+      await this.loadUserPlugin(pluginDir);
+    }
   }
 }
 

@@ -1,0 +1,27 @@
+{
+  "id": "plugin-template",
+  "name": "Plugin Template",
+  "version": "1.0.0",
+  "description": "Template for creating built-in plugins",
+  "author": "Enjoy Developer",
+  "main": "index.js",
+  "engines": {
+    "app": ">=1.0.0"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "id": "templateCommand",
+        "title": "Template Command"
+      }
+    ],
+    "menus": {
+      "mainMenu": [
+        {
+          "id": "templatePlugin",
+          "command": "templateCommand"
+        }
+      ]
+    }
+  }
+}

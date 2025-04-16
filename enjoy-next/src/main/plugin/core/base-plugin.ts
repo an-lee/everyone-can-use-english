@@ -2,6 +2,7 @@ import { app } from "electron";
 import path from "path";
 import fs from "fs-extra";
 import { log } from "@main/core/utils";
+import { PluginLifecycle } from "@main/plugin/plugin-types";
 
 const logger = log.scope("base-plugin");
 
