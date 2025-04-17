@@ -53,6 +53,7 @@ export class Ffmpeg {
       sensitivity?: number;
       filterType?: "basic" | "language" | "tonal" | "speech";
       timeoutMs?: number;
+      algorithm?: "YIN" | "AMDF" | "ACF2PLUS";
       enhanceSpeech?: boolean;
     } = {}
   ): Promise<{

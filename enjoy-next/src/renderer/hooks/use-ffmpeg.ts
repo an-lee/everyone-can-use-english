@@ -13,6 +13,7 @@ export const useMediaFrequencies = (
     filterType: "basic" | "language" | "tonal" | "speech";
     timeoutMs?: number;
     enhanceSpeech?: boolean;
+    algorithm?: "YIN" | "AMDF" | "ACF2PLUS";
   }
 ) => {
   return useQuery<{

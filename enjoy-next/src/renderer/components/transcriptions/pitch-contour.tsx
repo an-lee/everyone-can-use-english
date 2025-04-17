@@ -45,9 +45,12 @@ export function PitchContour(props: {
 }) {
   const { src, startTime = 0 } = props;
   let { endTime } = props;
+  const [algorithm, setAlgorithm] = useState<"YIN" | "AMDF" | "ACF2PLUS">(
+    "AMDF"
+  );
   const { data, isLoading, error } = useMediaFrequencies(src, {
     filterType: "speech",
-    enhanceSpeech: true,
+    algorithm,
   });
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<HTMLDivElement>(null);
