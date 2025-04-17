@@ -3,10 +3,7 @@ import {
   Button,
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
-  CardTitle,
   ChartContainer,
   DropdownMenu,
   DropdownMenuContent,
@@ -356,7 +353,7 @@ export function PitchContour(props: {
   );
   const [filterType, setFilterType] = useState<
     "basic" | "language" | "tonal" | "speech"
-  >("basic");
+  >("speech");
 
   const { data, isLoading, error } = useMediaFrequencies(src, {
     filterType,
@@ -369,8 +366,8 @@ export function PitchContour(props: {
 
   return (
     <Card>
-      <CardContent>
-        <div className="flex items-center gap-2 py-2">
+      <CardHeader className="py-2">
+        <div className="flex items-center gap-2">
           <div className="flex-1 font-medium">{t("pitchContour")}</div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -424,6 +421,8 @@ export function PitchContour(props: {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+      </CardHeader>
+      <CardContent>
         <PitchContourChart
           data={{
             frequencies: data.frequencies,
