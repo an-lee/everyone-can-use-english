@@ -97,7 +97,6 @@ export function TranscriptionActiveSentence(props: {
           src={mediaSrc}
           startTime={sentence.startTime}
           endTime={sentence.endTime}
-          timeline={sentence.timeline}
         />
       </div>
     </div>

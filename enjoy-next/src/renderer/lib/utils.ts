@@ -10,12 +10,22 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function secondsToTimestamp(seconds: number) {
+export function secondsToTimestamp(
+  seconds: number,
+  options?: {
+    includeMs?: boolean;
+  }
+) {
+  const { includeMs = false } = options || {};
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
+  const milliseconds = includeMs ? Math.floor((seconds % 1) * 1000) : 0;
   return `${minutes.toString().padStart(2, "0")}:${remainingSeconds
     .toFixed(0)
-    .padStart(2, "0")}`;
+    .padStart(
+      2,
+      "0"
+    )}${includeMs ? `.${milliseconds.toString().padStart(3, "0")}` : ""}`;
 }
 
 export const convertWordIpaToNormal = (

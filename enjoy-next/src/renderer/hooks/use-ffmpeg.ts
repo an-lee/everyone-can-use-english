@@ -5,7 +5,15 @@ import { useQuery } from "@tanstack/react-query";
  * @param src - The source of the media file
  * @returns The frequency data for the media file
  */
-export const useMediaFrequencies = (src: string) => {
+export const useMediaFrequencies = (
+  src: string,
+  options?: {
+    sampleRate?: number;
+    sensitivity?: number;
+    filterType?: "basic" | "language" | "tonal";
+    timeoutMs?: number;
+  }
+) => {
   return useQuery<{
     frequencies: (number | null)[];
     metadata: { duration: number; timeStep: number };
@@ -18,7 +26,7 @@ export const useMediaFrequencies = (src: string) => {
       return await window.EnjoyAPI.plugin.executeCommand(
         "ffmpeg-plugin",
         "getFrequencyData",
-        [src]
+        [src, options]
       );
     },
     enabled: !!src,

@@ -1,29 +1,23 @@
 import { useMediaFrequencies } from "@/renderer/hooks";
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@renderer/components/ui";
+import { ChartContainer } from "@renderer/components/ui";
 import { useMemo, useRef, useEffect, useState } from "react";
 import {
   CartesianGrid,
   Line,
-  LineChart,
   XAxis,
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  ReferenceLine,
-  Label,
   Area,
   ComposedChart,
-  ReferenceArea,
 } from "recharts";
-import { EmptyView, ErrorView } from "../status-views";
-import { LoadingView } from "../status-views";
+import {
+  EmptyView,
+  ErrorView,
+  LoadingView,
+} from "@renderer/components/status-views";
 import { secondsToTimestamp } from "@renderer/lib/utils";
-import { useMediaPlayer } from "@/renderer/store";
+import { useMediaPlayer } from "@renderer/store";
 import { cn } from "@renderer/lib/utils";
 
 // Custom tooltip component for displaying the frequency with a timestamp
@@ -31,7 +25,9 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
       <div className="rounded-md bg-background/95 p-3 shadow-md border border-border text-sm backdrop-blur-sm">
-        <p className="font-mono text-xs mb-1">{`${secondsToTimestamp(label)}`}</p>
+        <p className="font-mono text-xs mb-1">{`${secondsToTimestamp(label, {
+          includeMs: true,
+        })}`}</p>
         <p
           className="font-medium"
           style={{ color: "var(--chart-3)" }}
@@ -46,25 +42,45 @@ export function PitchContour(props: {
   src: string;
   startTime?: number;
   endTime?: number;
-  timeline?: TimelineEntry[];
 }) {
-  const { src, startTime = 0, timeline = [] } = props;
+  const { src, startTime = 0 } = props;
   let { endTime } = props;
-  const { data, isLoading, error } = useMediaFrequencies(src);
+  const { data, isLoading, error } = useMediaFrequencies(src, {
+    filterType: "tonal",
+  });
   const containerRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, setContainerWidth] = useState(0);
   const chartRef = useRef<HTMLDivElement>(null);
-
   const { currentTime } = useMediaPlayer();
+  const [cursorLeft, setCursorLeft] = useState<string | null>(null);
 
   // Monitor container width for responsive sizing
   useEffect(() => {
     if (!containerRef.current) return;
 
     const updateWidth = () => {
-      if (containerRef.current) {
-        setContainerWidth(containerRef.current.clientWidth);
-      }
+      if (!chartRef.current || !boundedCurrentTime) return;
+
+      // Update cursor position
+      const svg = chartRef.current.querySelector("svg");
+      if (!svg) return;
+
+      // Find the chart content area
+      const chartContent = svg.querySelector(".recharts-cartesian-grid");
+      if (!chartContent) return;
+
+      // Get dimensions
+      const contentRect = chartContent.getBoundingClientRect();
+      const svgRect = svg.getBoundingClientRect();
+
+      // Calculate the relative position
+      const duration = (endTime || data?.metadata.duration || 0) - startTime;
+      const ratio = (boundedCurrentTime - startTime) / duration;
+
+      // Position relative to the SVG's coordinate system
+      const leftPosition =
+        contentRect.left - svgRect.left + contentRect.width * ratio;
+
+      setCursorLeft(`${leftPosition}px`);
     };
 
     // Initial measurement
@@ -79,7 +95,7 @@ export function PitchContour(props: {
         resizeObserver.unobserve(containerRef.current);
       }
     };
-  }, []);
+  }, [currentTime, data, startTime, endTime]);
 
   const chartData = useMemo(() => {
     if (!data) return [];
@@ -161,22 +177,18 @@ export function PitchContour(props: {
       step *= 2;
     }
 
-    // Calculate nice rounded min and max values
-    const niceMin = Math.floor(min / step) * step;
-    const niceMax = Math.ceil(max / step) * step;
-
     // Generate ticks
     const ticks = [];
-    for (let i = niceMin; i <= niceMax; i += step) {
+    for (
+      let i = Math.floor(min / step) * step;
+      i <= Math.ceil(max / step) * step;
+      i += step
+    ) {
       // Only add if within our domain
       if (i >= min && i <= max) {
         ticks.push(i);
       }
     }
-
-    // Ensure we have at least min and max values
-    if (!ticks.includes(min)) ticks.unshift(min);
-    if (!ticks.includes(max)) ticks.push(max);
 
     // Limit to 5 ticks maximum
     if (ticks.length > 5) {
@@ -194,24 +206,18 @@ export function PitchContour(props: {
     endTime = endTime || data.metadata.duration;
     const duration = endTime - startTime;
 
-    // Create tick marks at regular intervals
-    const ticks = [];
-
     // Calculate a reasonable number of ticks based on duration
     const tickCount = Math.min(5, Math.max(2, Math.floor(duration)));
     const interval = duration / tickCount;
 
     // Create evenly spaced ticks
+    const ticks = [];
     for (let i = 0; i <= tickCount; i++) {
       const tickTime = startTime + i * interval;
       if (tickTime <= endTime) {
         ticks.push(tickTime);
       }
     }
-
-    // Always include start and end times
-    if (!ticks.includes(startTime)) ticks.unshift(startTime);
-    if (!ticks.includes(endTime)) ticks.push(endTime);
 
     return ticks;
   }, [data, startTime, endTime]);
@@ -228,66 +234,12 @@ export function PitchContour(props: {
     );
   }, [currentTime, startTime, endTime, data, shouldShowCursor]);
 
-  // Track cursor position with DOM for a more direct approach
-  const [cursorLeft, setCursorLeft] = useState<string | null>(null);
-
-  // Update cursor position using the DOM for precise positioning
-  useEffect(() => {
-    if (!data || !chartRef.current || !boundedCurrentTime) {
-      setCursorLeft(null);
-      return;
-    }
-
-    // Function to update cursor position
-    const updateCursorPosition = () => {
-      const svg = chartRef.current?.querySelector("svg");
-      if (!svg) return;
-
-      // Find the chart content area
-      const chartContent = svg.querySelector(".recharts-cartesian-grid");
-      if (!chartContent) return;
-
-      // Get dimensions
-      const contentRect = chartContent.getBoundingClientRect();
-      const svgRect = svg.getBoundingClientRect();
-
-      // Calculate the relative position
-      const duration = (endTime || data.metadata.duration) - startTime;
-      const ratio = (boundedCurrentTime - startTime) / duration;
-
-      // Position relative to the SVG's coordinate system
-      const leftPosition =
-        contentRect.left - svgRect.left + contentRect.width * ratio;
-
-      setCursorLeft(`${leftPosition}px`);
-    };
-
-    // Update initially
-    updateCursorPosition();
-
-    // Set up a resize observer to update when the chart size changes
-    const resizeObserver = new ResizeObserver(updateCursorPosition);
-    resizeObserver.observe(chartRef.current);
-
-    return () => {
-      if (chartRef.current) {
-        resizeObserver.unobserve(chartRef.current);
-      }
-    };
-  }, [boundedCurrentTime, data, startTime, endTime]);
-
   if (isLoading) return <LoadingView />;
   if (error) return <ErrorView error={error.message} />;
   if (!data) return <EmptyView />;
 
   // Format y-axis tick values to be readable
   const formatYAxis = (value: number) => {
-    // For values over 1000, use "k" suffix (e.g., 1.2k)
-    if (value >= 1000) {
-      return `${(value / 1000).toFixed(1)}k`;
-    }
-
-    // Otherwise just return the integer value
     return Math.round(value).toString();
   };
 
@@ -338,7 +290,9 @@ export function PitchContour(props: {
 
                 <XAxis
                   dataKey="time"
-                  tickFormatter={(value) => secondsToTimestamp(value)}
+                  tickFormatter={(value) =>
+                    secondsToTimestamp(value, { includeMs: true })
+                  }
                   stroke="var(--muted-foreground)"
                   tick={{ fontSize: 9 }}
                   padding={{ left: 10, right: 10 }}
