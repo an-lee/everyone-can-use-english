@@ -32,7 +32,10 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     return (
       <div className="rounded-md bg-background/95 p-3 shadow-md border border-border text-sm backdrop-blur-sm">
         <p className="font-mono text-xs mb-1">{`${secondsToTimestamp(label)}`}</p>
-        <p className="text-chart-3 font-medium">{`${Math.round(payload[0].value || 0)} Hz`}</p>
+        <p
+          className="font-medium"
+          style={{ color: "var(--chart-3)" }}
+        >{`${Math.round(payload[0].value || 0)} Hz`}</p>
       </div>
     );
   }
@@ -50,6 +53,7 @@ export function PitchContour(props: {
   const { data, isLoading, error } = useMediaFrequencies(src);
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
+  const chartRef = useRef<HTMLDivElement>(null);
 
   const { currentTime } = useMediaPlayer();
 
@@ -190,27 +194,87 @@ export function PitchContour(props: {
     endTime = endTime || data.metadata.duration;
     const duration = endTime - startTime;
 
-    // Create tick marks at 1 second intervals
+    // Create tick marks at regular intervals
     const ticks = [];
-    // Round startTime up to the next whole second
-    const firstTick = Math.ceil(startTime);
-    // Round endTime down to the previous whole second
-    const lastTick = Math.floor(endTime);
 
-    for (let i = firstTick; i <= lastTick; i += 1) {
-      ticks.push(i);
+    // Calculate a reasonable number of ticks based on duration
+    const tickCount = Math.min(5, Math.max(2, Math.floor(duration)));
+    const interval = duration / tickCount;
+
+    // Create evenly spaced ticks
+    for (let i = 0; i <= tickCount; i++) {
+      const tickTime = startTime + i * interval;
+      if (tickTime <= endTime) {
+        ticks.push(tickTime);
+      }
     }
 
-    // Always include start and end if they're not already included
-    if (!ticks.includes(startTime) && startTime < firstTick) {
-      ticks.unshift(startTime);
-    }
-    if (!ticks.includes(endTime) && endTime > lastTick) {
-      ticks.push(endTime);
-    }
+    // Always include start and end times
+    if (!ticks.includes(startTime)) ticks.unshift(startTime);
+    if (!ticks.includes(endTime)) ticks.push(endTime);
 
     return ticks;
   }, [data, startTime, endTime]);
+
+  // Check if cursor should be visible
+  const shouldShowCursor = currentTime !== undefined && currentTime !== null;
+
+  // Get a bounded current time for positioning the cursor
+  const boundedCurrentTime = useMemo(() => {
+    if (!shouldShowCursor || !data) return null;
+    return Math.max(
+      startTime,
+      Math.min(endTime || data.metadata.duration, currentTime)
+    );
+  }, [currentTime, startTime, endTime, data, shouldShowCursor]);
+
+  // Track cursor position with DOM for a more direct approach
+  const [cursorLeft, setCursorLeft] = useState<string | null>(null);
+
+  // Update cursor position using the DOM for precise positioning
+  useEffect(() => {
+    if (!data || !chartRef.current || !boundedCurrentTime) {
+      setCursorLeft(null);
+      return;
+    }
+
+    // Function to update cursor position
+    const updateCursorPosition = () => {
+      const svg = chartRef.current?.querySelector("svg");
+      if (!svg) return;
+
+      // Find the chart content area
+      const chartContent = svg.querySelector(".recharts-cartesian-grid");
+      if (!chartContent) return;
+
+      // Get dimensions
+      const contentRect = chartContent.getBoundingClientRect();
+      const svgRect = svg.getBoundingClientRect();
+
+      // Calculate the relative position
+      const duration = (endTime || data.metadata.duration) - startTime;
+      const ratio = (boundedCurrentTime - startTime) / duration;
+
+      // Position relative to the SVG's coordinate system
+      const leftPosition =
+        contentRect.left - svgRect.left + contentRect.width * ratio;
+
+      setCursorLeft(`${leftPosition}px`);
+    };
+
+    // Update initially
+    updateCursorPosition();
+
+    // Set up a resize observer to update when the chart size changes
+    const resizeObserver = new ResizeObserver(updateCursorPosition);
+    resizeObserver.observe(chartRef.current);
+
+    return () => {
+      if (chartRef.current) {
+        resizeObserver.unobserve(chartRef.current);
+      }
+    };
+  }, [boundedCurrentTime, data, startTime, endTime]);
 
   if (isLoading) return <LoadingView />;
   if (error) return <ErrorView error={error.message} />;
@@ -227,25 +291,8 @@ export function PitchContour(props: {
     return Math.round(value).toString();
   };
 
-  // Always show cursor, regardless of range check
-  const showCursor = currentTime !== undefined && currentTime !== null;
-
   const CHART_HEIGHT = 110;
-
-  // Calculate cursor position as percentage
-  const cursorPosition = useMemo(() => {
-    if (
-      !showCursor ||
-      !data ||
-      currentTime < startTime ||
-      currentTime > (endTime || data.metadata.duration)
-    ) {
-      return null;
-    }
-
-    const duration = (endTime || data.metadata.duration) - startTime;
-    return ((currentTime - startTime) / duration) * 100;
-  }, [currentTime, startTime, endTime, data, showCursor]);
+  const chartMargin = { top: 10, right: 15, left: 15, bottom: 0 };
 
   return (
     <div className="w-full" style={{ height: CHART_HEIGHT }}>
@@ -253,105 +300,124 @@ export function PitchContour(props: {
         config={{
           pitch: {
             label: "Pitch",
-            color: "hsl(var(--chart-3))",
+            color: "var(--chart-3)",
           },
         }}
-        className={cn("!h-[110px] !aspect-auto")}
+        className={cn("!h-[110px] !aspect-auto overflow-hidden")}
       >
         <div className="relative w-full h-full" ref={containerRef}>
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart
-              data={chartData}
-              margin={{ top: 10, right: 15, left: 15, bottom: 0 }}
-            >
-              <defs>
-                <linearGradient id="pitchGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop
-                    offset="5%"
-                    stopColor="hsl(var(--chart-3))"
-                    stopOpacity={0.3}
-                  />
-                  <stop
-                    offset="95%"
-                    stopColor="hsl(var(--chart-3))"
-                    stopOpacity={0}
-                  />
-                </linearGradient>
-              </defs>
+          <div className="w-full h-full" ref={chartRef}>
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={chartData} margin={chartMargin}>
+                <defs>
+                  <linearGradient
+                    id="pitchGradient"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop
+                      offset="5%"
+                      stopColor="var(--chart-3)"
+                      stopOpacity={0.3}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="var(--chart-3)"
+                      stopOpacity={0}
+                    />
+                  </linearGradient>
+                </defs>
 
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="hsl(var(--border))"
-                opacity={0.5}
-              />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="var(--border)"
+                  opacity={0.5}
+                />
 
-              <XAxis
-                dataKey="time"
-                tickFormatter={(value) => secondsToTimestamp(value)}
-                stroke="hsl(var(--muted-foreground))"
-                tick={{ fontSize: 9 }}
-                padding={{ left: 10, right: 10 }}
-                ticks={xAxisTicks}
-                height={20}
-              />
+                <XAxis
+                  dataKey="time"
+                  tickFormatter={(value) => secondsToTimestamp(value)}
+                  stroke="var(--muted-foreground)"
+                  tick={{ fontSize: 9 }}
+                  padding={{ left: 10, right: 10 }}
+                  ticks={xAxisTicks}
+                  height={20}
+                  axisLine={{
+                    stroke: "var(--muted-foreground)",
+                    strokeWidth: 0.5,
+                  }}
+                  tickLine={{ stroke: "var(--muted-foreground)" }}
+                  interval={0}
+                  minTickGap={15}
+                />
 
-              <YAxis
-                domain={yDomain}
-                label={{
-                  value: "Hz",
-                  angle: -90,
-                  position: "insideLeft",
-                  offset: 0,
-                  style: { fill: "hsl(var(--muted-foreground))", fontSize: 9 },
-                }}
-                stroke="hsl(var(--muted-foreground))"
-                tick={{ fontSize: 9 }}
-                tickFormatter={formatYAxis}
-                width={35}
-                ticks={yAxisTicks}
-              />
+                <YAxis
+                  domain={yDomain}
+                  label={{
+                    value: "Hz",
+                    angle: -90,
+                    position: "insideLeft",
+                    offset: 0,
+                    style: {
+                      fill: "var(--muted-foreground)",
+                      fontSize: 9,
+                    },
+                  }}
+                  stroke="var(--muted-foreground)"
+                  tick={{ fontSize: 9 }}
+                  tickFormatter={formatYAxis}
+                  width={35}
+                  ticks={yAxisTicks}
+                  axisLine={{
+                    stroke: "var(--muted-foreground)",
+                    strokeWidth: 0.5,
+                  }}
+                  tickLine={{ stroke: "var(--muted-foreground)" }}
+                />
 
-              <Tooltip content={<CustomTooltip />} />
+                <Tooltip content={<CustomTooltip />} />
 
-              <Area
-                type="monotone"
-                dataKey="frequency"
-                stroke="hsl(var(--chart-3))"
-                fillOpacity={1}
-                fill="url(#pitchGradient)"
-                connectNulls
-              />
+                <Area
+                  type="monotone"
+                  dataKey="frequency"
+                  stroke="var(--chart-3)"
+                  fillOpacity={1}
+                  fill="url(#pitchGradient)"
+                  connectNulls
+                />
 
-              <Line
-                type="monotone"
-                dataKey="frequency"
-                stroke="hsl(var(--chart-3))"
-                strokeWidth={2}
-                dot={false}
-                activeDot={{
-                  r: 5,
-                  stroke: "hsl(var(--background))",
-                  strokeWidth: 2,
-                  fill: "hsl(var(--chart-3))",
-                }}
-                connectNulls
-                animationDuration={500}
-                isAnimationActive={true}
-              />
-            </ComposedChart>
-          </ResponsiveContainer>
+                <Line
+                  type="monotone"
+                  dataKey="frequency"
+                  stroke="var(--chart-3)"
+                  strokeWidth={2}
+                  dot={false}
+                  activeDot={{
+                    r: 5,
+                    stroke: "var(--background)",
+                    strokeWidth: 2,
+                    fill: "var(--chart-3)",
+                  }}
+                  connectNulls
+                  animationDuration={500}
+                  isAnimationActive={true}
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
 
-          {/* Cursor overlay - completely separate from Recharts */}
-          {cursorPosition !== null && (
+          {/* Custom cursor line positioned with absolute positioning */}
+          {cursorLeft !== null && (
             <div
               className="absolute top-0 bottom-0 z-50 pointer-events-none"
               style={{
-                left: `${cursorPosition}%`,
+                left: cursorLeft,
                 width: "1px",
-                backgroundColor: "hsl(var(--chart-5))",
+                backgroundColor: "var(--chart-5)",
                 boxShadow: "0 0 1px rgba(0,0,0,0.2)",
-                opacity: 0.8,
-                transform: "translateX(-50%)",
+                opacity: 0.7,
               }}
             />
           )}
