@@ -11,7 +11,6 @@ import {
   Area,
   ComposedChart,
   ReferenceLine,
-  ReferenceArea,
 } from "recharts";
 import {
   EmptyView,
@@ -366,19 +365,8 @@ export function PitchContour(props: {
                   <ReferenceLine
                     x={cursorXValue}
                     stroke="var(--chart-5)"
-                    strokeWidth={2}
+                    strokeWidth={1}
                     strokeOpacity={1}
-                    isFront={true}
-                  />
-                )}
-
-                {/* Alternative cursor as a thin reference area for better visibility */}
-                {cursorXValue !== null && (
-                  <ReferenceArea
-                    x1={cursorXValue - 0.005}
-                    x2={cursorXValue + 0.005}
-                    fill="var(--chart-5)"
-                    fillOpacity={0.7}
                     isFront={true}
                   />
                 )}
