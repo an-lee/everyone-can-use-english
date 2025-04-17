@@ -10,6 +10,8 @@ import {
   ResponsiveContainer,
   Area,
   ComposedChart,
+  ReferenceLine,
+  ReferenceArea,
 } from "recharts";
 import {
   EmptyView,
@@ -55,51 +57,6 @@ export function PitchContour(props: {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<HTMLDivElement>(null);
   const { currentTime } = useMediaPlayer();
-  const [cursorLeft, setCursorLeft] = useState<string | null>(null);
-
-  // Monitor container width for responsive sizing
-  useEffect(() => {
-    if (!containerRef.current) return;
-
-    const updateWidth = () => {
-      if (!chartRef.current || !boundedCurrentTime) return;
-
-      // Update cursor position
-      const svg = chartRef.current.querySelector("svg");
-      if (!svg) return;
-
-      // Find the chart content area
-      const chartContent = svg.querySelector(".recharts-cartesian-grid");
-      if (!chartContent) return;
-
-      // Get dimensions
-      const contentRect = chartContent.getBoundingClientRect();
-      const svgRect = svg.getBoundingClientRect();
-
-      // Calculate the relative position
-      const duration = (endTime || data?.metadata.duration || 0) - startTime;
-      const ratio = (boundedCurrentTime - startTime) / duration;
-
-      // Position relative to the SVG's coordinate system
-      const leftPosition =
-        contentRect.left - svgRect.left + contentRect.width * ratio;
-
-      setCursorLeft(`${leftPosition}px`);
-    };
-
-    // Initial measurement
-    updateWidth();
-
-    // Listen for resize
-    const resizeObserver = new ResizeObserver(updateWidth);
-    resizeObserver.observe(containerRef.current);
-
-    return () => {
-      if (containerRef.current) {
-        resizeObserver.unobserve(containerRef.current);
-      }
-    };
-  }, [currentTime, data, startTime, endTime]);
 
   const chartData = useMemo(() => {
     if (!data) return [];
@@ -232,14 +189,37 @@ export function PitchContour(props: {
   // Get a bounded current time for positioning the cursor
   const boundedCurrentTime = useMemo(() => {
     if (!shouldShowCursor || !data) return null;
-    return Math.max(
+    const bounded = Math.max(
       startTime,
       Math.min(endTime || data.metadata.duration, currentTime)
     );
+    return bounded;
   }, [currentTime, startTime, endTime, data, shouldShowCursor]);
 
+  // Find the nearest data point index to the current time for the cursor
+  const cursorDataPoint = useMemo(() => {
+    if (boundedCurrentTime === null || !chartData.length) return null;
+
+    // Find the data point closest to current time
+    const index = chartData.findIndex(
+      (point) => point.time >= boundedCurrentTime
+    );
+    if (index === -1) return chartData.length - 1;
+
+    // If we found a point after the current time, check if there's a closer point before
+    if (index > 0) {
+      const beforeDiff = Math.abs(
+        chartData[index - 1].time - boundedCurrentTime
+      );
+      const afterDiff = Math.abs(chartData[index].time - boundedCurrentTime);
+      return beforeDiff < afterDiff ? index - 1 : index;
+    }
+
+    return index;
+  }, [boundedCurrentTime, chartData]);
+
   if (isLoading) return <LoadingView />;
-  if (error) return <ErrorView error={error.message} />;
+  if (error) return <ErrorView error={error?.message || "Unknown error"} />;
   if (!data) return <EmptyView />;
 
   // Format y-axis tick values to be readable
@@ -249,6 +229,10 @@ export function PitchContour(props: {
 
   const CHART_HEIGHT = 110;
   const chartMargin = { top: 10, right: 15, left: 15, bottom: 0 };
+
+  // Get exact time value for cursor positioning with ReCharts
+  const cursorXValue =
+    cursorDataPoint !== null ? chartData[cursorDataPoint].time : null;
 
   return (
     <div className="w-full" style={{ height: CHART_HEIGHT }}>
@@ -362,23 +346,31 @@ export function PitchContour(props: {
                   animationDuration={500}
                   isAnimationActive={true}
                 />
+
+                {/* Cursor implementation using exact data point time */}
+                {cursorXValue !== null && (
+                  <ReferenceLine
+                    x={cursorXValue}
+                    stroke="var(--chart-5)"
+                    strokeWidth={2}
+                    strokeOpacity={1}
+                    isFront={true}
+                  />
+                )}
+
+                {/* Alternative cursor as a thin reference area for better visibility */}
+                {cursorXValue !== null && (
+                  <ReferenceArea
+                    x1={cursorXValue - 0.005}
+                    x2={cursorXValue + 0.005}
+                    fill="var(--chart-5)"
+                    fillOpacity={0.7}
+                    isFront={true}
+                  />
+                )}
               </ComposedChart>
             </ResponsiveContainer>
           </div>
-
-          {/* Custom cursor line positioned with absolute positioning */}
-          {cursorLeft !== null && (
-            <div
-              className="absolute top-0 bottom-0 z-50 pointer-events-none"
-              style={{
-                left: cursorLeft,
-                width: "1px",
-                backgroundColor: "var(--chart-5)",
-                boxShadow: "0 0 1px rgba(0,0,0,0.2)",
-                opacity: 0.7,
-              }}
-            />
-          )}
         </div>
       </ChartContainer>
     </div>
