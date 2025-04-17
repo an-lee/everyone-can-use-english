@@ -1,5 +1,21 @@
 import { useMediaFrequencies } from "@renderer/hooks";
-import { ChartContainer } from "@renderer/components/ui";
+import {
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+  ChartContainer,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+} from "@renderer/components/ui";
 import { useMemo, useRef, useState } from "react";
 import {
   CartesianGrid,
@@ -20,39 +36,21 @@ import {
 import { secondsToTimestamp } from "@renderer/lib/utils";
 import { useMediaPlayer } from "@renderer/store";
 import { cn } from "@renderer/lib/utils";
+import { useTranslation } from "react-i18next";
+import { Icon } from "@iconify/react";
 
-// Custom tooltip component for displaying the frequency with a timestamp
-const CustomTooltip = ({ active, payload, label }: any) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="rounded-md bg-background/95 p-3 shadow-md border border-border text-sm backdrop-blur-sm">
-        <p className="font-mono text-xs mb-1">{`${secondsToTimestamp(label, {
-          includeMs: true,
-        })}`}</p>
-        <p
-          className="font-medium"
-          style={{ color: "var(--chart-3)" }}
-        >{`${Math.round(payload[0].value || 0)} Hz`}</p>
-      </div>
-    );
-  }
-  return null;
-};
-
-export function PitchContour(props: {
-  src: string;
+export function PitchContourChart(props: {
+  data: {
+    frequencies: (number | null)[];
+    metadata: {
+      duration: number;
+    };
+  };
   startTime?: number;
   endTime?: number;
 }) {
-  const { src, startTime = 0 } = props;
+  const { data, startTime = 0 } = props;
   let { endTime } = props;
-  const [algorithm, setAlgorithm] = useState<"YIN" | "AMDF" | "ACF2PLUS">(
-    "AMDF"
-  );
-  const { data, isLoading, error } = useMediaFrequencies(src, {
-    filterType: "speech",
-    algorithm,
-  });
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<HTMLDivElement>(null);
   const { currentTime } = useMediaPlayer();
@@ -159,36 +157,6 @@ export function PitchContour(props: {
     return ticks;
   }, [yDomain]);
 
-  // Calculate X-axis ticks based on duration - one tick per second
-  const xAxisTicks = useMemo(() => {
-    if (!data) return [];
-
-    endTime = endTime || data.metadata.duration;
-    const duration = endTime - startTime;
-
-    // Create ticks with consistent 500ms steps
-    const ticks = [];
-    const step = 0.5; // 500ms step
-
-    // Calculate first tick (round startTime to nearest 500ms mark)
-    const firstTick = Math.ceil(startTime * 2) / 2;
-
-    // Directly limit the number of ticks to prevent overcrowding
-    const maxTicks = Math.min(10, Math.ceil(duration / step));
-    const actualStep = duration / maxTicks;
-
-    for (let i = 0; i <= maxTicks; i++) {
-      const tickTime = startTime + i * actualStep;
-      if (tickTime <= endTime) {
-        // Round to nearest 500ms for consistency in display
-        const roundedTick = Math.round(tickTime * 2) / 2;
-        ticks.push(roundedTick);
-      }
-    }
-
-    return ticks;
-  }, [data, startTime, endTime]);
-
   // Check if cursor should be visible
   const shouldShowCursor = currentTime !== undefined && currentTime !== null;
 
@@ -224,17 +192,13 @@ export function PitchContour(props: {
     return index;
   }, [boundedCurrentTime, chartData]);
 
-  if (isLoading) return <LoadingView />;
-  if (error) return <ErrorView error={error?.message || "Unknown error"} />;
-  if (!data) return <EmptyView />;
-
   // Format y-axis tick values to be readable
   const formatYAxis = (value: number) => {
     return Math.round(value).toString();
   };
 
   const CHART_HEIGHT = 110;
-  const chartMargin = { top: 10, right: 15, left: 15, bottom: 10 };
+  const chartMargin = { top: 0, right: 0, left: 15, bottom: 0 };
 
   // Get exact time value for cursor positioning with ReCharts
   const cursorXValue =
@@ -378,3 +342,119 @@ export function PitchContour(props: {
     </div>
   );
 }
+
+export function PitchContour(props: {
+  src: string;
+  startTime?: number;
+  endTime?: number;
+}) {
+  const { t } = useTranslation("components/transcriptions");
+  const { src, startTime = 0 } = props;
+  let { endTime } = props;
+  const [algorithm, setAlgorithm] = useState<"YIN" | "AMDF" | "ACF2PLUS">(
+    "AMDF"
+  );
+  const [filterType, setFilterType] = useState<
+    "basic" | "language" | "tonal" | "speech"
+  >("basic");
+
+  const { data, isLoading, error } = useMediaFrequencies(src, {
+    filterType,
+    algorithm,
+  });
+
+  if (isLoading) return <LoadingView />;
+  if (error) return <ErrorView error={error?.message || "Unknown error"} />;
+  if (!data) return <EmptyView />;
+
+  return (
+    <Card>
+      <CardContent>
+        <div className="flex items-center gap-2 py-2">
+          <div className="flex-1 font-medium">{t("pitchContour")}</div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Icon icon="tabler:dots-vertical" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  {t("algorithm")}
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  <DropdownMenuItem onClick={() => setAlgorithm("YIN")}>
+                    YIN
+                    {algorithm === "YIN" && <Icon icon="tabler:check" />}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setAlgorithm("AMDF")}>
+                    AMDF
+                    {algorithm === "AMDF" && <Icon icon="tabler:check" />}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setAlgorithm("ACF2PLUS")}>
+                    ACF2PLUS
+                    {algorithm === "ACF2PLUS" && <Icon icon="tabler:check" />}
+                  </DropdownMenuItem>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  {t("filterType")}
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  <DropdownMenuItem onClick={() => setFilterType("basic")}>
+                    {t("basic")}
+                    {filterType === "basic" && <Icon icon="tabler:check" />}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFilterType("language")}>
+                    {t("language")}
+                    {filterType === "language" && <Icon icon="tabler:check" />}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFilterType("tonal")}>
+                    {t("tonal")}
+                    {filterType === "tonal" && <Icon icon="tabler:check" />}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFilterType("speech")}>
+                    {t("speech")}
+                    {filterType === "speech" && <Icon icon="tabler:check" />}
+                  </DropdownMenuItem>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+        <PitchContourChart
+          data={{
+            frequencies: data.frequencies,
+            metadata: {
+              duration: data.metadata.duration,
+            },
+          }}
+          startTime={startTime}
+          endTime={endTime}
+        />
+        <p className="text-xs italic text-muted-foreground">
+          * {t("pitchContorExplanation")}
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+// Custom tooltip component for displaying the frequency with a timestamp
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="rounded-md bg-background/95 p-3 shadow-md border border-border text-sm backdrop-blur-sm">
+        <p className="font-mono text-xs mb-1">{`${secondsToTimestamp(label, {
+          includeMs: true,
+        })}`}</p>
+        <p
+          className="font-medium"
+          style={{ color: "var(--chart-3)" }}
+        >{`${Math.round(payload[0].value || 0)} Hz`}</p>
+      </div>
+    );
+  }
+  return null;
+};

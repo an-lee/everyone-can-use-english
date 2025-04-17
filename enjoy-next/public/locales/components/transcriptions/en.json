@@ -1,0 +1,10 @@
+{
+  "pitchContour": "Pitch Contour",
+  "algorithm": "Algorithm",
+  "filterType": "Audio Type",
+  "basic": "Basic",
+  "language": "Language",
+  "tonal": "Tonal",
+  "speech": "Speech",
+  "pitchContorExplanation": "The pitch contour is a graph that represents the pitch of the audio over time. When shadow reading, pay attention to the ups and downs of the graph. This will help you understand the rhythm and flow of the text."
+}

@@ -20,7 +20,7 @@ export const useMediaFrequencies = (
     frequencies: (number | null)[];
     metadata: { duration: number; timeStep: number };
   } | null>({
-    queryKey: ["frequency-data", src],
+    queryKey: ["frequency-data", src, options],
     queryFn: async () => {
       if (!src || !window.EnjoyAPI) {
         return null;
