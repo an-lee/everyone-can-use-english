@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { useMediaTranscription } from "../store/use-media-transcription";
 import { useMediaFrequencies } from "./use-ffmpeg";
 
+type MediaElement = HTMLVideoElement | HTMLAudioElement;
 type MediaEventHandler = (e: Event) => void;
 type EventHandlers = Record<string, MediaEventHandler>;
 
@@ -13,7 +14,7 @@ const CHECKING_INTERVAL = 500;
 export const useMediaControls = (
   src: string
 ): {
-  ref: React.RefObject<HTMLVideoElement | HTMLAudioElement | null>;
+  ref: React.RefObject<MediaElement | null>;
   togglePlay: () => Promise<void> | void;
   toggleLooping: () => void;
   destroy: () => void;
@@ -21,6 +22,7 @@ export const useMediaControls = (
   playPreviousSentence: () => void;
 } => {
   const loadingTime = useRef(0);
+  const ref = useRef<MediaElement | null>(null);
 
   const {
     setMediaElement,
@@ -40,26 +42,17 @@ export const useMediaControls = (
 
   const { nextSentence, previousSentence } = useMediaTranscription();
 
-  const ref = useRef<HTMLVideoElement | HTMLAudioElement | null>(null);
-
   const checkReadyState = () => {
     if (!ref.current) return;
-
-    if (ref.current.readyState === HTMLMediaElement.HAVE_ENOUGH_DATA) {
-      setLoading(false);
-    } else {
-      setLoading(true);
-    }
+    setLoading(ref.current.readyState !== HTMLMediaElement.HAVE_ENOUGH_DATA);
   };
 
-  // Check if media is ready for interaction
   const checkInteractability = () => {
     if (!ref.current) return;
 
     const media = ref.current;
 
     try {
-      // Basic requirements for interactability
       const hasMetadata = media.readyState >= HTMLMediaElement.HAVE_METADATA;
       const hasDuration = isFinite(media.duration) && media.duration > 0;
       const hasSeekableRanges =
@@ -67,39 +60,18 @@ export const useMediaControls = (
         media.seekable.length > 0 &&
         media.seekable.end(0) !== 0;
 
-      // Optional but helpful checks
       const hasBufferedData = media.buffered && media.buffered.length > 0;
       const hasEnoughData =
         media.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA;
 
-      // Additional check for network state
       const networkState = media.networkState;
       const networkStateText = ["EMPTY", "IDLE", "LOADING", "NO_SOURCE"][
         networkState
       ];
 
-      // Combined check
       const canInteract = hasMetadata && hasDuration && hasSeekableRanges;
 
-      // Log detailed status for debugging
-      console.debug("Media interactability check:", {
-        src: media.src,
-        readyState: media.readyState,
-        networkState: networkStateText,
-        duration: media.duration,
-        hasSeekableRanges,
-        seekableStart: hasSeekableRanges ? media.seekable.start(0) : null,
-        seekableEnd: hasSeekableRanges ? media.seekable.end(0) : null,
-        hasEnoughData,
-        hasBufferedData,
-        bufferedRanges: hasBufferedData
-          ? Array.from({ length: media.buffered.length }).map((_, i) => [
-              media.buffered.start(i),
-              media.buffered.end(i),
-            ])
-          : [],
-        canInteract,
-      });
+      logMediaStatus(media, canInteract);
 
       setInteractable(canInteract);
 
@@ -128,31 +100,59 @@ export const useMediaControls = (
 
       return canInteract;
     } catch (error) {
-      console.error("Error checking media interactability:", error);
-      setError(
-        new Error(
-          `Error checking media interactability: ${
-            error instanceof Error ? error.message : String(error)
-          }`
-        )
-      );
+      handleError("Error checking media interactability", error);
       throw error;
     }
   };
 
+  const logMediaStatus = (media: MediaElement, canInteract: boolean) => {
+    const hasSeekableRanges =
+      media.seekable &&
+      media.seekable.length > 0 &&
+      media.seekable.end(0) !== 0;
+    const hasBufferedData = media.buffered && media.buffered.length > 0;
+    const networkStateText = ["EMPTY", "IDLE", "LOADING", "NO_SOURCE"][
+      media.networkState
+    ];
+
+    console.debug("Media interactability check:", {
+      src: media.src,
+      readyState: media.readyState,
+      networkState: networkStateText,
+      duration: media.duration,
+      hasSeekableRanges,
+      seekableStart: hasSeekableRanges ? media.seekable.start(0) : null,
+      seekableEnd: hasSeekableRanges ? media.seekable.end(0) : null,
+      hasEnoughData: media.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA,
+      hasBufferedData,
+      bufferedRanges: hasBufferedData
+        ? Array.from({ length: media.buffered.length }).map((_, i) => [
+            media.buffered.start(i),
+            media.buffered.end(i),
+          ])
+        : [],
+      canInteract,
+    });
+  };
+
+  const handleError = (message: string, error: unknown) => {
+    console.error(message, error);
+    setError(
+      new Error(
+        `${message}: ${error instanceof Error ? error.message : String(error)}`
+      )
+    );
+  };
+
   const togglePlay = (): Promise<void> | void => {
     if (!ref.current) return Promise.resolve();
-    if (ref.current.paused) {
-      return ref.current.play();
-    } else {
-      return ref.current.pause();
-    }
+    return ref.current.paused ? ref.current.play() : ref.current.pause();
   };
 
   const seek = (time: number) => {
-    if (!ref.current) return;
-
+    if (!ref.current) return false;
     const element = ref.current;
+
     if (element.seeking) {
       console.debug("Media is seeking, skipping seek");
       return false;
@@ -165,11 +165,15 @@ export const useMediaControls = (
       return true;
     }
 
+    return performSeek(element, time);
+  };
+
+  const performSeek = (element: MediaElement, time: number) => {
     const seekable = element.seekable;
     if (seekable.length === 0) {
       if (element.readyState === HTMLMediaElement.HAVE_ENOUGH_DATA) {
         console.debug("Media seekable is empty, reloading");
-        ref.current.load();
+        ref.current?.load();
       }
       return false;
     }
@@ -187,14 +191,13 @@ export const useMediaControls = (
       toast.error(
         "Time is out of seekable range, maybe the media is not loaded yet"
       );
-      ref.current.load();
+      ref.current?.load();
       return false;
     }
 
     setSeeking(true);
     const safeTime = Math.ceil(Math.max(0, time) * 1000) / 1000.0;
     element.currentTime = safeTime;
-
     return true;
   };
 
@@ -202,30 +205,23 @@ export const useMediaControls = (
     if (!ref.current) return;
 
     try {
-      // Stop any ongoing playback
       if (!ref.current.paused) {
         ref.current.pause();
       }
 
-      // Remove all event listeners
       Object.entries(handlers).forEach(([event, handler]) => {
         ref.current?.removeEventListener(event, handler);
       });
 
-      // Remove the range constraint listener
       ref.current.removeEventListener("timeupdate", handleRangeConstraint);
 
-      // Clear the source to stop buffering and release network resources
       ref.current.removeAttribute("src");
-      ref.current.load(); // Forces the browser to reset the media element
+      ref.current.load();
 
-      // Reset state in the media player store
       reset();
 
-      // Clear any cached data
       loadingTime.current = 0;
 
-      // Set the ref to null
       ref.current = null;
 
       console.debug(
@@ -236,61 +232,32 @@ export const useMediaControls = (
     }
   };
 
-  // Define all event handlers
-  const handlers: EventHandlers = {
-    canplaythrough: () => {
-      checkReadyState();
-    },
-    timeupdate: (event: Event) => {
-      const element = event.target as HTMLVideoElement | HTMLAudioElement;
-      setCurrentTime(element.currentTime);
-    },
-    durationchange: (event: Event) => {
-      const element = event.target as HTMLVideoElement | HTMLAudioElement;
-      console.debug("durationchange", element.duration);
-      if (!isFinite(element.duration)) {
-        checkReadyState();
-        return;
-      }
-      setDuration(element.duration);
-      setActiveRange({ start: 0, end: element.duration });
-    },
-    seeking: () => {
-      setSeeking(true);
-    },
-    seeked: () => {
-      setSeeking(false);
-    },
-    stalled: () => {
-      toast.error("Stalled");
-      setError(
-        new Error("Media data is unexpectedly not forthcoming when fetching")
-      );
-    },
-    ended: () => {
-      setIsPlaying(false);
-      seek(activeRange.start);
-    },
-    pause: () => {
-      setIsPlaying(false);
-    },
-    play: () => {
-      setIsPlaying(true);
-    },
-    error: (event: Event) => {
-      const element = event.target as HTMLVideoElement | HTMLAudioElement;
-      console.error("Media element error:", element.error);
-      setError(
-        new Error(
-          `Media element error: ${element.error?.message} ${element.error?.code}`
-        )
-      );
-      setIsPlaying(false);
-    },
+  const playNextSentence = () => {
+    const sentence = nextSentence();
+    if (!sentence) return;
+    setActiveRange({
+      start: sentence.startTime,
+      end: sentence.endTime,
+      autoPlay: true,
+    });
+  };
+
+  const playPreviousSentence = () => {
+    const sentence = previousSentence();
+    if (!sentence) return;
+    setActiveRange({
+      start: sentence.startTime,
+      end: sentence.endTime,
+      autoPlay: true,
+    });
+  };
+
+  const toggleLooping = () => {
+    setLooping(!looping);
   };
 
   const handleRangeConstraint = (e: Event) => {
-    const element = e.target as HTMLVideoElement | HTMLAudioElement;
+    const element = e.target as MediaElement;
     if (
       element.currentTime >= activeRange.end ||
       element.currentTime < activeRange.start - TIME_THRESHOLD
@@ -322,67 +289,89 @@ export const useMediaControls = (
     }
   };
 
-  const playNextSentence = () => {
-    const sentence = nextSentence();
-    if (!sentence) return;
-    setActiveRange({
-      start: sentence.startTime,
-      end: sentence.endTime,
-      autoPlay: true,
-    });
+  const handlers: EventHandlers = {
+    canplaythrough: () => checkReadyState(),
+    timeupdate: (event: Event) => {
+      const element = event.target as MediaElement;
+      setCurrentTime(element.currentTime);
+    },
+    durationchange: (event: Event) => {
+      const element = event.target as MediaElement;
+      console.debug("durationchange", element.duration);
+      if (!isFinite(element.duration)) {
+        checkReadyState();
+        return;
+      }
+      setDuration(element.duration);
+      setActiveRange({ start: 0, end: element.duration });
+    },
+    seeking: () => setSeeking(true),
+    seeked: () => setSeeking(false),
+    stalled: () => {
+      toast.error("Stalled");
+      setError(
+        new Error("Media data is unexpectedly not forthcoming when fetching")
+      );
+    },
+    ended: () => {
+      setIsPlaying(false);
+      seek(activeRange.start);
+    },
+    pause: () => setIsPlaying(false),
+    play: () => setIsPlaying(true),
+    error: (event: Event) => {
+      const element = event.target as MediaElement;
+      console.error("Media element error:", element.error);
+      setError(
+        new Error(
+          `Media element error: ${element.error?.message} ${element.error?.code}`
+        )
+      );
+      setIsPlaying(false);
+    },
   };
 
-  const playPreviousSentence = () => {
-    const sentence = previousSentence();
-    if (!sentence) return;
-    setActiveRange({
-      start: sentence.startTime,
-      end: sentence.endTime,
-      autoPlay: true,
-    });
-  };
-
-  const toggleLooping = () => {
-    setLooping(!looping);
-  };
-
-  // Main effect for media element setup
   useEffect(() => {
     if (!ref.current) return;
 
-    // Register the element with the store
-    setMediaElement(ref.current);
-    ref.current.src = src;
-    ref.current.load();
-    setLoading(true);
+    const setupMedia = () => {
+      const mediaElement = ref.current!;
 
-    // Add all event listeners
-    Object.entries(handlers).forEach(([event, handler]) => {
-      ref.current!.addEventListener(event, handler);
-    });
+      setMediaElement(mediaElement);
+      mediaElement.src = src;
+      mediaElement.load();
+      setLoading(true);
 
-    // Run an initial check
-    setInteractable(false);
-    try {
-      checkInteractability();
-    } catch (error) {
-      console.error("Error checking media interactability:", error);
-    }
+      Object.entries(handlers).forEach(([event, handler]) => {
+        mediaElement.addEventListener(event, handler);
+      });
+    };
 
-    // Set up a periodic check for the first few seconds
-    // This helps in cases where events aren't reliably fired
-    const checkInterval = setInterval(() => {
+    const setupInteractabilityCheck = () => {
+      setInteractable(false);
       try {
-        if (checkInteractability()) {
+        checkInteractability();
+      } catch (error) {
+        console.error("Error checking media interactability:", error);
+      }
+
+      const checkInterval = setInterval(() => {
+        try {
+          if (checkInteractability()) {
+            clearInterval(checkInterval);
+          }
+        } catch (error) {
           clearInterval(checkInterval);
         }
-      } catch (error) {
-        clearInterval(checkInterval);
-      }
-    }, CHECKING_INTERVAL);
+      }, CHECKING_INTERVAL);
+
+      return checkInterval;
+    };
+
+    setupMedia();
+    const checkInterval = setupInteractabilityCheck();
 
     return () => {
-      // Clean up interval
       clearInterval(checkInterval);
 
       if (!ref.current) return;
