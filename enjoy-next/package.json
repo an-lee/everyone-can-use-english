@@ -74,6 +74,7 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.55.0",
+    "recharts": "^2.15.2",
     "reflect-metadata": "^0.2.2",
     "sonner": "^2.0.3",
     "sqlite3": "^5.1.7",
@@ -96,5 +97,8 @@
     "i18next": "^24.2.3",
     "react-i18next": "^15.4.1",
     "rxjs": "^7.8.2"
+  },
+  "overrides": {
+    "react-is": "^19.0.0-rc-69d4b800-20241021"
   }
 }

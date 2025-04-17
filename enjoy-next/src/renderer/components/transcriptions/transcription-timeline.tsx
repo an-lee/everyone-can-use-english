@@ -5,8 +5,9 @@ import {
   convertWordIpaToNormal,
   secondsToTimestamp,
 } from "@renderer/lib/utils";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMediaFrequencies } from "@/renderer/hooks";
+import { PitchContour } from "./pitch-contour";
 
 export function TranscriptionSentence(props: {
   sentence: TimelineEntry;
@@ -38,19 +39,49 @@ export function TranscriptionActiveSentence(props: {
   sentence: TimelineEntry;
   index: number;
   selectWord: (wordIndex: number) => void;
+  frequenciesData?: {
+    frequencies: (number | null)[];
+    metadata: { duration: number };
+  } | null;
 }) {
-  const { mediaElement } = useMediaPlayer();
-
-  const { sentence, index, selectWord } = props;
+  const { sentence, index, selectWord, frequenciesData } = props;
   const { currentTime } = useMediaPlayer();
   const { selectedWords } = useMediaTranscription();
   const ref = useRef<HTMLDivElement>(null);
+  const { frequencies, metadata } = frequenciesData || {};
 
-  const {
-    data: frequencies,
-    isLoading: frequenciesLoading,
-    error: frequenciesError,
-  } = useMediaFrequencies(mediaElement?.src || "");
+  const [pitchContourData, setPitchContourData] = useState<
+    {
+      frequency: number | null;
+      time: number;
+    }[]
+  >([]);
+
+  const calculatePitchContourData = () => {
+    if (!frequencies || !metadata) return;
+
+    const duration = sentence.endTime - sentence.startTime;
+
+    const startIndex = Math.floor(
+      (sentence.startTime / metadata.duration) * frequencies.length
+    );
+
+    const endIndex = Math.floor(
+      (sentence.endTime / metadata.duration) * frequencies.length
+    );
+    const slice = frequencies.slice(startIndex, endIndex);
+
+    const data = slice.map((frequency, index) => ({
+      frequency: frequency,
+      time: index * (duration / slice.length) + sentence.startTime,
+    }));
+
+    setPitchContourData(data);
+  };
+
+  useEffect(() => {
+    calculatePitchContourData();
+  }, [frequencies, metadata]);
 
   useEffect(() => {
     if (!ref.current) return;
@@ -89,6 +120,12 @@ export function TranscriptionActiveSentence(props: {
             />
           );
         })}
+      </div>
+
+      <div className="">
+        {pitchContourData.length > 0 && (
+          <PitchContour data={pitchContourData} />
+        )}
       </div>
     </div>
   );
