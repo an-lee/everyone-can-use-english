@@ -1,6 +1,6 @@
-import { useMediaFrequencies } from "@/renderer/hooks";
+import { useMediaFrequencies } from "@renderer/hooks";
 import { ChartContainer } from "@renderer/components/ui";
-import { useMemo, useRef, useEffect, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   CartesianGrid,
   Line,
@@ -112,11 +112,11 @@ export function PitchContour(props: {
 
     // Most human speech frequencies are in the 85-255 Hz range
     // Let's make sure we're showing a reasonable range
-    const minFreq = Math.min(...frequencies);
     const maxFreq = Math.max(...frequencies);
 
-    // Set a reasonable min/max that focuses on the actual data
-    const min = Math.max(0, Math.min(100, Math.floor(minFreq / 10) * 10));
+    // Set a reasonable max that focuses on the actual data
+    // Always start from 0
+    const min = 0;
     const max = Math.min(500, Math.ceil(maxFreq / 10) * 10);
 
     return [min, max];
@@ -167,16 +167,23 @@ export function PitchContour(props: {
     endTime = endTime || data.metadata.duration;
     const duration = endTime - startTime;
 
-    // Calculate a reasonable number of ticks based on duration
-    const tickCount = Math.min(5, Math.max(2, Math.floor(duration)));
-    const interval = duration / tickCount;
-
-    // Create evenly spaced ticks
+    // Create ticks with consistent 500ms steps
     const ticks = [];
-    for (let i = 0; i <= tickCount; i++) {
-      const tickTime = startTime + i * interval;
+    const step = 0.5; // 500ms step
+
+    // Calculate first tick (round startTime to nearest 500ms mark)
+    const firstTick = Math.ceil(startTime * 2) / 2;
+
+    // Directly limit the number of ticks to prevent overcrowding
+    const maxTicks = Math.min(10, Math.ceil(duration / step));
+    const actualStep = duration / maxTicks;
+
+    for (let i = 0; i <= maxTicks; i++) {
+      const tickTime = startTime + i * actualStep;
       if (tickTime <= endTime) {
-        ticks.push(tickTime);
+        // Round to nearest 500ms for consistency in display
+        const roundedTick = Math.round(tickTime * 2) / 2;
+        ticks.push(roundedTick);
       }
     }
 
@@ -228,14 +235,14 @@ export function PitchContour(props: {
   };
 
   const CHART_HEIGHT = 110;
-  const chartMargin = { top: 10, right: 15, left: 15, bottom: 0 };
+  const chartMargin = { top: 10, right: 15, left: 15, bottom: 10 };
 
   // Get exact time value for cursor positioning with ReCharts
   const cursorXValue =
     cursorDataPoint !== null ? chartData[cursorDataPoint].time : null;
 
   return (
-    <div className="w-full" style={{ height: CHART_HEIGHT }}>
+    <div className="w-full" style={{ height: CHART_HEIGHT + 15 }}>
       <ChartContainer
         config={{
           pitch: {
@@ -243,7 +250,7 @@ export function PitchContour(props: {
             color: "var(--chart-3)",
           },
         }}
-        className={cn("!h-[110px] !aspect-auto overflow-hidden")}
+        className={cn("!h-[125px] !aspect-auto overflow-hidden")}
       >
         <div className="relative w-full h-full" ref={containerRef}>
           <div className="w-full h-full" ref={chartRef}>
@@ -274,6 +281,8 @@ export function PitchContour(props: {
                   strokeDasharray="3 3"
                   stroke="var(--border)"
                   opacity={0.5}
+                  horizontal={true}
+                  vertical={false}
                 />
 
                 <XAxis
@@ -284,19 +293,23 @@ export function PitchContour(props: {
                   stroke="var(--muted-foreground)"
                   tick={{ fontSize: 9 }}
                   padding={{ left: 10, right: 10 }}
-                  ticks={xAxisTicks}
-                  height={20}
+                  height={30}
                   axisLine={{
                     stroke: "var(--muted-foreground)",
-                    strokeWidth: 0.5,
+                    strokeWidth: 1,
                   }}
-                  tickLine={{ stroke: "var(--muted-foreground)" }}
-                  interval={0}
-                  minTickGap={15}
+                  tickLine={{
+                    stroke: "var(--muted-foreground)",
+                    strokeWidth: 1,
+                  }}
+                  scale="linear"
+                  type="number"
+                  domain={["dataMin", "dataMax"]}
+                  tickCount={5}
                 />
 
                 <YAxis
-                  domain={yDomain}
+                  domain={[0, yDomain[1]]}
                   label={{
                     value: "Hz",
                     angle: -90,
@@ -317,6 +330,7 @@ export function PitchContour(props: {
                     strokeWidth: 0.5,
                   }}
                   tickLine={{ stroke: "var(--muted-foreground)" }}
+                  allowDecimals={false}
                 />
 
                 <Tooltip content={<CustomTooltip />} />
