@@ -51,14 +51,19 @@ export class Ffmpeg {
     options: {
       sampleRate?: number;
       sensitivity?: number;
-      filterType?: "basic" | "language" | "tonal";
+      filterType?: "basic" | "language" | "tonal" | "speech";
       timeoutMs?: number;
+      enhanceSpeech?: boolean;
     } = {}
   ): Promise<{
     frequencies: (number | null)[];
     metadata: { duration: number; timeStep: number };
   }> {
-    const { filterType = "language", timeoutMs = FFMPEG_TIMEOUT_MS } = options;
+    const {
+      filterType = "language",
+      timeoutMs = FFMPEG_TIMEOUT_MS,
+      enhanceSpeech = true,
+    } = options;
 
     this.logger.debug(
       `Getting frequency data for ${url} with mode: ${filterType}`
@@ -91,11 +96,23 @@ export class Ffmpeg {
     );
 
     // Configure options
-    const sampleRate = options.sensitivity || 22050;
-    const audioFilter =
-      filterType === "tonal"
-        ? "highpass=f=60,lowpass=f=5000,dynaudnorm=f=200:g=15:p=0.95"
+    const sampleRate = options.sampleRate || 22050;
+
+    // Enhanced audio filters for different content types
+    let audioFilter: string;
+    if (filterType === "tonal") {
+      // For music and tonal content
+      audioFilter = "highpass=f=60,lowpass=f=5000,dynaudnorm=f=200:g=15:p=0.95";
+    } else if (filterType === "speech") {
+      // Optimized for human speech
+      audioFilter =
+        "highpass=f=80,lowpass=f=3500,equalizer=f=200:width_type=o:width=1:g=2,equalizer=f=1000:width_type=o:width=1:g=1,dynaudnorm=f=150:g=15";
+    } else {
+      // Default language mode
+      audioFilter = enhanceSpeech
+        ? "highpass=f=60,lowpass=f=4000,equalizer=f=1000:width_type=o:width=1:g=1,dynaudnorm=f=150:g=15:p=0.9"
         : "highpass=f=60,lowpass=f=4000,dynaudnorm=f=150:g=15";
+    }
 
     // Create abort controller for timeout
     const controller = new AbortController();
@@ -129,7 +146,18 @@ export class Ffmpeg {
             const frequencies = extractFrequencies({
               peaks,
               sampleRate,
-              options: { sensitivity: options.sensitivity },
+              options: {
+                sensitivity:
+                  options.sensitivity ||
+                  (filterType === "speech" ? 0.03 : 0.05),
+                // Use AMDF for speech, YIN for tonal content
+                algorithm: filterType === "speech" ? "AMDF" : "YIN",
+                // Higher probability threshold for speech to detect more segments
+                probabilityThreshold: filterType === "speech" ? 0.05 : 0.1,
+                // Adjust frequency range based on content type
+                minFrequency: filterType === "tonal" ? 75 : 85,
+                maxFrequency: filterType === "tonal" ? 500 : 400,
+              },
             });
 
             // Calculate metadata

@@ -10,8 +10,9 @@ export const useMediaFrequencies = (
   options?: {
     sampleRate?: number;
     sensitivity?: number;
-    filterType?: "basic" | "language" | "tonal";
+    filterType: "basic" | "language" | "tonal" | "speech";
     timeoutMs?: number;
+    enhanceSpeech?: boolean;
   }
 ) => {
   return useQuery<{

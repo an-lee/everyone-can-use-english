@@ -46,7 +46,8 @@ export function PitchContour(props: {
   const { src, startTime = 0 } = props;
   let { endTime } = props;
   const { data, isLoading, error } = useMediaFrequencies(src, {
-    filterType: "tonal",
+    filterType: "speech",
+    enhanceSpeech: true,
   });
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<HTMLDivElement>(null);
