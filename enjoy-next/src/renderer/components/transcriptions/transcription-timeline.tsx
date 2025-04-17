@@ -92,10 +92,12 @@ export function TranscriptionActiveSentence(props: {
       <div className="flex items-center flex-wrap mb-4">{wordComponents}</div>
 
       <div className="">
+        {/* Add a useEffect to log the timeline data */}
         <PitchContour
           src={mediaSrc}
           startTime={sentence.startTime}
           endTime={sentence.endTime}
+          timeline={sentence.timeline}
         />
       </div>
     </div>
