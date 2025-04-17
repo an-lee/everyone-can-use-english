@@ -8,15 +8,12 @@ import {
   ErrorView,
   LoadingView,
 } from "@renderer/components/status-views";
-import { useMediaFrequencies } from "@/renderer/hooks";
-import { useMediaPlayer } from "@/renderer/store/use-media-player";
 
 export function TranscriptionPanel(props: {
   targetId: string;
   targetType: string;
 }) {
   const { targetId, targetType } = props;
-  const { mediaElement } = useMediaPlayer();
 
   const {
     sentences,
@@ -29,12 +26,6 @@ export function TranscriptionPanel(props: {
     targetId,
     targetType,
   });
-
-  const {
-    data: frequenciesData,
-    isLoading: frequenciesLoading,
-    error: frequenciesError,
-  } = useMediaFrequencies(mediaElement?.src || "");
 
   if (isLoading) return <LoadingView />;
   if (error) return <ErrorView error={error.message} />;
@@ -50,14 +41,6 @@ export function TranscriptionPanel(props: {
             sentence={sentence}
             index={index}
             selectWord={selectWord}
-            frequenciesData={
-              frequenciesData && {
-                frequencies: frequenciesData?.frequencies || [],
-                metadata: {
-                  duration: frequenciesData?.metadata.duration,
-                },
-              }
-            }
           />
         ) : (
           <TranscriptionSentence

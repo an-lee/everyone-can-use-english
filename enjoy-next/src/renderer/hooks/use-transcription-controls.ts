@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useMediaPlayer } from "../store/use-media-player";
 import { useMediaTranscription } from "../store/use-media-transcription";
 import { useTranscriptionByTarget } from "./use-transcription";
@@ -63,58 +63,82 @@ export const useTranscriptionControls = (props: {
     };
   }, [transcription]);
 
+  // Memoize the sentence time boundaries for efficient lookup
+  const sentenceTimeIndices = useMemo(() => {
+    if (!sentences || sentences.length === 0) return [];
+
+    // Create an array of sentence start times with their indices
+    return sentences
+      .map((sentence, index) => ({
+        time: sentence.startTime,
+        index,
+      }))
+      .sort((a, b) => a.time - b.time);
+  }, [sentences]);
+
   /*
    * This effect is used to find the index of the sentence that is currently being spoken
-   * If the current time is between the start and end of the sentence, set the current index to the sentence
+   * Using binary search for more efficient lookup
    */
   useEffect(() => {
-    if (!sentences) return;
+    if (!sentences || sentences.length === 0 || !sentenceTimeIndices.length)
+      return;
 
-    let index = sentences.findIndex(
-      (sentence) => currentTime >= sentence.startTime
-    );
+    // Binary search to find the largest sentence start time that is <= currentTime
+    let left = 0;
+    let right = sentenceTimeIndices.length - 1;
+    let foundIndex = -1;
 
-    if (index < 0) return;
-
-    for (let i = index; i < sentences.length; i++) {
-      if (currentTime >= sentences[i].startTime) {
-        index = i;
+    while (left <= right) {
+      const mid = Math.floor((left + right) / 2);
+      if (sentenceTimeIndices[mid].time <= currentTime) {
+        foundIndex = mid;
+        left = mid + 1;
       } else {
-        break;
+        right = mid - 1;
       }
     }
 
-    if (index !== currentIndex) {
-      setCurrentIndex(index);
+    // If we found a valid index, update the current index
+    if (foundIndex !== -1) {
+      const newIndex = sentenceTimeIndices[foundIndex].index;
+      if (newIndex !== currentIndex) {
+        setCurrentIndex(newIndex);
+      }
     }
-  }, [currentTime, sentences]);
+  }, [currentTime, sentenceTimeIndices, currentIndex]);
 
   /*
    * This effect is used to set the active range to the selected words
    */
   useEffect(() => {
-    if (!sentences) return;
+    if (!sentences || sentences.length === 0) return;
 
     const currentSentence = sentences[currentIndex];
     if (!currentSentence?.timeline) return;
 
-    const firstWord = currentSentence.timeline[Math.min(...selectedWords)];
-    const lastWord = currentSentence.timeline[Math.max(...selectedWords)];
+    // Only calculate this if there are selected words
+    if (selectedWords.length > 0) {
+      const firstWord = currentSentence.timeline[Math.min(...selectedWords)];
+      const lastWord = currentSentence.timeline[Math.max(...selectedWords)];
 
-    if (firstWord && lastWord) {
-      setActiveRange({
-        start: firstWord.startTime,
-        end: lastWord.endTime,
-        autoPlay: false,
-      });
-    } else {
-      setActiveRange({
-        start: currentSentence.startTime,
-        end: currentSentence.endTime,
-        autoPlay: false,
-      });
+      if (firstWord && lastWord) {
+        setActiveRange({
+          start: firstWord.startTime,
+          end: lastWord.endTime,
+          autoPlay: false,
+        });
+        return;
+      }
     }
-  }, [selectedWords]);
+
+    // Default to the whole sentence if no words are selected
+    setActiveRange({
+      start: currentSentence.startTime,
+      end: currentSentence.endTime,
+      autoPlay: false,
+    });
+  }, [selectedWords, currentIndex, sentences]);
 
   /*
    * This effect is used to reset the selected words when the current index changes
@@ -134,6 +158,7 @@ export const useTranscriptionControls = (props: {
   };
 };
 
+// Memoize the timeline processing to avoid unnecessary recalculations
 const timelineToSentences = (
   transcription: TranscriptionEntity
 ): TimelineEntry[] => {

@@ -5,7 +5,7 @@ import {
   convertWordIpaToNormal,
   secondsToTimestamp,
 } from "@renderer/lib/utils";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo, memo } from "react";
 import { useMediaFrequencies } from "@/renderer/hooks";
 import { PitchContour } from "./pitch-contour";
 
@@ -39,55 +39,39 @@ export function TranscriptionActiveSentence(props: {
   sentence: TimelineEntry;
   index: number;
   selectWord: (wordIndex: number) => void;
-  frequenciesData?: {
-    frequencies: (number | null)[];
-    metadata: { duration: number };
-  } | null;
 }) {
-  const { sentence, index, selectWord, frequenciesData } = props;
+  const { sentence, index, selectWord } = props;
   const { currentTime } = useMediaPlayer();
   const { selectedWords } = useMediaTranscription();
+  const { mediaElement } = useMediaPlayer();
   const ref = useRef<HTMLDivElement>(null);
-  const { frequencies, metadata } = frequenciesData || {};
-
-  const [pitchContourData, setPitchContourData] = useState<
-    {
-      frequency: number | null;
-      time: number;
-    }[]
-  >([]);
-
-  const calculatePitchContourData = () => {
-    if (!frequencies || !metadata) return;
-
-    const duration = sentence.endTime - sentence.startTime;
-
-    const startIndex = Math.floor(
-      (sentence.startTime / metadata.duration) * frequencies.length
-    );
-
-    const endIndex = Math.floor(
-      (sentence.endTime / metadata.duration) * frequencies.length
-    );
-    const slice = frequencies.slice(startIndex, endIndex);
-
-    const data = slice.map((frequency, index) => ({
-      frequency: frequency,
-      time: index * (duration / slice.length) + sentence.startTime,
-    }));
-
-    setPitchContourData(data);
-  };
-
-  useEffect(() => {
-    calculatePitchContourData();
-  }, [frequencies, metadata]);
 
   useEffect(() => {
     if (!ref.current) return;
 
     ref.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [sentence, ref]);
+
+  // Memoize the word components to avoid unnecessary re-renders
+  const wordComponents = useMemo(() => {
+    return sentence.timeline?.map((entry, index) => {
+      if (!entry.timeline) return null;
+      return (
+        <TranscriptionWord
+          key={`word-${index}`}
+          word={entry}
+          active={
+            currentTime >= entry.startTime && currentTime <= entry.endTime
+          }
+          selected={selectedWords.includes(index)}
+          onClick={() => selectWord(index)}
+        />
+      );
+    });
+  }, [sentence.timeline, currentTime, selectedWords, selectWord]);
+
+  // Memoize the src to avoid unnecessary re-renders of PitchContour
+  const mediaSrc = useMemo(() => mediaElement?.src || "", [mediaElement?.src]);
 
   return (
     <div ref={ref} className="flex flex-col p-4 rounded-lg bg-background">
@@ -105,38 +89,37 @@ export function TranscriptionActiveSentence(props: {
         <p>{sentence.text}</p>
       </div>
 
-      <div className="flex items-center flex-wrap mb-4">
-        {props.sentence.timeline?.map((entry, index) => {
-          if (!entry.timeline) return null;
-          return (
-            <TranscriptionWord
-              key={`word-${index}`}
-              word={entry}
-              active={
-                currentTime >= entry.startTime && currentTime <= entry.endTime
-              }
-              selected={selectedWords.includes(index)}
-              onClick={() => selectWord(index)}
-            />
-          );
-        })}
-      </div>
+      <div className="flex items-center flex-wrap mb-4">{wordComponents}</div>
 
       <div className="">
-        {pitchContourData.length > 0 && (
-          <PitchContour data={pitchContourData} />
-        )}
+        <PitchContour
+          src={mediaSrc}
+          startTime={sentence.startTime}
+          endTime={sentence.endTime}
+        />
       </div>
     </div>
   );
 }
 
-export function TranscriptionWord(props: {
+// Use React.memo to prevent unnecessary re-renders when props don't change
+const TranscriptionWord = memo(function TranscriptionWord(props: {
   word: TimelineEntry;
   active: boolean;
   selected: boolean;
   onClick?: () => void;
 }) {
+  // Memoize token components to avoid unnecessary re-renders
+  const tokenComponents = useMemo(() => {
+    return props.word.timeline?.map((entry, index) => {
+      if (!entry.timeline) return null;
+      if (entry.type === "token") {
+        return <TranscriptionToken key={index} token={entry} />;
+      }
+      return null;
+    });
+  }, [props.word.timeline]);
+
   return (
     <div
       className={cn(
@@ -154,25 +137,26 @@ export function TranscriptionWord(props: {
         {props.word.text}
       </div>
       <div className="flex items-center gap-1 min-w-max h-4">
-        {props.word.timeline?.map((entry, index) => {
-          if (!entry.timeline) return null;
-          if (entry.type === "token") {
-            return <TranscriptionToken key={index} token={entry} />;
-          }
-          return null;
-        })}
+        {tokenComponents}
       </div>
     </div>
   );
-}
+});
 
-export function TranscriptionToken(props: { token: TimelineEntry }) {
-  const ipas = convertWordIpaToNormal(
-    props.token.timeline?.map((entry) => entry.text) || []
-  );
+// Use React.memo to prevent unnecessary re-renders when props don't change
+const TranscriptionToken = memo(function TranscriptionToken(props: {
+  token: TimelineEntry;
+}) {
+  // Memoize the IPA conversion to avoid recalculating on every render
+  const ipas = useMemo(() => {
+    return convertWordIpaToNormal(
+      props.token.timeline?.map((entry) => entry.text) || []
+    );
+  }, [props.token.timeline]);
+
   return (
     <div className="text-sm text-muted-foreground font-code min-w-max">
       {ipas.join("")}
     </div>
   );
-}
+});
