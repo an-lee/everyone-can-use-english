@@ -16,7 +16,7 @@ export const useTranscriptionControls = (props: {
     setSelectedWords,
     reset,
   } = useMediaTranscription();
-  const { currentTime, setActiveRange } = useMediaPlayer();
+  const { currentTime, activeRange, setActiveRange } = useMediaPlayer();
 
   const activateSentence = (sentence: TimelineEntry) => {
     setActiveRange({
@@ -121,24 +121,28 @@ export const useTranscriptionControls = (props: {
     if (selectedWords.length > 0) {
       const firstWord = currentSentence.timeline[Math.min(...selectedWords)];
       const lastWord = currentSentence.timeline[Math.max(...selectedWords)];
+      if (!firstWord || !lastWord) return;
 
-      if (firstWord && lastWord) {
-        setActiveRange({
-          start: firstWord.startTime,
-          end: lastWord.endTime,
-          autoPlay: false,
-        });
+      if (
+        activeRange.start === firstWord.startTime &&
+        activeRange.end === lastWord.endTime
+      )
         return;
-      }
-    }
 
-    // Default to the whole sentence if no words are selected
-    setActiveRange({
-      start: currentSentence.startTime,
-      end: currentSentence.endTime,
-      autoPlay: false,
-    });
-  }, [selectedWords, currentIndex, sentences]);
+      setActiveRange({
+        start: firstWord.startTime,
+        end: lastWord.endTime,
+        autoPlay: false,
+      });
+    } else {
+      // Default to the whole sentence if no words are selected
+      setActiveRange({
+        start: currentSentence.startTime,
+        end: currentSentence.endTime,
+        autoPlay: false,
+      });
+    }
+  }, [selectedWords, sentences]);
 
   /*
    * This effect is used to reset the selected words when the current index changes

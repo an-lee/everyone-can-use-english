@@ -33,23 +33,6 @@ type MediaPlayerState = {
   looping: boolean;
   setLooping: (looping: boolean) => void;
 
-  frequenciesQuery: {
-    isLoading: boolean;
-    error: Error | null;
-    data: {
-      frequencies: (number | null)[];
-      metadata: { duration: number; timeStep: number };
-    } | null;
-  };
-  setFrequenciesQuery: (frequenciesQuery: {
-    isLoading: boolean;
-    error: Error | null;
-    data: {
-      frequencies: (number | null)[];
-      metadata: { duration: number; timeStep: number };
-    } | null;
-  }) => void;
-
   error: Error | null;
   setError: (error: Error | null) => void;
 
@@ -101,20 +84,6 @@ export const useMediaPlayer = create<MediaPlayerState>((set, get) => ({
 
   looping: false,
   setLooping: (looping: boolean) => set({ looping }),
-
-  frequenciesQuery: {
-    isLoading: false,
-    error: null,
-    data: null,
-  },
-  setFrequenciesQuery: (frequenciesQuery: {
-    isLoading: boolean;
-    error: Error | null;
-    data: {
-      frequencies: (number | null)[];
-      metadata: { duration: number; timeStep: number };
-    } | null;
-  }) => set({ frequenciesQuery }),
 
   error: null,
   setError: (error: Error | null) => set({ error }),

@@ -7,8 +7,15 @@ import {
 } from "@renderer/lib/utils";
 import { useEffect, useRef, useState, useMemo, memo } from "react";
 import { PitchContour } from "@renderer/components/charts";
-import { Button } from "@renderer/components/ui";
+import {
+  Button,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@renderer/components/ui";
 import { Icon } from "@iconify/react";
+import { useTranslation } from "react-i18next";
 
 export function TranscriptionSentence(props: {
   sentence: TimelineEntry;
@@ -45,6 +52,8 @@ export function TranscriptionActiveSentence(props: {
   const { currentTime, mediaElement, interactable } = useMediaPlayer();
   const { selectedWords } = useMediaTranscription();
   const ref = useRef<HTMLDivElement>(null);
+
+  const { t } = useTranslation("components/transcriptions");
 
   const [displayPitchContour, setDisplayPitchContour] = useState(false);
   const [displayTranslation, setDisplayTranslation] = useState(false);
@@ -94,33 +103,50 @@ export function TranscriptionActiveSentence(props: {
 
       <div className="flex items-center flex-wrap mb-4">{wordComponents}</div>
 
-      <div className="mb-4 w-full">
-        {displayPitchContour && (
+      {displayPitchContour && (
+        <div className="mb-4 w-full">
           <PitchContour
             src={mediaSrc}
             startTime={sentence.startTime}
             endTime={sentence.endTime}
           />
-        )}
-      </div>
+        </div>
+      )}
 
-      <div className="flex items-center gap-0.5">
-        <Button
-          variant={displayPitchContour ? "secondary" : "ghost"}
-          size="icon"
-          disabled={!interactable}
-          onClick={() => setDisplayPitchContour(!displayPitchContour)}
-        >
-          <Icon icon="hugeicons:chart-average" />
-        </Button>
-        <Button
-          variant={displayTranslation ? "secondary" : "ghost"}
-          size="icon"
-          onClick={() => setDisplayTranslation(!displayTranslation)}
-        >
-          <Icon icon="hugeicons:translate" />
-        </Button>
-      </div>
+      <TooltipProvider>
+        <div className="flex items-center gap-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant={displayPitchContour ? "secondary" : "ghost"}
+                size="icon"
+                disabled={!interactable}
+                onClick={() => setDisplayPitchContour(!displayPitchContour)}
+              >
+                <Icon icon="hugeicons:chart-average" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{t("pitchContour")}</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant={displayTranslation ? "secondary" : "ghost"}
+                size="icon"
+                onClick={() => setDisplayTranslation(!displayTranslation)}
+              >
+                <Icon icon="hugeicons:translate" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{t("translation")}</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      </TooltipProvider>
     </div>
   );
 }

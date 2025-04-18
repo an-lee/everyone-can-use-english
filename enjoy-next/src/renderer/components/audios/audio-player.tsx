@@ -29,6 +29,7 @@ export function AudioPlayer(props: { audio: AudioEntity }) {
     seeking,
     interactable,
     looping,
+    activeRange,
   } = useMediaPlayer();
 
   useEffect(() => {
@@ -107,8 +108,14 @@ export function AudioPlayer(props: { audio: AudioEntity }) {
           <Button variant="ghost" size="icon" className="p-0">
             <Icon icon="tabler:brand-speedtest" className="size-6" />
           </Button>
-          <div className="text-xs min-w-max">
-            {secondsToTimestamp(currentTime)} / {secondsToTimestamp(duration)}
+          <div className="">
+            <div className="text-xs min-w-max">
+              {secondsToTimestamp(currentTime)} / {secondsToTimestamp(duration)}
+            </div>
+            <div className="text-xs min-w-max font-serif text-muted-foreground">
+              ({secondsToTimestamp(activeRange.start)} ~{" "}
+              {secondsToTimestamp(activeRange.end)})
+            </div>
           </div>
         </div>
         <div className="flex-1 flex items-center gap-1"></div>
