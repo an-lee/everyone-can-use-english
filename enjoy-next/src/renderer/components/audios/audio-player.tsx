@@ -6,6 +6,7 @@ import { Slider } from "../ui/slider";
 import { secondsToTimestamp } from "@/renderer/lib/utils";
 import { useMediaControls } from "@/renderer/hooks/use-media-controls";
 import { useTranslation } from "react-i18next";
+
 export function AudioPlayer(props: { audio: AudioEntity }) {
   const { t } = useTranslation("components/audios");
 

@@ -8,6 +8,8 @@ import {
 import { useEffect, useRef, useState, useMemo, memo } from "react";
 import { useMediaFrequencies } from "@/renderer/hooks";
 import { PitchContour } from "./pitch-contour";
+import { Button } from "../ui/button";
+import { Icon } from "@iconify/react";
 
 export function TranscriptionSentence(props: {
   sentence: TimelineEntry;
@@ -41,10 +43,12 @@ export function TranscriptionActiveSentence(props: {
   selectWord: (wordIndex: number) => void;
 }) {
   const { sentence, index, selectWord } = props;
-  const { currentTime } = useMediaPlayer();
-  const { selectedWords } = useMediaTranscription();
-  const { mediaElement } = useMediaPlayer();
+  const { currentTime, mediaElement } = useMediaPlayer.getState();
+  const { selectedWords } = useMediaTranscription.getState();
   const ref = useRef<HTMLDivElement>(null);
+
+  const [displayPitchContour, setDisplayPitchContour] = useState(false);
+  const [displayTranslation, setDisplayTranslation] = useState(false);
 
   useEffect(() => {
     if (!ref.current) return;
@@ -91,13 +95,31 @@ export function TranscriptionActiveSentence(props: {
 
       <div className="flex items-center flex-wrap mb-4">{wordComponents}</div>
 
-      <div className="">
-        {/* Add a useEffect to log the timeline data */}
-        <PitchContour
-          src={mediaSrc}
-          startTime={sentence.startTime}
-          endTime={sentence.endTime}
-        />
+      <div className="mb-4 w-full">
+        {displayPitchContour && (
+          <PitchContour
+            src={mediaSrc}
+            startTime={sentence.startTime}
+            endTime={sentence.endTime}
+          />
+        )}
+      </div>
+
+      <div className="flex items-center gap-0.5">
+        <Button
+          variant={displayPitchContour ? "secondary" : "ghost"}
+          size="icon"
+          onClick={() => setDisplayPitchContour(!displayPitchContour)}
+        >
+          <Icon icon="hugeicons:chart-average" />
+        </Button>
+        <Button
+          variant={displayTranslation ? "secondary" : "ghost"}
+          size="icon"
+          onClick={() => setDisplayTranslation(!displayTranslation)}
+        >
+          <Icon icon="hugeicons:translate" />
+        </Button>
       </div>
     </div>
   );

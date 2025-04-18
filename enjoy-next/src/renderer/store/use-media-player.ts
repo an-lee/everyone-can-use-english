@@ -96,7 +96,6 @@ export const useMediaPlayer = create<MediaPlayerState>((set, get) => ({
     end: number;
     autoPlay?: boolean;
   }) => {
-    console.debug("Setting active range", activeRange);
     set({ activeRange });
   },
 

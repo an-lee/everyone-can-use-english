@@ -30,7 +30,7 @@ export function AudioPage(props: { audioId: string }) {
       <ScrollArea className="flex-1">
         <div className="h-4"></div>
         <div className="min-h-[calc(100svh-var(--menubar-height)-8rem)] flex flex-col">
-          <TranscriptionPanel targetId={data.id || ""} targetType="Audio" />
+          <TranscriptionPanel targetId={data.id} targetType="Audio" />
         </div>
         <div className="h-28"></div>
       </ScrollArea>

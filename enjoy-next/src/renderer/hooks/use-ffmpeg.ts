@@ -25,6 +25,7 @@ export const useMediaFrequencies = (
       if (!src || !window.EnjoyAPI) {
         return null;
       }
+      console.debug("Getting frequency data for", src, options);
       return await window.EnjoyAPI.plugin.executeCommand(
         "ffmpeg-plugin",
         "getFrequencyData",

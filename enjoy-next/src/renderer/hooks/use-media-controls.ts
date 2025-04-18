@@ -1,8 +1,6 @@
-import { useMediaPlayer } from "@renderer/store/use-media-player";
+import { useMediaPlayer, useMediaTranscription } from "@renderer/store";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { useMediaTranscription } from "../store/use-media-transcription";
-import { useMediaFrequencies } from "./use-ffmpeg";
 
 type MediaElement = HTMLVideoElement | HTMLAudioElement;
 type MediaEventHandler = (e: Event) => void;
@@ -60,15 +58,6 @@ export const useMediaControls = (
         media.seekable.length > 0 &&
         media.seekable.end(0) !== 0;
 
-      const hasBufferedData = media.buffered && media.buffered.length > 0;
-      const hasEnoughData =
-        media.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA;
-
-      const networkState = media.networkState;
-      const networkStateText = ["EMPTY", "IDLE", "LOADING", "NO_SOURCE"][
-        networkState
-      ];
-
       const canInteract = hasMetadata && hasDuration && hasSeekableRanges;
 
       logMediaStatus(media, canInteract);
@@ -88,9 +77,9 @@ export const useMediaControls = (
         toast.error("Media is taking too long to load, please wait");
         throw new Error("Media is taking too long to load, please wait");
       } else if (loadingTime.current > CHECKING_INTERVAL * 5) {
-        return false;
-      } else if (loadingTime.current > CHECKING_INTERVAL * 5) {
-        toast.warning("Media is taking too long to load, please wait");
+        console.warn(
+          `Media is taking too long to load: ${loadingTime.current}ms`
+        );
       } else {
         loadingTime.current += CHECKING_INTERVAL;
         console.debug(
@@ -284,7 +273,10 @@ export const useMediaControls = (
         console.debug(
           "Failed to seek to start, resetting active range to 0 and duration"
         );
-        setActiveRange({ start: 0, end: element.duration });
+        setActiveRange({
+          start: 0,
+          end: element.duration || 0,
+        });
       }
     }
   };
@@ -358,9 +350,13 @@ export const useMediaControls = (
       const checkInterval = setInterval(() => {
         try {
           if (checkInteractability()) {
+            console.debug("Interactability check passed, clearing interval");
             clearInterval(checkInterval);
+          } else {
+            console.debug("Interactability check failed, continuing");
           }
         } catch (error) {
+          console.error("Error checking media interactability:", error);
           clearInterval(checkInterval);
         }
       }, CHECKING_INTERVAL);
