@@ -1,6 +1,6 @@
 import { useTranscriptionControls } from "@renderer/hooks/use-transcription-controls";
 import {
-  TranscriptionActiveSentence,
+  DetailedTranscriptionSentence,
   TranscriptionSentence,
 } from "./transcription-timeline";
 import {
@@ -8,6 +8,7 @@ import {
   ErrorView,
   LoadingView,
 } from "@renderer/components/status-views";
+import { useMediaPlayerSetting } from "@renderer/store";
 
 export function TranscriptionPanel(props: {
   targetId: string;
@@ -27,6 +28,8 @@ export function TranscriptionPanel(props: {
     targetType,
   });
 
+  const { playMode } = useMediaPlayerSetting();
+
   if (isLoading) return <LoadingView />;
   if (error) return <ErrorView error={error.message} />;
 
@@ -35,8 +38,8 @@ export function TranscriptionPanel(props: {
   return (
     <div className="w-full max-w-screen-md mx-auto px-6">
       {sentences.map((sentence: TimelineEntry, index: number) =>
-        index === currentIndex ? (
-          <TranscriptionActiveSentence
+        playMode === "shadowMode" && index === currentIndex ? (
+          <DetailedTranscriptionSentence
             key={`sentence-${index}`}
             sentence={sentence}
             index={index}
@@ -47,6 +50,7 @@ export function TranscriptionPanel(props: {
             key={`sentence-${index}`}
             sentence={sentence}
             index={index}
+            active={playMode === "readMode" && index === currentIndex}
             onClick={() => activateSentence(sentence)}
           />
         )

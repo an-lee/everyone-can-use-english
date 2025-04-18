@@ -1,4 +1,4 @@
-import { useAudioById } from "@/renderer/hooks";
+import { useAudioById } from "@renderer/hooks";
 import {
   EmptyView,
   ErrorView,

@@ -1,4 +1,8 @@
-import { useMediaPlayer, useMediaTranscription } from "@renderer/store";
+import {
+  useMediaPlayBack,
+  useMediaPlayerSetting,
+  useMediaTranscription,
+} from "@renderer/store";
 import { debounce } from "lodash";
 import { useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
@@ -35,9 +39,8 @@ export const useMediaControls = (
     setError,
     setInteractable,
     reset,
-    setLooping,
-    looping,
-  } = useMediaPlayer();
+  } = useMediaPlayBack();
+  const { playMode, looping, setLooping } = useMediaPlayerSetting();
 
   const { nextSentence, previousSentence } = useMediaTranscription();
 
@@ -397,6 +400,18 @@ export const useMediaControls = (
       ref.current?.removeEventListener("timeupdate", handleRangeConstraint);
     };
   }, [activeRange, src, looping]);
+
+  useEffect(() => {
+    if (!ref.current) return;
+
+    if (playMode === "readMode") {
+      setActiveRange({
+        start: 0,
+        end: ref.current.duration,
+        autoPlay: true,
+      });
+    }
+  }, [playMode]);
 
   return {
     ref,

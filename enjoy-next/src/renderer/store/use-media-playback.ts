@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-type MediaPlayerState = {
+type MediaPlayBackState = {
   mediaElement: HTMLVideoElement | HTMLAudioElement | null;
   setMediaElement: (mediaElement: HTMLVideoElement | HTMLAudioElement) => void;
   clearMediaElement: () => void;
@@ -30,16 +30,15 @@ type MediaPlayerState = {
     autoPlay?: boolean;
   }) => void;
 
-  looping: boolean;
-  setLooping: (looping: boolean) => void;
-
   error: Error | null;
   setError: (error: Error | null) => void;
+
+  directSeek: (time: number) => void;
 
   reset: () => void;
 };
 
-export const useMediaPlayer = create<MediaPlayerState>((set, get) => ({
+export const useMediaPlayBack = create<MediaPlayBackState>((set, get) => ({
   mediaElement: null,
 
   setMediaElement: (mediaElement: HTMLVideoElement | HTMLAudioElement) => {
@@ -82,11 +81,14 @@ export const useMediaPlayer = create<MediaPlayerState>((set, get) => ({
     set({ activeRange });
   },
 
-  looping: false,
-  setLooping: (looping: boolean) => set({ looping }),
-
   error: null,
   setError: (error: Error | null) => set({ error }),
+
+  directSeek: (time: number) => {
+    if (get().mediaElement) {
+      get().mediaElement!.currentTime = time;
+    }
+  },
 
   reset: () => {
     set({

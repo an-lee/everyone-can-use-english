@@ -1,25 +1,25 @@
 import { Icon } from "@iconify/react";
 import { Button } from "@renderer/components/ui/button";
-import { useMediaPlayer } from "@renderer/store/use-media-player";
+import { useMediaPlayBack, useMediaPlayerSetting } from "@renderer/store";
 import { useEffect, useState } from "react";
 import { Slider } from "../ui/slider";
-import { secondsToTimestamp } from "@/renderer/lib/utils";
-import { useMediaControls } from "@/renderer/hooks/use-media-controls";
+import { secondsToTimestamp } from "@renderer/lib/utils";
+import { useMediaControls } from "@renderer/hooks";
 import { useTranslation } from "react-i18next";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 
 export function AudioPlayer(props: { audio: AudioEntity }) {
   const { t } = useTranslation("components/audios");
 
   const [playable, setPlayable] = useState(false);
   const { audio } = props;
-  const {
-    ref,
-    togglePlay,
-    destroy,
-    toggleLooping,
-    playNextSentence,
-    playPreviousSentence,
-  } = useMediaControls(audio.src!);
+  const { ref, togglePlay, destroy, playNextSentence, playPreviousSentence } =
+    useMediaControls(audio.src!);
 
   const {
     currentTime,
@@ -28,9 +28,10 @@ export function AudioPlayer(props: { audio: AudioEntity }) {
     loading,
     seeking,
     interactable,
-    looping,
     activeRange,
-  } = useMediaPlayer();
+  } = useMediaPlayBack();
+  const { playMode, setPlayMode, looping, setLooping } =
+    useMediaPlayerSetting();
 
   useEffect(() => {
     if (!loading && !seeking && interactable) {
@@ -60,7 +61,7 @@ export function AudioPlayer(props: { audio: AudioEntity }) {
           }}
         />
       </div>
-      <div className="grid grid-cols-3 h-full px-4">
+      <div className="grid grid-cols-2 h-full px-4">
         <div className="flex-1 flex items-center gap-1">
           <Button
             onClick={togglePlay}
@@ -97,7 +98,7 @@ export function AudioPlayer(props: { audio: AudioEntity }) {
             variant={looping ? "secondary" : "ghost"}
             size="icon"
             className="p-0"
-            onClick={toggleLooping}
+            onClick={() => setLooping(!looping)}
           >
             {looping ? (
               <Icon icon="tabler:repeat-once" className="size-6" />
@@ -118,14 +119,23 @@ export function AudioPlayer(props: { audio: AudioEntity }) {
             </div>
           </div>
         </div>
-        <div className="flex-1 flex items-center gap-1"></div>
         <div className="flex-1 flex items-center justify-end gap-1">
-          <Button variant="outline" size="sm" className="">
-            {t("shadowMode")}
-          </Button>
-          <Button variant="outline" size="sm" className="">
-            {t("readMode")}
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-1">
+                {t(playMode)}
+                <Icon icon="tabler:chevron-up" className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => setPlayMode("shadowMode")}>
+                {t("shadowMode")}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setPlayMode("readMode")}>
+                {t("readMode")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 

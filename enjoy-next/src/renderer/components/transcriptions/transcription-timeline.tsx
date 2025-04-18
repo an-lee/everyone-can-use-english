@@ -1,11 +1,14 @@
-import { useMediaTranscription } from "@renderer/store/use-media-transcription";
-import { useMediaPlayer } from "@renderer/store";
+import {
+  useMediaTranscription,
+  useMediaPlayBack,
+  useMediaPlayerSetting,
+} from "@renderer/store";
 import {
   cn,
   convertWordIpaToNormal,
   secondsToTimestamp,
 } from "@renderer/lib/utils";
-import { useEffect, useRef, useState, useMemo, memo } from "react";
+import { useEffect, useRef, useMemo, memo } from "react";
 import { PitchContour } from "@renderer/components/charts";
 import {
   Button,
@@ -20,13 +23,25 @@ import { useTranslation } from "react-i18next";
 export function TranscriptionSentence(props: {
   sentence: TimelineEntry;
   index: number;
+  active: boolean;
   onClick: () => void;
 }) {
-  const { sentence, index, onClick } = props;
+  const { sentence, index, active, onClick } = props;
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!ref.current) return;
+    if (!active) return;
+
+    ref.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [ref, active]);
 
   return (
     <div
-      className="flex flex-col p-4 rounded-lg cursor-pointer hover:bg-muted"
+      ref={ref}
+      className={cn(
+        "flex flex-col p-4 rounded-lg cursor-pointer",
+        active ? "bg-background" : "hover:bg-muted"
+      )}
       onClick={onClick}
     >
       <div className="flex items-center gap-2">
@@ -43,20 +58,24 @@ export function TranscriptionSentence(props: {
   );
 }
 
-export function TranscriptionActiveSentence(props: {
+export function DetailedTranscriptionSentence(props: {
   sentence: TimelineEntry;
   index: number;
   selectWord: (wordIndex: number) => void;
 }) {
   const { sentence, index, selectWord } = props;
-  const { currentTime, mediaElement, interactable } = useMediaPlayer();
+  const { currentTime, mediaElement, interactable } = useMediaPlayBack();
   const { selectedWords } = useMediaTranscription();
   const ref = useRef<HTMLDivElement>(null);
 
   const { t } = useTranslation("components/transcriptions");
 
-  const [displayPitchContour, setDisplayPitchContour] = useState(false);
-  const [displayTranslation, setDisplayTranslation] = useState(false);
+  const {
+    displayPitchContour,
+    displayTranslation,
+    setDisplayPitchContour,
+    setDisplayTranslation,
+  } = useMediaPlayerSetting();
 
   useEffect(() => {
     if (!ref.current) return;

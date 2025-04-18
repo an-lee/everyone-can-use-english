@@ -1,6 +1,9 @@
 import { useEffect, useMemo } from "react";
-import { useMediaPlayer } from "../store/use-media-player";
-import { useMediaTranscription } from "../store/use-media-transcription";
+import {
+  useMediaPlayBack,
+  useMediaTranscription,
+  useMediaPlayerSetting,
+} from "@renderer/store";
 import { useTranscriptionByTarget } from "./use-transcription";
 
 export const useTranscriptionControls = (props: {
@@ -16,14 +19,20 @@ export const useTranscriptionControls = (props: {
     setSelectedWords,
     reset,
   } = useMediaTranscription();
-  const { currentTime, activeRange, setActiveRange } = useMediaPlayer();
+  const { currentTime, activeRange, setActiveRange, directSeek } =
+    useMediaPlayBack();
+  const { playMode } = useMediaPlayerSetting();
 
   const activateSentence = (sentence: TimelineEntry) => {
-    setActiveRange({
-      start: sentence.startTime,
-      end: sentence.endTime,
-      autoPlay: true,
-    });
+    if (playMode === "shadowMode") {
+      setActiveRange({
+        start: sentence.startTime,
+        end: sentence.endTime,
+        autoPlay: true,
+      });
+    } else {
+      directSeek(sentence.startTime);
+    }
   };
 
   const selectWord = (wordIndex: number) => {
@@ -134,7 +143,7 @@ export const useTranscriptionControls = (props: {
         end: lastWord.endTime,
         autoPlay: false,
       });
-    } else {
+    } else if (playMode === "shadowMode") {
       // Default to the whole sentence if no words are selected
       setActiveRange({
         start: currentSentence.startTime,
