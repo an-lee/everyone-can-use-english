@@ -1,6 +1,6 @@
 import { Icon } from "@iconify/react";
 import { Button, Slider } from "@renderer/components/ui";
-import { useMediaPlayBack, useMediaPlayerSetting } from "@renderer/store";
+import { usePlayBackStore, usePlayerSettingStore } from "@renderer/store";
 import { useEffect, useState } from "react";
 import { secondsToTimestamp } from "@renderer/lib/utils";
 import { useMediaControls } from "@renderer/hooks";
@@ -23,9 +23,9 @@ export function AudioPlayer(props: { audio: AudioEntity }) {
     seeking,
     interactable,
     activeRange,
-  } = useMediaPlayBack();
+  } = usePlayBackStore();
   const { playMode, setPlayMode, looping, setLooping } =
-    useMediaPlayerSetting();
+    usePlayerSettingStore();
 
   useEffect(() => {
     if (!loading && !seeking && interactable) {

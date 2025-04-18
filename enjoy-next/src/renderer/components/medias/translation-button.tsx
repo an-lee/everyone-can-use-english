@@ -7,7 +7,7 @@ import {
   TooltipTrigger,
 } from "@renderer/components/ui";
 import { useTranslation } from "react-i18next";
-import { useMediaPlayerSetting } from "@renderer/store";
+import { usePlayerSettingStore } from "@renderer/store";
 
 export function TranslationButton(props: {
   asChild?: boolean;
@@ -15,7 +15,7 @@ export function TranslationButton(props: {
 }) {
   const { asChild, children } = props;
   const { t } = useTranslation("components/medias");
-  const { displayTranslation, setDisplayTranslation } = useMediaPlayerSetting();
+  const { displayTranslation, setDisplayTranslation } = usePlayerSettingStore();
 
   return (
     <TooltipProvider>

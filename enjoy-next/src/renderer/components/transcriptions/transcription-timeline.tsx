@@ -1,7 +1,7 @@
 import {
-  useMediaTranscription,
-  useMediaPlayBack,
-  useMediaPlayerSetting,
+  useTranscriptionStore,
+  usePlayBackStore,
+  usePlayerSettingStore,
 } from "@renderer/store";
 import {
   cn,
@@ -60,11 +60,11 @@ export function DetailedTranscriptionSentence(props: {
   selectWord: (wordIndex: number) => void;
 }) {
   const { sentence, index, selectWord } = props;
-  const { currentTime, mediaElement, interactable } = useMediaPlayBack();
-  const { selectedWords } = useMediaTranscription();
+  const { currentTime, mediaElement, interactable } = usePlayBackStore();
+  const { selectedWords } = useTranscriptionStore();
   const ref = useRef<HTMLDivElement>(null);
 
-  const { displayPitchContour } = useMediaPlayerSetting();
+  const { displayPitchContour } = usePlayerSettingStore();
 
   useEffect(() => {
     if (!ref.current) return;

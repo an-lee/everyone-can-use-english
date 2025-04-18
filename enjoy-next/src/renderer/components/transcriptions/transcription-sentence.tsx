@@ -1,4 +1,4 @@
-import { useMediaPlayerSetting } from "@renderer/store";
+import { usePlayerSettingStore } from "@renderer/store";
 import { cn, secondsToTimestamp } from "@renderer/lib/utils";
 import { useEffect, useRef } from "react";
 import { TranscriptionSentenceDetails } from "./transcription-sentence-details";
@@ -11,7 +11,7 @@ export function TranscriptionSentence(props: {
   selectWord: (wordIndex: number) => void;
 }) {
   const { sentence, index, active, onClick, selectWord } = props;
-  const { playMode } = useMediaPlayerSetting();
+  const { playMode } = usePlayerSettingStore();
 
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {

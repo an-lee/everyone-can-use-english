@@ -19,7 +19,7 @@ type MediaTranscriptionState = {
   reset: () => void;
 };
 
-export const useMediaTranscription = create<MediaTranscriptionState>(
+export const useTranscriptionStore = create<MediaTranscriptionState>(
   (set, get) => ({
     currentTime: 0,
     setCurrentTime: (currentTime) => set({ currentTime }),

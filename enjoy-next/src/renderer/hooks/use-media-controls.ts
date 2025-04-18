@@ -1,7 +1,7 @@
 import {
-  useMediaPlayBack,
-  useMediaPlayerSetting,
-  useMediaTranscription,
+  usePlayBackStore,
+  usePlayerSettingStore,
+  useTranscriptionStore,
 } from "@renderer/store";
 import { debounce } from "lodash";
 import { useCallback, useEffect, useRef } from "react";
@@ -40,10 +40,10 @@ export const useMediaControls = (
     setError,
     setInteractable,
     reset,
-  } = useMediaPlayBack();
-  const { playMode, looping, setLooping } = useMediaPlayerSetting();
+  } = usePlayBackStore();
+  const { playMode, looping, setLooping } = usePlayerSettingStore();
 
-  const { nextSentence, previousSentence } = useMediaTranscription();
+  const { nextSentence, previousSentence } = useTranscriptionStore();
 
   const checkReadyState = () => {
     if (!ref.current) return;

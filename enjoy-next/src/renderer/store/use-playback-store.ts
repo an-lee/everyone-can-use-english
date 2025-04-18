@@ -41,7 +41,7 @@ type MediaPlayBackState = {
   reset: () => void;
 };
 
-export const useMediaPlayBack = create<MediaPlayBackState>((set, get) => ({
+export const usePlayBackStore = create<MediaPlayBackState>((set, get) => ({
   src: "",
   setSrc: (src: string) => set({ src }),
 

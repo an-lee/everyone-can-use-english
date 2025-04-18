@@ -15,7 +15,7 @@ type MediaPlayerSettingState = {
   setDisplayTranslation: (displayTranslation: boolean) => void;
 };
 
-export const useMediaPlayerSetting = create<MediaPlayerSettingState>()(
+export const usePlayerSettingStore = create<MediaPlayerSettingState>()(
   persist(
     (set) => ({
       looping: false,

@@ -1,8 +1,8 @@
 import { useEffect, useMemo } from "react";
 import {
-  useMediaPlayBack,
-  useMediaTranscription,
-  useMediaPlayerSetting,
+  usePlayBackStore,
+  useTranscriptionStore,
+  usePlayerSettingStore,
 } from "@renderer/store";
 import { useTranscriptionByTarget } from "./use-transcription";
 
@@ -18,10 +18,10 @@ export const useTranscriptionControls = (props: {
     selectedWords,
     setSelectedWords,
     reset,
-  } = useMediaTranscription();
+  } = useTranscriptionStore();
   const { currentTime, activeRange, setActiveRange, directSeek } =
-    useMediaPlayBack();
-  const { playMode } = useMediaPlayerSetting();
+    usePlayBackStore();
+  const { playMode } = usePlayerSettingStore();
 
   const activateSentence = (sentence: TimelineEntry) => {
     if (playMode === "shadowMode") {

@@ -1,4 +1,4 @@
-import { useMediaPlayerSetting } from "@renderer/store";
+import { usePlayerSettingStore } from "@renderer/store";
 import { Icon } from "@iconify/react";
 import {
   Button,
@@ -11,7 +11,7 @@ import { useTranslation } from "react-i18next";
 
 export function PlayModeButton() {
   const { t } = useTranslation("components/medias");
-  const { playMode, setPlayMode } = useMediaPlayerSetting();
+  const { playMode, setPlayMode } = usePlayerSettingStore();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

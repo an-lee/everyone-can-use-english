@@ -1,7 +1,7 @@
 import {
-  useMediaTranscription,
-  useMediaPlayBack,
-  useMediaPlayerSetting,
+  useTranscriptionStore,
+  usePlayBackStore,
+  usePlayerSettingStore,
 } from "@renderer/store";
 import { cn, convertWordIpaToNormal } from "@renderer/lib/utils";
 import { useEffect, useRef, useMemo, memo } from "react";
@@ -16,11 +16,11 @@ export function TranscriptionSentenceDetails(props: {
   selectWord: (wordIndex: number) => void;
 }) {
   const { sentence, selectWord } = props;
-  const { currentTime, src } = useMediaPlayBack();
-  const { selectedWords } = useMediaTranscription();
+  const { currentTime, src } = usePlayBackStore();
+  const { selectedWords } = useTranscriptionStore();
   const ref = useRef<HTMLDivElement>(null);
 
-  const { displayPitchContour } = useMediaPlayerSetting();
+  const { displayPitchContour } = usePlayerSettingStore();
 
   useEffect(() => {
     if (!ref.current) return;
