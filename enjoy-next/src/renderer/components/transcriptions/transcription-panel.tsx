@@ -37,24 +37,16 @@ export function TranscriptionPanel(props: {
 
   return (
     <div className="w-full max-w-screen-md mx-auto">
-      {sentences.map((sentence: TimelineEntry, index: number) =>
-        playMode === "shadowMode" && index === currentIndex ? (
-          <TranscriptionSentenceDetails
-            key={`sentence-${index}`}
-            sentence={sentence}
-            index={index}
-            selectWord={selectWord}
-          />
-        ) : (
-          <TranscriptionSentence
-            key={`sentence-${index}`}
-            sentence={sentence}
-            index={index}
-            active={playMode === "readMode" && index === currentIndex}
-            onClick={() => activateSentence(sentence)}
-          />
-        )
-      )}
+      {sentences.map((sentence: TimelineEntry, index: number) => (
+        <TranscriptionSentence
+          key={`sentence-${index}`}
+          sentence={sentence}
+          index={index}
+          active={index === currentIndex}
+          onClick={() => activateSentence(sentence)}
+          selectWord={selectWord}
+        />
+      ))}
     </div>
   );
 }

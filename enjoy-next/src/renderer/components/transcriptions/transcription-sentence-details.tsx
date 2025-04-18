@@ -3,11 +3,7 @@ import {
   useMediaPlayBack,
   useMediaPlayerSetting,
 } from "@renderer/store";
-import {
-  cn,
-  convertWordIpaToNormal,
-  secondsToTimestamp,
-} from "@renderer/lib/utils";
+import { cn, convertWordIpaToNormal } from "@renderer/lib/utils";
 import { useEffect, useRef, useMemo, memo } from "react";
 import { PitchContour } from "@renderer/components/charts";
 import {
@@ -17,11 +13,10 @@ import {
 
 export function TranscriptionSentenceDetails(props: {
   sentence: TimelineEntry;
-  index: number;
   selectWord: (wordIndex: number) => void;
 }) {
-  const { sentence, index, selectWord } = props;
-  const { currentTime, mediaElement } = useMediaPlayBack();
+  const { sentence, selectWord } = props;
+  const { currentTime, src } = useMediaPlayBack();
   const { selectedWords } = useMediaTranscription();
   const ref = useRef<HTMLDivElement>(null);
 
@@ -51,44 +46,23 @@ export function TranscriptionSentenceDetails(props: {
     });
   }, [sentence.timeline, currentTime, selectedWords, selectWord]);
 
-  // Memoize the src to avoid unnecessary re-renders of PitchContour
-  const mediaSrc = useMemo(() => mediaElement?.src || "", [mediaElement?.src]);
-
   return (
-    <div className="border border-dashed rounded-lg">
-      <div ref={ref} className="flex flex-col pt-4 px-4 pb-2">
-        <div className="flex items-center gap-2 mb-1">
-          <div className="text-sm text-muted-foreground font-mono">
-            #{index + 1}
-          </div>
-          <div className="text-xs text-muted-foreground">
-            {secondsToTimestamp(sentence.startTime)} ~{" "}
-            {secondsToTimestamp(sentence.endTime)}
-          </div>
+    <div className="flex flex-col gap-2 rounded-lg bg-background px-4 py-2 shadow">
+      <div className="flex items-center flex-wrap mb-4">{wordComponents}</div>
+
+      {displayPitchContour && (
+        <div className="mb-4 w-full">
+          <PitchContour
+            src={src}
+            startTime={sentence.startTime}
+            endTime={sentence.endTime}
+          />
         </div>
+      )}
 
-        <div className="font-serif text-lg italic text-muted-foreground">
-          <p>{sentence.text}</p>
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-2 rounded-lg bg-background p-4 shadow">
-        <div className="flex items-center flex-wrap mb-4">{wordComponents}</div>
-
-        {displayPitchContour && (
-          <div className="mb-4 w-full">
-            <PitchContour
-              src={mediaSrc}
-              startTime={sentence.startTime}
-              endTime={sentence.endTime}
-            />
-          </div>
-        )}
-
-        <div className="flex items-center gap-2">
-          <PitchContourButton />
-          <TranslationButton />
-        </div>
+      <div className="flex items-center gap-2">
+        <PitchContourButton />
+        <TranslationButton />
       </div>
     </div>
   );

@@ -1,6 +1,9 @@
 import { create } from "zustand";
 
 type MediaPlayBackState = {
+  src: string;
+  setSrc: (src: string) => void;
+
   mediaElement: HTMLVideoElement | HTMLAudioElement | null;
   setMediaElement: (mediaElement: HTMLVideoElement | HTMLAudioElement) => void;
   clearMediaElement: () => void;
@@ -39,8 +42,10 @@ type MediaPlayBackState = {
 };
 
 export const useMediaPlayBack = create<MediaPlayBackState>((set, get) => ({
-  mediaElement: null,
+  src: "",
+  setSrc: (src: string) => set({ src }),
 
+  mediaElement: null,
   setMediaElement: (mediaElement: HTMLVideoElement | HTMLAudioElement) => {
     set({ mediaElement });
     if (window) {

@@ -28,6 +28,7 @@ export const useMediaControls = (
   const ref = useRef<MediaElement | null>(null);
 
   const {
+    setSrc,
     setMediaElement,
     setCurrentTime,
     setDuration,
@@ -338,6 +339,7 @@ export const useMediaControls = (
     const setupMedia = () => {
       const mediaElement = ref.current!;
 
+      setSrc(src);
       setMediaElement(mediaElement);
       mediaElement.src = src;
       mediaElement.load();
