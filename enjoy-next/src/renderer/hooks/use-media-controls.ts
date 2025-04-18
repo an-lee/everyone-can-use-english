@@ -1,5 +1,6 @@
 import { useMediaPlayer, useMediaTranscription } from "@renderer/store";
-import { useEffect, useRef } from "react";
+import { debounce } from "lodash";
+import { useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
 
 type MediaElement = HTMLVideoElement | HTMLAudioElement;
@@ -93,6 +94,11 @@ export const useMediaControls = (
       throw error;
     }
   };
+
+  const debouncedCheckInteractability = useCallback(
+    debounce(checkInteractability, CHECKING_INTERVAL),
+    []
+  );
 
   const logMediaStatus = (media: MediaElement, canInteract: boolean) => {
     const hasSeekableRanges =
@@ -342,14 +348,14 @@ export const useMediaControls = (
     const setupInteractabilityCheck = () => {
       setInteractable(false);
       try {
-        checkInteractability();
+        debouncedCheckInteractability();
       } catch (error) {
         console.error("Error checking media interactability:", error);
       }
 
       const checkInterval = setInterval(() => {
         try {
-          if (checkInteractability()) {
+          if (debouncedCheckInteractability()) {
             console.debug("Interactability check passed, clearing interval");
             clearInterval(checkInterval);
           } else {

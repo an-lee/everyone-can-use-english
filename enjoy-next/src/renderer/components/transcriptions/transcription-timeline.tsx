@@ -1,14 +1,13 @@
-import { useMediaTranscription } from "@/renderer/store/use-media-transcription";
-import { useMediaPlayer } from "@/renderer/store";
+import { useMediaTranscription } from "@renderer/store/use-media-transcription";
+import { useMediaPlayer } from "@renderer/store";
 import {
   cn,
   convertWordIpaToNormal,
   secondsToTimestamp,
 } from "@renderer/lib/utils";
 import { useEffect, useRef, useState, useMemo, memo } from "react";
-import { useMediaFrequencies } from "@/renderer/hooks";
-import { PitchContour } from "./pitch-contour";
-import { Button } from "../ui/button";
+import { PitchContour } from "@renderer/components/charts";
+import { Button } from "@renderer/components/ui";
 import { Icon } from "@iconify/react";
 
 export function TranscriptionSentence(props: {
@@ -43,8 +42,8 @@ export function TranscriptionActiveSentence(props: {
   selectWord: (wordIndex: number) => void;
 }) {
   const { sentence, index, selectWord } = props;
-  const { currentTime, mediaElement } = useMediaPlayer.getState();
-  const { selectedWords } = useMediaTranscription.getState();
+  const { currentTime, mediaElement, interactable } = useMediaPlayer();
+  const { selectedWords } = useMediaTranscription();
   const ref = useRef<HTMLDivElement>(null);
 
   const [displayPitchContour, setDisplayPitchContour] = useState(false);
@@ -96,7 +95,7 @@ export function TranscriptionActiveSentence(props: {
       <div className="flex items-center flex-wrap mb-4">{wordComponents}</div>
 
       <div className="mb-4 w-full">
-        {displayPitchContour && (
+        {displayPitchContour && interactable && (
           <PitchContour
             src={mediaSrc}
             startTime={sentence.startTime}
@@ -109,6 +108,7 @@ export function TranscriptionActiveSentence(props: {
         <Button
           variant={displayPitchContour ? "secondary" : "ghost"}
           size="icon"
+          disabled={!interactable}
           onClick={() => setDisplayPitchContour(!displayPitchContour)}
         >
           <Icon icon="hugeicons:chart-average" />
