@@ -345,7 +345,7 @@ export function PitchContour(props: {
   startTime?: number;
   endTime?: number;
 }) {
-  const { t } = useTranslation("components/transcriptions");
+  const { t } = useTranslation("components/charts");
   const { src, startTime = 0 } = props;
   let { endTime } = props;
   const [algorithm, setAlgorithm] = useState<"YIN" | "AMDF" | "ACF2PLUS">(
