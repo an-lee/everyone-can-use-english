@@ -1,8 +1,8 @@
 import { useTranscriptionControls } from "@renderer/hooks/use-transcription-controls";
 import {
-  DetailedTranscriptionSentence,
   TranscriptionSentence,
-} from "./transcription-timeline";
+  TranscriptionSentenceDetails,
+} from "@renderer/components/transcriptions";
 import {
   EmptyView,
   ErrorView,
@@ -36,10 +36,10 @@ export function TranscriptionPanel(props: {
   if (sentences.length === 0) return <EmptyView />;
 
   return (
-    <div className="w-full max-w-screen-md mx-auto px-6">
+    <div className="w-full max-w-screen-md mx-auto">
       {sentences.map((sentence: TimelineEntry, index: number) =>
         playMode === "shadowMode" && index === currentIndex ? (
-          <DetailedTranscriptionSentence
+          <TranscriptionSentenceDetails
             key={`sentence-${index}`}
             sentence={sentence}
             index={index}

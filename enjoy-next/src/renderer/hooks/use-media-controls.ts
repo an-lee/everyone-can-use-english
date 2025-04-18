@@ -408,7 +408,7 @@ export const useMediaControls = (
       setActiveRange({
         start: 0,
         end: ref.current.duration,
-        autoPlay: true,
+        autoPlay: false,
       });
     }
   }, [playMode]);

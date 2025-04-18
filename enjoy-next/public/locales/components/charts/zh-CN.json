@@ -6,5 +6,5 @@
   "language": "语言类",
   "tonal": "音乐类",
   "speech": "演讲类",
-  "pitchContorExplanation": "音高轮廓图表示音频随时间变化的音高。在跟读时，注意图表的起伏。这将帮助你理解句子的节奏。"
+  "pitchContorExplanation": "音高轮廓图表示音频随时间变化的音高。在跟读时，注意图表的起伏。这将帮助你理解音频的腔调。"
 }

@@ -10,57 +10,18 @@ import {
 } from "@renderer/lib/utils";
 import { useEffect, useRef, useMemo, memo } from "react";
 import { PitchContour } from "@renderer/components/charts";
-import { useTranslation } from "react-i18next";
 import {
   PitchContourButton,
   TranslationButton,
 } from "@renderer/components/medias";
 
-export function TranscriptionSentence(props: {
-  sentence: TimelineEntry;
-  index: number;
-  active: boolean;
-  onClick: () => void;
-}) {
-  const { sentence, index, active, onClick } = props;
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!ref.current) return;
-    if (!active) return;
-
-    ref.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-  }, [ref, active]);
-
-  return (
-    <div
-      ref={ref}
-      className={cn(
-        "flex flex-col p-4 rounded-lg cursor-pointer",
-        active ? "bg-background" : "hover:bg-muted"
-      )}
-      onClick={onClick}
-    >
-      <div className="flex items-center gap-2">
-        <div className="text-sm text-muted-foreground font-mono">
-          #{index + 1}
-        </div>
-        <div className="text-xs text-muted-foreground">
-          {secondsToTimestamp(sentence.startTime)} ~{" "}
-          {secondsToTimestamp(sentence.endTime)}
-        </div>
-      </div>
-      <div className="font-serif text-lg">{sentence.text}</div>
-    </div>
-  );
-}
-
-export function DetailedTranscriptionSentence(props: {
+export function TranscriptionSentenceDetails(props: {
   sentence: TimelineEntry;
   index: number;
   selectWord: (wordIndex: number) => void;
 }) {
   const { sentence, index, selectWord } = props;
-  const { currentTime, mediaElement, interactable } = useMediaPlayBack();
+  const { currentTime, mediaElement } = useMediaPlayBack();
   const { selectedWords } = useMediaTranscription();
   const ref = useRef<HTMLDivElement>(null);
 

@@ -1,17 +1,11 @@
 import { Icon } from "@iconify/react";
-import { Button } from "@renderer/components/ui/button";
+import { Button, Slider } from "@renderer/components/ui";
 import { useMediaPlayBack, useMediaPlayerSetting } from "@renderer/store";
 import { useEffect, useState } from "react";
-import { Slider } from "../ui/slider";
 import { secondsToTimestamp } from "@renderer/lib/utils";
 import { useMediaControls } from "@renderer/hooks";
 import { useTranslation } from "react-i18next";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
+import { PlayModeButton, TranslationButton } from "@renderer/components/medias";
 
 export function AudioPlayer(props: { audio: AudioEntity }) {
   const { t } = useTranslation("components/audios");
@@ -119,23 +113,9 @@ export function AudioPlayer(props: { audio: AudioEntity }) {
             </div>
           </div>
         </div>
-        <div className="flex-1 flex items-center justify-end gap-1">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-1">
-                {t(playMode)}
-                <Icon icon="tabler:chevron-up" className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => setPlayMode("shadowMode")}>
-                {t("shadowMode")}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setPlayMode("readMode")}>
-                {t("readMode")}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <div className="flex-1 flex items-center justify-end gap-2">
+          {playMode === "readMode" && <TranslationButton />}
+          <PlayModeButton />
         </div>
       </div>
 
