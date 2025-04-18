@@ -40,9 +40,7 @@ export function TranscriptionSentence(props: {
         onClick={onClick}
       >
         <div className="flex items-center gap-2">
-          <div className="text-sm text-muted-foreground font-mono">
-            #{index + 1}
-          </div>
+          <div className="text-xs text-muted-foreground">#{index + 1}</div>
           <div className="text-xs text-muted-foreground">
             {secondsToTimestamp(sentence.startTime)} ~{" "}
             {secondsToTimestamp(sentence.endTime)}
