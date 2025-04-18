@@ -95,7 +95,7 @@ export function TranscriptionActiveSentence(props: {
       <div className="flex items-center flex-wrap mb-4">{wordComponents}</div>
 
       <div className="mb-4 w-full">
-        {displayPitchContour && interactable && (
+        {displayPitchContour && (
           <PitchContour
             src={mediaSrc}
             startTime={sentence.startTime}

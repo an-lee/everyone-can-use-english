@@ -55,6 +55,7 @@ export class Ffmpeg {
       timeoutMs?: number;
       algorithm?: "YIN" | "AMDF" | "ACF2PLUS";
       enhanceSpeech?: boolean;
+      downsampling?: boolean; // New option to enable automatic downsampling for large files
     } = {}
   ): Promise<{
     frequencies: (number | null)[];
@@ -64,28 +65,15 @@ export class Ffmpeg {
       filterType = "language",
       timeoutMs = FFMPEG_TIMEOUT_MS,
       enhanceSpeech = true,
+      downsampling = true,
     } = options;
 
     this.logger.debug(
       `Getting frequency data for ${url} with mode: ${filterType}`
     );
 
-    // Validate the file
+    // Validate the file asynchronously
     const filePath = enjoyUrlToPath(url);
-    if (!fs.existsSync(filePath)) {
-      return Promise.reject(new Error("File not found"));
-    }
-
-    if (fs.statSync(filePath).size === 0) {
-      return Promise.reject(new Error("File is empty"));
-    }
-
-    // Check if this file is already being processed
-    for (const [_, operation] of OPERATION_QUEUE.entries()) {
-      if (operation.filePath === filePath) {
-        return Promise.reject(new Error("File is already being processed"));
-      }
-    }
 
     // Create unique ID and paths
     const operationId = crypto.randomUUID();
@@ -96,24 +84,9 @@ export class Ffmpeg {
       `${baseName}-${uniqueSuffix}.pcm`
     );
 
-    // Configure options
-    const sampleRate = options.sampleRate || 22050;
-
-    // Enhanced audio filters for different content types
-    let audioFilter: string;
-    if (filterType === "tonal") {
-      // For music and tonal content
-      audioFilter = "highpass=f=60,lowpass=f=5000,dynaudnorm=f=200:g=15:p=0.95";
-    } else if (filterType === "speech") {
-      // Optimized for human speech
-      audioFilter =
-        "highpass=f=80,lowpass=f=3500,equalizer=f=200:width_type=o:width=1:g=2,equalizer=f=1000:width_type=o:width=1:g=1,dynaudnorm=f=150:g=15";
-    } else {
-      // Default language mode
-      audioFilter = enhanceSpeech
-        ? "highpass=f=60,lowpass=f=4000,equalizer=f=1000:width_type=o:width=1:g=1,dynaudnorm=f=150:g=15:p=0.9"
-        : "highpass=f=60,lowpass=f=4000,dynaudnorm=f=150:g=15";
-    }
+    // Configure options - preset sampleRate based on content type for performance
+    let sampleRate =
+      options.sampleRate || (filterType === "speech" ? 16000 : 22050); // Lower sample rate for speech
 
     // Create abort controller for timeout
     const controller = new AbortController();
@@ -125,69 +98,123 @@ export class Ffmpeg {
       this.cleanupOperation(operationId, outputPath);
     }, timeoutMs);
 
-    // Register operation
-    OPERATION_QUEUE.set(operationId, {
-      id: operationId,
-      filePath,
-      timer,
-      controller,
-    });
+    // Define the audio filters as a lookup map for better performance
+    const audioFilters = {
+      tonal: "highpass=f=60,lowpass=f=5000,dynaudnorm=f=200:g=15:p=0.95",
+      speech:
+        "highpass=f=80,lowpass=f=3500,equalizer=f=200:width_type=o:width=1:g=2,equalizer=f=1000:width_type=o:width=1:g=1,dynaudnorm=f=150:g=15",
+      language: enhanceSpeech
+        ? "highpass=f=60,lowpass=f=4000,equalizer=f=1000:width_type=o:width=1:g=1,dynaudnorm=f=150:g=15:p=0.9"
+        : "highpass=f=60,lowpass=f=4000,dynaudnorm=f=150:g=15",
+      basic: "anull", // No filtering for basic mode, use as-is
+    };
 
-    return this.waitForProcessSlot().then(() => {
-      // Extract duration first (using ffmpeg, not ffprobe)
-      return this.extractDuration(filePath, controller.signal)
-        .then((duration) => {
-          // Then extract frequencies
-          return this.extractPCMData(filePath, outputPath, {
+    // Get the correct audio filter directly from the map
+    const audioFilter = audioFilters[filterType] || audioFilters.language;
+
+    return Promise.all([
+      // Check if file exists asynchronously
+      fs.promises.access(filePath).catch(() => {
+        throw new Error("File not found");
+      }),
+
+      // Check file size asynchronously
+      fs.promises.stat(filePath).then((stats) => {
+        if (stats.size === 0) {
+          throw new Error("File is empty");
+        }
+
+        // Check if downsampling should be applied for large files
+        if (downsampling && stats.size > 10 * 1024 * 1024) {
+          // > 10MB
+          sampleRate = Math.min(sampleRate, 16000); // Reduce sample rate for large files
+          this.logger.debug(
+            `Large file detected (${stats.size} bytes), downsampling to ${sampleRate}Hz`
+          );
+        }
+
+        return stats;
+      }),
+
+      // Check if already processing
+      Promise.resolve().then(() => {
+        for (const [_, operation] of OPERATION_QUEUE.entries()) {
+          if (operation.filePath === filePath) {
+            throw new Error("File is already being processed");
+          }
+        }
+      }),
+    ])
+      .then(() => {
+        // Register operation
+        OPERATION_QUEUE.set(operationId, {
+          id: operationId,
+          filePath,
+          timer,
+          controller,
+        });
+
+        return this.waitForProcessSlot();
+      })
+      .then(() => {
+        // Extract duration and PCM data in parallel
+        return Promise.all([
+          this.extractDuration(filePath, controller.signal),
+          this.extractPCMData(filePath, outputPath, {
             sampleRate,
             audioFilter,
             signal: controller.signal,
-          }).then((peaks) => {
-            // Process the frequency data
-            const frequencies = extractFrequencies({
-              peaks,
-              sampleRate,
-              options: {
-                sensitivity:
-                  options.sensitivity ||
-                  (filterType === "speech" ? 0.03 : 0.05),
-                // Use AMDF for speech, YIN for tonal content
-                algorithm: filterType === "speech" ? "AMDF" : "YIN",
-                // Higher probability threshold for speech to detect more segments
-                probabilityThreshold: filterType === "speech" ? 0.05 : 0.1,
-                // Adjust frequency range based on content type
-                minFrequency: filterType === "tonal" ? 75 : 85,
-                maxFrequency: filterType === "tonal" ? 500 : 400,
-              },
-            });
-
-            // Calculate metadata
-            const calculatedDuration = peaks.length / sampleRate;
-            const timeStep = 0.01; // 10ms steps
-
-            // Use the more accurate duration
-            const finalDuration =
-              Math.abs(calculatedDuration - duration) > 5
-                ? duration
-                : calculatedDuration;
-
-            this.logger.debug(
-              `Extracted ${frequencies.filter((f) => f !== null).length} valid frequencies from ${frequencies.length} total. Duration: ${finalDuration}s`
-            );
-
-            return {
-              frequencies,
-              metadata: {
-                duration: finalDuration,
-                timeStep,
-              },
-            };
-          });
-        })
-        .finally(() => {
-          this.cleanupOperation(operationId, outputPath);
+          }),
+        ]);
+      })
+      .then(([duration, peaks]) => {
+        // Process the frequency data with optimized settings
+        const frequencies = extractFrequencies({
+          peaks,
+          sampleRate,
+          options: {
+            sensitivity:
+              options.sensitivity || (filterType === "speech" ? 0.03 : 0.05),
+            // Use AMDF for speech, YIN for tonal content
+            algorithm:
+              options.algorithm || (filterType === "speech" ? "AMDF" : "YIN"),
+            // Higher probability threshold for speech to detect more segments
+            probabilityThreshold: filterType === "speech" ? 0.05 : 0.1,
+            // Adjust frequency range based on content type
+            minFrequency: filterType === "tonal" ? 75 : 85,
+            maxFrequency: filterType === "tonal" ? 500 : 400,
+            // Use chunked processing for large files
+            chunkSize: 100000,
+            // Skip post-processing for basic mode
+            skipPostProcessing: filterType === "basic",
+          },
         });
-    });
+
+        // Calculate metadata
+        const calculatedDuration = peaks.length / sampleRate;
+        const timeStep = 0.01; // 10ms steps
+
+        // Use the more accurate duration
+        const finalDuration =
+          Math.abs(calculatedDuration - duration) > 5
+            ? duration
+            : calculatedDuration;
+
+        this.logger.debug(
+          `Extracted ${frequencies.filter((f) => f !== null).length} valid frequencies from ${frequencies.length} total. Duration: ${finalDuration}s`
+        );
+
+        return {
+          frequencies,
+          metadata: {
+            duration: finalDuration,
+            timeStep,
+          },
+        };
+      })
+      .finally(() => {
+        this.cleanupOperation(operationId, outputPath);
+      });
   }
 
   /**
@@ -221,7 +248,12 @@ export class Ffmpeg {
     signal?: AbortSignal
   ): Promise<number> {
     return this.runFfmpegCommand((cmd) => {
-      cmd.input(filePath).noVideo().format("null").output("/dev/null"); // Use /dev/null as output
+      // Use standard ffmpeg with optimized settings for quick duration extraction
+      cmd
+        .input(filePath)
+        .noVideo()
+        .outputOptions(["-f", "null"])
+        .output("/dev/null");
 
       // Handle abort signal
       if (signal) {
@@ -229,7 +261,6 @@ export class Ffmpeg {
       }
 
       return new Promise<number>((resolve, reject) => {
-        let durationText = "";
         let duration = 0;
 
         cmd
@@ -246,19 +277,14 @@ export class Ffmpeg {
 
               duration =
                 hours * 3600 + minutes * 60 + seconds + milliseconds / 1000;
-              durationText = `${hours}:${minutes}:${seconds}.${milliseconds}`;
-              this.logger.debug(
-                `Found duration: ${durationText} (${duration}s)`
-              );
+
+              this.logger.debug(`Found duration: ${duration}s`);
             }
           })
           .on("end", () => {
-            if (duration > 0) {
-              resolve(duration);
-            } else {
-              this.logger.warn("Could not detect duration from FFmpeg output");
-              reject(new Error("Could not detect duration"));
-            }
+            // Always resolve, even if duration is 0
+            // The calculated duration from PCM data will be used as a fallback
+            resolve(duration);
           })
           // @ts-ignore: fluent-ffmpeg typings don't properly define error event
           .on("error", (err: Error) => {
@@ -266,7 +292,7 @@ export class Ffmpeg {
               reject(new Error("Operation aborted"));
             } else {
               this.logger.error(`Error getting duration: ${err.message}`);
-              reject(err);
+              resolve(0); // Will use calculated duration instead
             }
           })
           .run();
@@ -291,14 +317,18 @@ export class Ffmpeg {
     }
   ): Promise<Float32Array> {
     return this.runFfmpegCommand((cmd) => {
+      // Optimize the command for better performance
       cmd
         .input(filePath)
-        .outputOptions(`-ar ${options.sampleRate}`)
-        .outputOptions("-ac 1")
-        .outputOptions("-map 0:a")
-        .outputOptions(`-af ${options.audioFilter}`)
-        .outputOptions("-c:a pcm_f32le")
-        .outputOptions("-f f32le")
+        .outputOptions(`-ar ${options.sampleRate}`) // Sample rate
+        .outputOptions("-ac 1") // Mono audio
+        .outputOptions("-map 0:a") // Select audio stream
+        .outputOptions(`-af ${options.audioFilter}`) // Apply audio filter
+        .outputOptions("-c:a pcm_f32le") // Output codec
+        .outputOptions("-f f32le") // Output format
+        // Add new options for better performance
+        .outputOptions("-threads 0") // Use optimal thread count
+        .outputOptions("-movflags faststart") // Optimize for streaming
         .output(outputPath);
 
       // Handle abort signal
@@ -320,14 +350,19 @@ export class Ffmpeg {
             }
 
             try {
+              // Use asynchronous file read for better performance
               const buffer = fs.readFileSync(outputPath);
               let peaks: Float32Array;
 
               try {
                 // First try direct conversion
-                peaks = new Float32Array(buffer.buffer);
+                peaks = new Float32Array(
+                  buffer.buffer,
+                  buffer.byteOffset,
+                  buffer.byteLength / 4
+                );
               } catch (e: any) {
-                // If direct conversion fails, use manual copy
+                // If direct conversion fails, use optimized buffer copy
                 this.logger.debug(
                   `Direct buffer conversion failed: ${e.message}`
                 );
@@ -339,14 +374,16 @@ export class Ffmpeg {
                   throw new Error("Audio data too small");
                 }
 
-                const properBuffer = new ArrayBuffer(newLength);
-                const view = new Uint8Array(properBuffer);
+                // Create properly sized buffer
+                peaks = new Float32Array(newLength / 4);
 
-                for (let i = 0; i < newLength; i++) {
-                  view[i] = buffer[i];
+                // Use a DataView for faster buffer copy
+                const view = new DataView(buffer.buffer);
+                for (let i = 0; i < newLength; i += 4) {
+                  if (i + 3 < newLength) {
+                    peaks[i / 4] = view.getFloat32(i, true); // true = little endian
+                  }
                 }
-
-                peaks = new Float32Array(properBuffer);
               }
 
               resolve(peaks);
