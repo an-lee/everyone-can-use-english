@@ -2,6 +2,7 @@ import {
   useTranscriptionStore,
   usePlayBackStore,
   usePlayerSettingStore,
+  useRecorderStore,
 } from "@renderer/store";
 import { cn, convertWordIpaToNormal } from "@renderer/lib/utils";
 import { useEffect, useRef, useMemo, memo } from "react";
@@ -10,6 +11,7 @@ import {
   PitchContourButton,
   TranslationButton,
 } from "@renderer/components/medias";
+import { RecordButton } from "../medias/record-button";
 
 export function TranscriptionSentenceDetails(props: {
   sentence: TimelineEntry;
@@ -19,7 +21,8 @@ export function TranscriptionSentenceDetails(props: {
   const { currentTime, src } = usePlayBackStore();
   const { selectedWords } = useTranscriptionStore();
   const ref = useRef<HTMLDivElement>(null);
-
+  const histogramContainer = useRef<HTMLDivElement>(null);
+  const { status: recordingStatus } = useRecorderStore();
   const { displayPitchContour } = usePlayerSettingStore();
 
   useEffect(() => {
@@ -47,9 +50,16 @@ export function TranscriptionSentenceDetails(props: {
   }, [sentence.timeline, currentTime, selectedWords, selectWord]);
 
   return (
-    <div className="flex flex-col gap-2 rounded-lg bg-background px-4 py-2 shadow">
-      <div className="flex items-center flex-wrap mb-4">{wordComponents}</div>
+    <div className="flex flex-col gap-2 rounded-lg bg-background px-4 py-2 shadow relative z-0">
+      <div
+        className={cn(
+          "absolute inset-0 w-full h-full opacity-5 z-[-1]",
+          recordingStatus === "recording" && "opacity-50"
+        )}
+        ref={histogramContainer}
+      ></div>
 
+      <div className="flex items-center flex-wrap mb-4">{wordComponents}</div>
       {displayPitchContour && (
         <div className="mb-4 w-full">
           <PitchContour
@@ -63,6 +73,10 @@ export function TranscriptionSentenceDetails(props: {
       <div className="flex items-center gap-2">
         <PitchContourButton />
         <TranslationButton />
+      </div>
+
+      <div className="flex items-center justify-center gap-2 py-2">
+        <RecordButton histogramContainer={histogramContainer} />
       </div>
     </div>
   );

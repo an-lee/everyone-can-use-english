@@ -34,7 +34,7 @@ export function AudioPage(props: { audioId: string }) {
         </div>
         <div className="h-28"></div>
       </ScrollArea>
-      <div className="absolute bottom-0 left-0 w-full border-t shadow-sm bg-background h-16">
+      <div className="absolute bottom-0 left-0 w-full border-t shadow-sm bg-background h-16 z-10">
         {data && <AudioPlayer audio={data} />}
       </div>
     </div>

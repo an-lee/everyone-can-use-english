@@ -7,57 +7,83 @@ import "recorder-core/src/extensions/lib.fft.js";
 
 import { create } from "zustand";
 
-type RecorderState = {
-  status: "idle" | "recording" | "error";
+type RecorderStatus = "initializing" | "idle" | "recording" | "paused";
+
+type RecorderStoreType = {
+  status: RecorderStatus;
 
   maxDuration: number;
   setMaxDuration: (maxDuration: number) => void;
 
-  isRecording: boolean;
-  setIsRecording: (isRecording: boolean) => void;
-
   duration: number;
 
   histogram: any;
-  setupHistogram: (container: HTMLElement) => void;
+  histogramContainer: HTMLElement | null;
+  setupHistogramContainer: (container: HTMLElement) => void;
 
-  permissionGrant: boolean;
+  accessable: boolean;
   requestPermission: () => Promise<void>;
 
   recorder: any;
   initRecorder: () => Promise<void>;
   startRecording: () => Promise<boolean>;
-  stopRecording: () => Promise<[Blob, number]>;
+  stopRecording: () => void;
+
+  blob: Blob | null;
+  clearBlob: () => void;
+
+  error: Error | null;
 };
 
-export const useRecorderStore = create<RecorderState>((set, get) => ({
-  status: "idle",
+export const useRecorderStore = create<RecorderStoreType>((set, get) => ({
+  status: "initializing",
 
   maxDuration: 1000 * 60, // 1 minute
   setMaxDuration: (maxDuration: number) => set({ maxDuration }),
 
-  isRecording: false,
-  setIsRecording: (isRecording: boolean) => set({ isRecording }),
-
   duration: 0,
+  blob: null,
+  clearBlob: () => set({ blob: null, duration: 0 }),
 
   histogram: null,
-  setupHistogram: (container: HTMLElement) => {
-    if (container && window) {
-      const histogram = (window as any).Recorder.FrequencyHistogramView({
-        elem: container,
-      });
-      set({ histogram });
-    }
+
+  histogramContainer: null,
+  setupHistogramContainer: (container: HTMLElement) => {
+    set({ histogramContainer: container });
   },
 
-  permissionGrant: false,
-  requestPermission: async () => {},
+  accessable: false,
+  requestPermission: async () => {
+    const { recorder } = get();
+    if (!recorder) return;
+
+    const accessable =
+      await window.EnjoyAPI.system.requestMediaAccess("microphone");
+
+    if (!accessable) {
+      set({
+        error: new Error("Permission denied"),
+      });
+    }
+
+    recorder.open(
+      () => {
+        set({ status: "idle" });
+      },
+      (msg: string, _isUserNotAllowed: boolean) => {
+        set({
+          error: new Error(msg || "Permission denied"),
+        });
+      }
+    );
+
+    set({ accessable });
+    return accessable;
+  },
 
   recorder: null,
   initRecorder: async () => {
     if (!window) return;
-    if (get().recorder) return;
 
     const recorder: any = new (window as any).Recorder({
       type: "mp3",
@@ -69,8 +95,10 @@ export const useRecorderStore = create<RecorderState>((set, get) => ({
         bufferDuration: any,
         bufferSampleRate: any
       ) => {
-        if (get().histogram) {
-          get().histogram.input(
+        // Initialize histogram if it's not already created but container is available
+        const histogram = get().histogram;
+        if (histogram) {
+          histogram.input(
             buffers[buffers.length - 1],
             powerLevel,
             bufferSampleRate
@@ -81,13 +109,22 @@ export const useRecorderStore = create<RecorderState>((set, get) => ({
       },
     });
 
-    set({ recorder });
+    set({ recorder, status: "idle" });
   },
   startRecording: async () => {
     const { recorder } = get();
     if (!recorder) return false;
 
+    set({ blob: null });
     try {
+      // Ensure histogram is initialized if container exists
+      if (get().histogramContainer && window) {
+        const histogram = (window as any).Recorder.FrequencyHistogramView({
+          elem: get().histogramContainer,
+        });
+        set({ histogram });
+      }
+
       recorder.start();
       recorder.watchDogTimer = setInterval(() => {
         if (!recorder || recorder.watchDogTimer) {
@@ -99,7 +136,6 @@ export const useRecorderStore = create<RecorderState>((set, get) => ({
           console.error(
             recorder.processTime ? "录音被中断" : "录音未能正常开始"
           );
-          set({ status: "error" });
         }
         if (
           get().maxDuration &&
@@ -117,18 +153,30 @@ export const useRecorderStore = create<RecorderState>((set, get) => ({
       return true;
     } catch (error) {
       console.error(error);
-      set({ status: "error" });
+      set({
+        error: error instanceof Error ? error : new Error(String(error)),
+      });
       return false;
     }
   },
   stopRecording: async () => {
     const { recorder } = get();
+    if (!recorder) return;
+
     clearInterval(recorder.watchDogTimer);
-    try {
-      return await recorder.stop();
-    } catch (error) {
-      console.error(error);
-      set({ status: "error" });
-    }
+    recorder.stop(
+      (blob: Blob, duration: number) => {
+        set({ blob, duration });
+        set({ status: "idle", histogram: null });
+      },
+      (error: Error) => {
+        set({
+          error: error instanceof Error ? error : new Error(String(error)),
+          status: "idle",
+        });
+      }
+    );
   },
+
+  error: null,
 }));

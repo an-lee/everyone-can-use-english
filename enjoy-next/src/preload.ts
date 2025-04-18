@@ -12,6 +12,7 @@ import {
   ShellAPI,
   AppinitializerAPI,
   PluginAPI,
+  SystemAPI,
 } from "@generated/preload-api";
 
 // Create the events API - this isn't part of the generated API
@@ -50,6 +51,7 @@ const combinedAPI = {
   db: DbAPI,
   window: WindowAPI,
   shell: ShellAPI,
+  system: SystemAPI,
 
   // Add events API
   events: eventsAPI,

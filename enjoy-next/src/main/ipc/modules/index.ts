@@ -60,6 +60,7 @@ import { dbIpcModule } from "./db-ipc";
 import { pluginIpcModule } from "./plugin-ipc";
 import { windowIpcModule } from "./window-ipc";
 import { shellIpcModule } from "./shell-ipc";
+import { systemIpcModule } from "./system-ipc-module";
 export const regularIpcModules = [
   appConfigIpcModule,
   appInitializerIpcModule,
@@ -67,4 +68,5 @@ export const regularIpcModules = [
   pluginIpcModule,
   windowIpcModule,
   shellIpcModule,
+  systemIpcModule,
 ];

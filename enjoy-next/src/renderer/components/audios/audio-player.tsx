@@ -24,8 +24,7 @@ export function AudioPlayer(props: { audio: AudioEntity }) {
     interactable,
     activeRange,
   } = usePlayBackStore();
-  const { playMode, setPlayMode, looping, setLooping } =
-    usePlayerSettingStore();
+  const { playMode, looping, setLooping } = usePlayerSettingStore();
 
   useEffect(() => {
     if (!loading && !seeking && interactable) {
