@@ -2,6 +2,7 @@ import { usePlayerSettingStore } from "@renderer/store";
 import { cn, secondsToTimestamp } from "@renderer/lib/utils";
 import { useEffect, useRef } from "react";
 import { TranscriptionSentenceDetails } from "./transcription-sentence-details";
+import { Translation } from "../shared";
 
 export function TranscriptionSentence(props: {
   sentence: TimelineEntry;
@@ -11,7 +12,7 @@ export function TranscriptionSentence(props: {
   selectWord: (wordIndex: number) => void;
 }) {
   const { sentence, index, active, onClick, selectWord } = props;
-  const { playMode } = usePlayerSettingStore();
+  const { playMode, displayTranslation } = usePlayerSettingStore();
 
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -47,6 +48,9 @@ export function TranscriptionSentence(props: {
           </div>
         </div>
         <div className="font-serif text-lg">{sentence.text}</div>
+        {playMode === "readMode" && displayTranslation && (
+          <Translation content={sentence.text} />
+        )}
       </div>
       {active && playMode === "shadowMode" && (
         <TranscriptionSentenceDetails

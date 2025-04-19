@@ -12,6 +12,7 @@ import {
   TranslationButton,
 } from "@renderer/components/medias";
 import { RecordButton } from "../medias/record-button";
+import { Translation } from "../shared";
 
 export function TranscriptionSentenceDetails(props: {
   sentence: TimelineEntry;
@@ -23,7 +24,7 @@ export function TranscriptionSentenceDetails(props: {
   const ref = useRef<HTMLDivElement>(null);
   const histogramContainer = useRef<HTMLDivElement>(null);
   const { status: recordingStatus } = useRecorderStore();
-  const { displayPitchContour } = usePlayerSettingStore();
+  const { displayPitchContour, displayTranslation } = usePlayerSettingStore();
 
   useEffect(() => {
     if (!ref.current) return;
@@ -59,7 +60,14 @@ export function TranscriptionSentenceDetails(props: {
         ref={histogramContainer}
       ></div>
 
+      <div className="flex items-center">
+        <PitchContourButton />
+        <TranslationButton />
+      </div>
+
       <div className="flex items-center flex-wrap mb-4">{wordComponents}</div>
+
+      {displayTranslation && <Translation content={sentence.text} />}
       {displayPitchContour && (
         <div className="mb-4 w-full">
           <PitchContour
@@ -69,11 +77,6 @@ export function TranscriptionSentenceDetails(props: {
           />
         </div>
       )}
-
-      <div className="flex items-center gap-2">
-        <PitchContourButton />
-        <TranslationButton />
-      </div>
 
       <div className="flex items-center justify-center gap-2 py-2">
         <RecordButton histogramContainer={histogramContainer} />
