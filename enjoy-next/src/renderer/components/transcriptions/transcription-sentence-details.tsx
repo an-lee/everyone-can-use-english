@@ -61,13 +61,17 @@ export function TranscriptionSentenceDetails(props: {
       ></div>
 
       <div className="flex items-center gap-1.5">
-        <PitchContourButton />
         <TranslationButton />
+        <PitchContourButton />
       </div>
 
       <div className="flex items-center flex-wrap mb-4">{wordComponents}</div>
 
-      {displayTranslation && <Translation content={sentence.text} />}
+      {displayTranslation && (
+        <div className="mb-4 w-full">
+          <Translation content={sentence.text} />
+        </div>
+      )}
       {displayPitchContour && (
         <div className="mb-4 w-full">
           <PitchContour

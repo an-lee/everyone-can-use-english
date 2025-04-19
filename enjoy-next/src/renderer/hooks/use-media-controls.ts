@@ -392,6 +392,7 @@ export const useMediaControls = (
   useEffect(() => {
     if (!ref.current) return;
 
+    console.debug("activeRange changed", activeRange);
     seek(activeRange.start);
     if (activeRange.autoPlay) {
       ref.current.play();

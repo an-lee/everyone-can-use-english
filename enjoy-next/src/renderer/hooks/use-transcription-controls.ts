@@ -157,6 +157,8 @@ export const useTranscriptionControls = (props: {
    * This effect is used to reset the selected words when the current index changes
    */
   useEffect(() => {
+    if (selectedWords.length === 0) return;
+
     setSelectedWords([]);
   }, [currentIndex]);
 
