@@ -52,12 +52,26 @@ export class RecordingService {
 
   async findByTarget(
     targetId: string,
-    targetType: RecordingEntity["targetType"]
-  ): Promise<RecordingEntity | null> {
-    const recording = await Recording.findOne({
-      where: { targetId, targetType: targetType },
-    });
-    return instanceToPlain(recording) as RecordingEntity | null;
+    targetType: RecordingEntity["targetType"],
+    referenceId?: number
+  ): Promise<RecordingEntity[]> {
+    const queryBuilder = Recording.createQueryBuilder("recording");
+
+    if (referenceId) {
+      queryBuilder.where("recording.referenceId = :referenceId", {
+        referenceId,
+      });
+    }
+
+    const recordings = await queryBuilder
+      .where({ targetId, targetType: targetType })
+      .orderBy({ createdAt: "DESC" })
+      .getMany();
+    const items = recordings.map(
+      (recording) => instanceToPlain(recording) as RecordingEntity
+    );
+
+    return items;
   }
 
   async create(data: Partial<RecordingEntity>): Promise<RecordingEntity> {

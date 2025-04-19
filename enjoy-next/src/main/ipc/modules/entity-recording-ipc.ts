@@ -59,6 +59,12 @@ export class EntityRecordingIpcModule extends EntityBaseIpcModule<
           required: true,
           description: "Target type",
         },
+        {
+          name: "referenceId",
+          type: "number",
+          required: false,
+          description: "Reference ID",
+        },
       ],
       create: [
         {
@@ -104,7 +110,7 @@ export class EntityRecordingIpcModule extends EntityBaseIpcModule<
     const returnTypeMap: Record<string, string> = {
       findAll: "Promise<PaginationResult<RecordingEntity>>",
       findById: "Promise<RecordingEntity | null>",
-      findByTarget: "Promise<RecordingEntity | null>",
+      findByTarget: "Promise<RecordingEntity[]>",
       create: "Promise<RecordingEntity>",
       update: "Promise<RecordingEntity | null>",
       delete: "Promise<boolean>",

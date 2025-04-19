@@ -11,8 +11,8 @@ import {
   PitchContourButton,
   TranslationButton,
 } from "@renderer/components/medias";
-import { RecordButton } from "../medias/record-button";
-import { Translation } from "../shared";
+import { RecordButton } from "@renderer/components/recordings";
+import { Translation } from "@renderer/components/shared";
 
 export function TranscriptionSentenceDetails(props: {
   sentence: TimelineEntry;
@@ -72,6 +72,7 @@ export function TranscriptionSentenceDetails(props: {
           <Translation content={sentence.text} />
         </div>
       )}
+
       {displayPitchContour && (
         <div className="mb-2 w-full">
           <PitchContour
