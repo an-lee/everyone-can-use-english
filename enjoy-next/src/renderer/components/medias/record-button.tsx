@@ -54,8 +54,8 @@ export const RecordButton = (props: {
   return (
     <Button
       disabled={!accessable}
-      variant={status === "recording" ? "default" : "destructive"}
-      className="rounded-full aspect-square size-12 z-[1]"
+      variant="destructive"
+      className="rounded-full aspect-square size-10 shadow-sm"
       onClick={() => {
         if (status === "recording") {
           stopRecording();
@@ -66,16 +66,22 @@ export const RecordButton = (props: {
       size="default"
     >
       {status === "initializing" && (
-        <Icon icon="tabler:loader" className="!size-6 animate-spin" />
+        <Icon
+          icon="tabler:loader"
+          className="!size-6 animate-spin text-primary-foreground"
+        />
       )}
       {status === "idle" && (
         <Icon
           icon="tabler:microphone-filled"
-          className="!size-6 text-primary-foreground"
+          className="!size-5 text-primary-foreground"
         />
       )}
       {status === "recording" && (
-        <Icon icon="tabler:player-stop-filled" className="!size-6" />
+        <Icon
+          icon="tabler:player-stop-filled"
+          className="!size-5 text-primary-foreground"
+        />
       )}
     </Button>
   );

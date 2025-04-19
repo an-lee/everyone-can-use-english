@@ -283,10 +283,6 @@ export const useMediaControls = (
         console.debug(
           "Failed to seek to start, resetting active range to 0 and duration"
         );
-        setActiveRange({
-          start: 0,
-          end: element.duration || 0,
-        });
       }
     }
   };

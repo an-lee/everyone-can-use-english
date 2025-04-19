@@ -55,7 +55,7 @@ export function TranscriptionSentenceDetails(props: {
       <div
         className={cn(
           "absolute inset-0 w-full h-full opacity-5 z-[-1]",
-          recordingStatus === "recording" && "opacity-50"
+          recordingStatus === "recording" && "opacity-30"
         )}
         ref={histogramContainer}
       ></div>
@@ -65,15 +65,15 @@ export function TranscriptionSentenceDetails(props: {
         <PitchContourButton />
       </div>
 
-      <div className="flex items-center flex-wrap mb-4">{wordComponents}</div>
+      <div className="flex items-center flex-wrap mb-2">{wordComponents}</div>
 
       {displayTranslation && (
-        <div className="mb-4 w-full">
+        <div className="mb-2 w-full">
           <Translation content={sentence.text} />
         </div>
       )}
       {displayPitchContour && (
-        <div className="mb-4 w-full">
+        <div className="mb-2 w-full">
           <PitchContour
             src={src}
             startTime={sentence.startTime}
@@ -82,7 +82,7 @@ export function TranscriptionSentenceDetails(props: {
         </div>
       )}
 
-      <div className="flex items-center justify-center gap-2 py-2">
+      <div className="flex items-center justify-center gap-2">
         <RecordButton histogramContainer={histogramContainer} />
       </div>
     </div>

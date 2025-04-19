@@ -32,7 +32,7 @@ export function TranscriptionSentence(props: {
       <div
         ref={ref}
         className={cn(
-          "flex flex-col p-4 rounded-lg cursor-pointer",
+          "flex flex-col p-4 rounded-lg cursor-pointer gap-2",
           playMode === "readMode" && active
             ? "bg-background"
             : "hover:bg-muted",
@@ -49,7 +49,9 @@ export function TranscriptionSentence(props: {
         </div>
         <div className="font-serif text-lg">{sentence.text}</div>
         {playMode === "readMode" && displayTranslation && (
-          <Translation content={sentence.text} />
+          <div className="mb-2">
+            <Translation content={sentence.text} />
+          </div>
         )}
       </div>
       {active && playMode === "shadowMode" && (
