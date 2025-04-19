@@ -34,7 +34,7 @@ export function PitchContourButton(props: {
               size="icon"
               disabled={!interactable}
             >
-              <Icon icon="hugeicons:chart-average" />
+              <Icon icon="hugeicons:chart-average" className="!size-5" />
             </Button>
           )}
         </TooltipTrigger>

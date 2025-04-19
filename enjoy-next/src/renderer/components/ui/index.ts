@@ -22,4 +22,6 @@ export * from "./slider";
 export * from "./scroll-area";
 export * from "./tabs";
 export * from "./toast";
+export * from "./toggle";
+export * from "./toggle-group";
 export * from "./tooltip";

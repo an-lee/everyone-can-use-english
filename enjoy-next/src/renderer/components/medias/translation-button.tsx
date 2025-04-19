@@ -31,7 +31,7 @@ export function TranslationButton(props: {
               variant={displayTranslation ? "secondary" : "ghost"}
               size="icon"
             >
-              <Icon icon="hugeicons:translate" />
+              <Icon icon="hugeicons:translate" className="!size-5" />
             </Button>
           )}
         </TooltipTrigger>

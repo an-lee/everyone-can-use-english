@@ -60,7 +60,7 @@ export function TranscriptionSentenceDetails(props: {
         ref={histogramContainer}
       ></div>
 
-      <div className="flex items-center">
+      <div className="flex items-center gap-1.5">
         <PitchContourButton />
         <TranslationButton />
       </div>
