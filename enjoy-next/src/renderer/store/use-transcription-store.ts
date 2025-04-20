@@ -1,6 +1,14 @@
 import { create } from "zustand";
 
 type MediaTranscriptionState = {
+  targetId: string;
+  setTargetId: (targetId: string) => void;
+
+  targetType: "Audio" | "Video" | "ChatMessage" | "None";
+  setTargetType: (
+    targetType: "Audio" | "Video" | "ChatMessage" | "None"
+  ) => void;
+
   currentTime: number;
   setCurrentTime: (currentTime: number) => void;
 
@@ -21,6 +29,12 @@ type MediaTranscriptionState = {
 
 export const useTranscriptionStore = create<MediaTranscriptionState>(
   (set, get) => ({
+    targetId: "",
+    setTargetId: (targetId) => set({ targetId }),
+
+    targetType: "None",
+    setTargetType: (targetType) => set({ targetType }),
+
     currentTime: 0,
     setCurrentTime: (currentTime) => set({ currentTime }),
 

@@ -3,10 +3,16 @@ import { Button } from "@renderer/components/ui";
 import { toast } from "sonner";
 import { useEffect } from "react";
 import { Icon } from "@iconify/react";
+import { useCreateRecording } from "@/renderer/hooks/use-recording";
 
 export const RecordButton = (props: {
   histogramContainer?: React.RefObject<HTMLDivElement | null>;
+  targetId?: string;
+  targetType?: "Audio" | "Video" | "ChatMessage" | "None";
+  referenceId?: number;
 }) => {
+  const { histogramContainer, targetId, targetType, referenceId } = props;
+
   const {
     initRecorder,
     status,
@@ -20,10 +26,31 @@ export const RecordButton = (props: {
     setupHistogramContainer,
   } = useRecorderStore();
 
+  const {
+    mutate: createRecording,
+    isSuccess: isCreated,
+    data,
+  } = useCreateRecording();
+
+  const handleCreateRecording = async () => {
+    if (!blob) return;
+    const arrayBuffer = await blob.arrayBuffer();
+    createRecording({
+      targetId,
+      targetType,
+      referenceId,
+      blob: {
+        type: blob.type,
+        arrayBuffer,
+      },
+    });
+    clearBlob();
+  };
+
   useEffect(() => {
     initRecorder();
-    if (props.histogramContainer?.current) {
-      setupHistogramContainer(props.histogramContainer.current);
+    if (histogramContainer?.current) {
+      setupHistogramContainer(histogramContainer.current);
     }
   }, [props.histogramContainer?.current]);
 
@@ -40,8 +67,15 @@ export const RecordButton = (props: {
   }, [error]);
 
   useEffect(() => {
+    if (isCreated && data) {
+      toast.success("Recording created successfully");
+      console.log("data", data);
+    }
+  }, [isCreated, data]);
+
+  useEffect(() => {
     if (blob) {
-      console.log(blob);
+      handleCreateRecording();
     }
   }, [blob]);
 

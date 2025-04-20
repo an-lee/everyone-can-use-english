@@ -24,7 +24,8 @@ export function TranscriptionSentenceDetails(props: {
 }) {
   const { sentence, selectWord, recording } = props;
   const { currentTime, src } = useMeidaPlayBackStore();
-  const { selectedWords } = useTranscriptionStore();
+  const { selectedWords, targetId, targetType, currentIndex } =
+    useTranscriptionStore();
   const ref = useRef<HTMLDivElement>(null);
   const histogramContainer = useRef<HTMLDivElement>(null);
   const { status: recordingStatus } = useRecorderStore();
@@ -94,7 +95,12 @@ export function TranscriptionSentenceDetails(props: {
               <RecordingPlayButton recording={recording} />
             </div>
           )}
-          <RecordButton histogramContainer={histogramContainer} />
+          <RecordButton
+            histogramContainer={histogramContainer}
+            targetId={targetId}
+            targetType={targetType}
+            referenceId={currentIndex}
+          />
         </div>
       </div>
     </div>

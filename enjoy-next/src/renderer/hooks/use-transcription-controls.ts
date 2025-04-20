@@ -8,9 +8,12 @@ import { useTranscriptionByTarget } from "./use-transcription";
 
 export const useTranscriptionControls = (props: {
   targetId: string;
-  targetType: string;
+  targetType: "Audio" | "Video" | "ChatMessage" | "None";
 }) => {
+  const { targetId, targetType } = props;
   const {
+    setTargetId,
+    setTargetType,
     currentIndex,
     setCurrentIndex,
     sentences,
@@ -60,11 +63,13 @@ export const useTranscriptionControls = (props: {
     data: transcription,
     isLoading,
     error,
-  } = useTranscriptionByTarget(props.targetId, props.targetType);
+  } = useTranscriptionByTarget(targetId, targetType);
 
   useEffect(() => {
     if (!transcription) return;
 
+    setTargetId(targetId);
+    setTargetType(targetType);
     setSentences(timelineToSentences(transcription));
 
     return () => {

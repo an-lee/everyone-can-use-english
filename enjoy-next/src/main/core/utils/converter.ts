@@ -1,5 +1,7 @@
 import path from "path";
 import { appConfig } from "@main/core";
+import fs from "fs-extra";
+import crypto from "crypto";
 
 /*
  * Convert enjoy url to file path
@@ -49,4 +51,20 @@ export function pathToEnjoyUrl(filePath: string): string {
   }
 
   return enjoyUrl;
+}
+
+export async function hashFile(
+  filePath: string,
+  options?: {
+    algo?: string;
+  }
+): Promise<string> {
+  const { algo = "md5" } = options || {};
+  return new Promise((resolve, reject) => {
+    const hash = crypto.createHash(algo);
+    const stream = fs.createReadStream(filePath);
+    stream.on("error", reject);
+    stream.on("data", (chunk) => hash.update(chunk));
+    stream.on("end", () => resolve(hash.digest("hex")));
+  });
 }

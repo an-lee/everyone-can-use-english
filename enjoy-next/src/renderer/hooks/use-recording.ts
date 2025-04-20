@@ -59,7 +59,14 @@ export function useCreateRecording() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: Partial<RecordingEntity>) => {
+    mutationFn: async (
+      data: Partial<RecordingEntity> & {
+        blob: {
+          type: string;
+          arrayBuffer: ArrayBuffer;
+        };
+      }
+    ): Promise<RecordingEntity> => {
       if (!window.EnjoyAPI) {
         throw new Error("EnjoyAPI not available");
       }
@@ -80,6 +87,8 @@ export function useCreateRecording() {
         );
       }
       queryClient.invalidateQueries({ queryKey });
+
+      return result;
     },
   });
 }

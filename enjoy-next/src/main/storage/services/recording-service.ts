@@ -1,7 +1,10 @@
 import { ILike } from "typeorm";
 import { Recording } from "../entities/recording";
 import { instanceToPlain } from "class-transformer";
-import { log } from "@main/core";
+import { appConfig, hashFile, log } from "@main/core";
+import { executeCommand } from "@main/plugin/core";
+import path from "path";
+import fs from "fs-extra";
 
 export class RecordingService {
   private logger: any;
@@ -89,11 +92,77 @@ export class RecordingService {
     return items;
   }
 
-  async create(data: Partial<RecordingEntity>): Promise<RecordingEntity> {
+  async create(
+    data: Partial<RecordingEntity> & {
+      blob: {
+        type: string;
+        arrayBuffer: ArrayBuffer;
+      };
+    }
+  ): Promise<RecordingEntity> {
+    const { blob, ...recordingData } = data;
+
+    this.logger.info(`Creating recording: ${JSON.stringify(recordingData)}`);
+
+    if (!blob || !blob.arrayBuffer) {
+      throw new Error("Blob is required");
+    }
+    if (blob.arrayBuffer.byteLength === 0) {
+      throw new Error("Array buffer is required");
+    }
+
+    const tmpFile = path.join(appConfig.cachePath(), `${Date.now()}.wav`);
+    await fs.outputFile(tmpFile, new Uint8Array(blob.arrayBuffer));
+
+    // hash file
+    const md5 = await hashFile(tmpFile, { algo: "md5" });
+
+    // check if recording already exists
+    const existed = await Recording.findOne({ where: { md5 } });
+    if (existed) {
+      fs.remove(tmpFile);
+      return {
+        ...instanceToPlain(existed),
+        src: existed.src,
+      } as RecordingEntity;
+    }
+
+    // create new recording
+    const filename = `${md5}.mp3`;
+    const filePath = path.join(appConfig.userDataPath("recordings")!, filename);
+    await executeCommand("ffmpeg-plugin.compressAudio", tmpFile, filePath);
+
     const recording = new Recording();
-    Object.assign(recording, data);
-    await recording.save();
-    return instanceToPlain(recording) as RecordingEntity;
+    const {
+      targetId = "00000000-0000-0000-0000-000000000000",
+      targetType = "None",
+      referenceId = -1,
+      referenceText = "",
+      language = "en",
+      duration = 0,
+    } = recordingData;
+    recording.targetId = targetId;
+    recording.targetType = targetType;
+    recording.referenceId = referenceId;
+    recording.referenceText = referenceText;
+    recording.language = language;
+    recording.duration = duration;
+    recording.filename = filename;
+    recording.md5 = md5;
+
+    try {
+      await recording.save();
+    } catch (error) {
+      this.logger.error(`Failed to save recording: ${error}`);
+      fs.unlink(filePath);
+      throw error;
+    }
+
+    this.logger.info(`Recording created: ${recording.id}`);
+    return {
+      ...instanceToPlain(recording),
+      src: filePath,
+    } as RecordingEntity;
   }
 
   async update(

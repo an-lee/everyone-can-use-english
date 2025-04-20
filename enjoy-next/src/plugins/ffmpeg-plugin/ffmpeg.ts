@@ -41,6 +41,44 @@ export class Ffmpeg {
       });
   }
 
+  compressAudio(
+    filePath: string,
+    outputPath: string,
+    options: {
+      outputFormat?: "mp3" | "aac" | "opus";
+      bitrate?: number;
+    } = {}
+  ): Promise<void> {
+    const { outputFormat = "mp3", bitrate = 128 } = options;
+
+    return this.runFfmpegCommand((cmd) => {
+      cmd
+        .input(filePath)
+        .outputFormat(outputFormat)
+        .audioCodec("libmp3lame")
+        .audioBitrate(bitrate)
+        .output(outputPath);
+
+      return new Promise((resolve, reject) => {
+        cmd
+          .on("start", () => {
+            this.logger.debug(
+              `Compressing audio: ${filePath} to ${outputPath}`
+            );
+          })
+          .on("end", () => {
+            this.logger.debug(`Compressed audio: ${filePath} to ${outputPath}`);
+            resolve();
+          })
+          .on("error", (err: Error) => {
+            this.logger.error(`Failed to compress audio: ${err.message}`);
+            reject(err);
+          })
+          .run();
+      });
+    });
+  }
+
   /**
    * Extract frequency data from an audio file
    * @param url The audio file URL
@@ -476,5 +514,10 @@ export const commands = [
     name: "getFrequencyData",
     function: (url: string, options = {}) =>
       ffmpeg.getFrequencyData(url, options),
+  },
+  {
+    name: "compressAudio",
+    function: (filePath: string, outputPath: string, options = {}) =>
+      ffmpeg.compressAudio(filePath, outputPath, options),
   },
 ];
