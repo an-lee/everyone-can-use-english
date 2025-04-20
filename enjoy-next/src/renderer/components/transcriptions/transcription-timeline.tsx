@@ -1,6 +1,6 @@
 import {
   useTranscriptionStore,
-  usePlayBackStore,
+  useMeidaPlayBackStore,
   usePlayerSettingStore,
 } from "@renderer/store";
 import {
@@ -60,7 +60,7 @@ export function DetailedTranscriptionSentence(props: {
   selectWord: (wordIndex: number) => void;
 }) {
   const { sentence, index, selectWord } = props;
-  const { currentTime, mediaElement, interactable } = usePlayBackStore();
+  const { currentTime, mediaElement, interactable } = useMeidaPlayBackStore();
   const { selectedWords } = useTranscriptionStore();
   const ref = useRef<HTMLDivElement>(null);
 

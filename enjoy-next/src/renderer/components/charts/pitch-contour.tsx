@@ -31,7 +31,7 @@ import {
   LoadingView,
 } from "@renderer/components/status-views";
 import { secondsToTimestamp } from "@renderer/lib/utils";
-import { usePlayBackStore } from "@renderer/store";
+import { useMeidaPlayBackStore } from "@renderer/store";
 import { cn } from "@renderer/lib/utils";
 import { useTranslation } from "react-i18next";
 import { Icon } from "@iconify/react";
@@ -50,7 +50,7 @@ export function PitchContourChart(props: {
   let { endTime } = props;
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<HTMLDivElement>(null);
-  const { currentTime } = usePlayBackStore();
+  const { currentTime } = useMeidaPlayBackStore();
 
   const chartData = useMemo(() => {
     if (!data) return [];

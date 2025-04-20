@@ -1,6 +1,6 @@
 import {
   useTranscriptionStore,
-  usePlayBackStore,
+  useMeidaPlayBackStore,
   usePlayerSettingStore,
   useRecorderStore,
 } from "@renderer/store";
@@ -19,7 +19,7 @@ export function TranscriptionSentenceDetails(props: {
   selectWord: (wordIndex: number) => void;
 }) {
   const { sentence, selectWord } = props;
-  const { currentTime, src } = usePlayBackStore();
+  const { currentTime, src } = useMeidaPlayBackStore();
   const { selectedWords } = useTranscriptionStore();
   const ref = useRef<HTMLDivElement>(null);
   const histogramContainer = useRef<HTMLDivElement>(null);

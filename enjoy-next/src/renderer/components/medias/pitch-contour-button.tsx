@@ -7,7 +7,7 @@ import {
   TooltipTrigger,
 } from "@renderer/components/ui";
 import { useTranslation } from "react-i18next";
-import { usePlayerSettingStore, usePlayBackStore } from "@renderer/store";
+import { usePlayerSettingStore, useMeidaPlayBackStore } from "@renderer/store";
 
 export function PitchContourButton(props: {
   asChild?: boolean;
@@ -17,7 +17,7 @@ export function PitchContourButton(props: {
   const { t } = useTranslation("components/medias");
   const { displayPitchContour, setDisplayPitchContour } =
     usePlayerSettingStore();
-  const { interactable } = usePlayBackStore();
+  const { interactable } = useMeidaPlayBackStore();
 
   return (
     <TooltipProvider>

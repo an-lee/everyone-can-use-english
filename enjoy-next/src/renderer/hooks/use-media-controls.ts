@@ -1,5 +1,5 @@
 import {
-  usePlayBackStore,
+  useMeidaPlayBackStore,
   usePlayerSettingStore,
   useTranscriptionStore,
 } from "@renderer/store";
@@ -40,7 +40,7 @@ export const useMediaControls = (
     setError,
     setInteractable,
     reset,
-  } = usePlayBackStore();
+  } = useMeidaPlayBackStore();
   const { playMode, looping, setLooping } = usePlayerSettingStore();
 
   const { nextSentence, previousSentence } = useTranscriptionStore();

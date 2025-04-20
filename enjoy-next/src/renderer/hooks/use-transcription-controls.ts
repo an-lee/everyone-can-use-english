@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from "react";
 import {
-  usePlayBackStore,
+  useMeidaPlayBackStore,
   useTranscriptionStore,
   usePlayerSettingStore,
 } from "@renderer/store";
@@ -20,7 +20,7 @@ export const useTranscriptionControls = (props: {
     reset,
   } = useTranscriptionStore();
   const { currentTime, activeRange, setActiveRange, directSeek } =
-    usePlayBackStore();
+    useMeidaPlayBackStore();
   const { playMode } = usePlayerSettingStore();
 
   const activateSentence = (sentence: TimelineEntry) => {
