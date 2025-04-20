@@ -9,3 +9,5 @@ export * from "./use-transcription";
 export * from "./use-transcription-controls";
 
 export * from "./use-ffmpeg";
+
+export * from "./use-recording-controls";

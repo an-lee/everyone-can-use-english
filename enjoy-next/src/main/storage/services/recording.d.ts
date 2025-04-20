@@ -12,4 +12,5 @@ declare interface RecordingEntity {
   uploadedAt?: string;
   createdAt: string;
   updatedAt: string;
+  src: string;
 }

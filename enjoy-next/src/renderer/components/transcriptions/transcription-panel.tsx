@@ -33,6 +33,8 @@ export function TranscriptionPanel(props: {
     <div className="w-full max-w-screen-md mx-auto px-4">
       {sentences.map((sentence: TimelineEntry, index: number) => (
         <TranscriptionSentence
+          targetId={targetId}
+          targetType={targetType}
           key={`sentence-${index}`}
           sentence={sentence}
           index={index}

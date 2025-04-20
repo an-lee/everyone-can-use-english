@@ -21,8 +21,12 @@ export function useRecordings(options?: {
 export function useRecordingsByTarget(
   targetId: string,
   targetType: string,
-  referenceId?: number
+  referenceId?: number,
+  options?: {
+    enabled?: boolean;
+  }
 ) {
+  const { enabled = true } = options || {};
   return useQuery({
     queryKey: ["recordings", targetId, targetType, referenceId],
     queryFn: async () => {
@@ -35,6 +39,7 @@ export function useRecordingsByTarget(
         referenceId
       );
     },
+    enabled: enabled,
   });
 }
 
@@ -60,8 +65,21 @@ export function useCreateRecording() {
       }
       return await window.EnjoyAPI.db.recording.create(data);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["recordings"] });
+    onSuccess: (result, variables) => {
+      const queryKey = ["recordings"];
+
+      if (
+        variables?.targetId &&
+        variables?.targetType &&
+        variables?.referenceId
+      ) {
+        queryKey.push(
+          variables.targetId,
+          variables.targetType,
+          variables.referenceId.toString()
+        );
+      }
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 }
@@ -81,8 +99,18 @@ export function useUpdateRecording() {
       }
       return await window.EnjoyAPI.db.recording.update(id, data);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["recordings"] });
+    onSuccess: (result) => {
+      const queryKey = ["recordings"];
+
+      if (result?.targetId && result?.targetType && result?.referenceId) {
+        queryKey.push(
+          result.targetId,
+          result.targetType,
+          result.referenceId.toString()
+        );
+      }
+
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 }
@@ -97,8 +125,18 @@ export function useDeleteRecording() {
       }
       return await window.EnjoyAPI.db.recording.delete(id);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["recordings"] });
+    onSuccess: (result) => {
+      const queryKey = ["recordings"];
+
+      if (result?.targetId && result?.targetType && result?.referenceId) {
+        queryKey.push(
+          result.targetId,
+          result.targetType,
+          result.referenceId.toString()
+        );
+      }
+
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 }

@@ -10,12 +10,16 @@ export const useMediaFrequencies = (
   options?: {
     sampleRate?: number;
     sensitivity?: number;
-    filterType: "basic" | "language" | "tonal" | "speech";
+    filterType?: "basic" | "language" | "tonal" | "speech";
     timeoutMs?: number;
     enhanceSpeech?: boolean;
     algorithm?: "YIN" | "AMDF" | "ACF2PLUS";
+    enabled?: boolean;
   }
 ) => {
+  const { enabled = true } = options ?? {};
+  delete options?.enabled;
+
   return useQuery<{
     frequencies: (number | null)[];
     metadata: { duration: number; timeStep: number };
@@ -32,7 +36,7 @@ export const useMediaFrequencies = (
         [src, options]
       );
     },
-    enabled: !!src,
+    enabled,
     staleTime: Infinity,
   });
 };

@@ -64,7 +64,10 @@ export class Recording extends BaseEntity {
   updatedAt!: Date;
 
   get filePath(): string | null {
-    const file = appConfig.userDataPath("recordings", `${this.filename}`);
+    const file = path.join(
+      appConfig.userDataPath("recordings")!,
+      this.filename
+    );
     if (file && fs.existsSync(file)) {
       return file;
     }

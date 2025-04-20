@@ -11,14 +11,18 @@ import {
   PitchContourButton,
   TranslationButton,
 } from "@renderer/components/medias";
-import { RecordButton } from "@renderer/components/recordings";
+import {
+  RecordButton,
+  RecordingPlayButton,
+} from "@renderer/components/recordings";
 import { Translation } from "@renderer/components/shared";
 
 export function TranscriptionSentenceDetails(props: {
   sentence: TimelineEntry;
   selectWord: (wordIndex: number) => void;
+  recording?: RecordingEntity;
 }) {
-  const { sentence, selectWord } = props;
+  const { sentence, selectWord, recording } = props;
   const { currentTime, src } = useMeidaPlayBackStore();
   const { selectedWords } = useTranscriptionStore();
   const ref = useRef<HTMLDivElement>(null);
@@ -84,7 +88,14 @@ export function TranscriptionSentenceDetails(props: {
       )}
 
       <div className="flex items-center justify-center gap-2">
-        <RecordButton histogramContainer={histogramContainer} />
+        <div className="relative">
+          {recording && (
+            <div className="absolute left-0 top-1/2 -translate-x-[calc(100%+0.5rem)] -translate-y-1/2">
+              <RecordingPlayButton recording={recording} />
+            </div>
+          )}
+          <RecordButton histogramContainer={histogramContainer} />
+        </div>
       </div>
     </div>
   );

@@ -3,9 +3,13 @@ import { Recording } from "../entities/recording";
 import { instanceToPlain } from "class-transformer";
 import { log } from "@main/core";
 
-log.scope("Storage/RecordingService");
-
 export class RecordingService {
+  private logger: any;
+
+  constructor() {
+    this.logger = log.scope("Storage/RecordingService");
+  }
+
   async findAll(
     options?: PaginationOptions
   ): Promise<PaginationResult<RecordingEntity>> {
@@ -36,7 +40,11 @@ export class RecordingService {
 
     return {
       items: recordings.map(
-        (recording) => instanceToPlain(recording) as RecordingEntity
+        (recording) =>
+          ({
+            ...instanceToPlain(recording),
+            src: recording.src,
+          }) as RecordingEntity
       ),
       total,
       page,
@@ -57,18 +65,25 @@ export class RecordingService {
   ): Promise<RecordingEntity[]> {
     const queryBuilder = Recording.createQueryBuilder("recording");
 
-    if (referenceId) {
-      queryBuilder.where("recording.referenceId = :referenceId", {
-        referenceId,
-      });
+    this.logger.info(
+      `Finding recordings by target: ${targetId}, targetType: ${targetType}, referenceId: ${referenceId}`
+    );
+
+    queryBuilder.where({ targetId, targetType });
+
+    if (referenceId !== undefined) {
+      queryBuilder.andWhere({ referenceId });
     }
 
     const recordings = await queryBuilder
-      .where({ targetId, targetType: targetType })
-      .orderBy({ createdAt: "DESC" })
+      .orderBy({ created_at: "DESC" })
       .getMany();
     const items = recordings.map(
-      (recording) => instanceToPlain(recording) as RecordingEntity
+      (recording) =>
+        ({
+          ...instanceToPlain(recording),
+          src: recording.src,
+        }) as RecordingEntity
     );
 
     return items;

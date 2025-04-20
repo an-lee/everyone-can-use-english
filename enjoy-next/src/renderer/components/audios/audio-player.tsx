@@ -8,10 +8,11 @@ import { useTranslation } from "react-i18next";
 import { PlayModeButton, TranslationButton } from "@renderer/components/medias";
 
 export function AudioPlayer(props: { audio: AudioEntity }) {
-  const { t } = useTranslation("components/audios");
+  const { audio } = props;
 
   const [playable, setPlayable] = useState(false);
-  const { audio } = props;
+
+  const { t } = useTranslation("components/audios");
   const { ref, togglePlay, destroy, playNextSentence, playPreviousSentence } =
     useMediaControls(audio.src!);
 

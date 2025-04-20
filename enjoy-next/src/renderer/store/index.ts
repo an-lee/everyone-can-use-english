@@ -5,4 +5,5 @@ export * from "./use-db-store";
 export * from "./use-media-playback-store";
 export * from "./use-player-setting-store";
 export * from "./use-recorder-store";
+export * from "./use-recording-playback-store";
 export * from "./use-transcription-store";
