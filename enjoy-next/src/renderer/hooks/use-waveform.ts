@@ -26,8 +26,16 @@ let sharedAudioContext: AudioContext | null = null;
 // Keep track of temp audio elements to clean them up properly
 const tempAudioElements = new Set<HTMLAudioElement>();
 
-export const useWaveform = () => {
-  const { setWaveform, setFrequencies, src } = useMeidaPlayBackStore();
+export const useWaveform = (props: {
+  src: string;
+  setWaveform: (waveform: {
+    peaks: Float32Array;
+    sampleRate: number;
+    duration: number;
+  }) => void;
+  setFrequencies: (frequencies: (number | null)[]) => void;
+}) => {
+  const { setWaveform, setFrequencies, src } = props;
   const workerRef = useRef<Worker | null>(null);
   const pendingRequests = useRef<
     Map<

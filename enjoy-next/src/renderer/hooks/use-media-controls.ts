@@ -6,7 +6,6 @@ import {
 import { debounce } from "lodash";
 import { useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { useWaveform } from "./use-waveform";
 
 type MediaElement = HTMLVideoElement | HTMLAudioElement;
 type MediaEventHandler = (e: Event) => void;
@@ -41,18 +40,10 @@ export const useMediaControls = (
     setError,
     setInteractable,
     reset,
-    frequencies,
   } = useMeidaPlayBackStore();
-  const {
-    playMode,
-    looping,
-    setLooping,
-    frequencyFilterType,
-    frequencyAlgorithm,
-  } = usePlayerSettingStore();
+  const { playMode, looping, setLooping } = usePlayerSettingStore();
 
   const { nextSentence, previousSentence } = useTranscriptionStore();
-  const { processMediaElement } = useWaveform();
 
   const checkReadyState = () => {
     if (!ref.current) return;
@@ -77,26 +68,6 @@ export const useMediaControls = (
       logMediaStatus(media, canInteract);
 
       setInteractable(canInteract);
-
-      if (canInteract && ref.current && frequencies.length === 0) {
-        const filterType = frequencyFilterType || "language";
-
-        processMediaElement(ref.current, src, {
-          algorithm:
-            frequencyAlgorithm || (filterType === "speech" ? "AMDF" : "YIN"),
-          filterType: filterType,
-          sensitivity: filterType === "speech" ? 0.03 : 0.05,
-          probabilityThreshold: filterType === "speech" ? 0.05 : 0.1,
-          minFrequency: filterType === "tonal" ? 75 : 85,
-          maxFrequency: filterType === "tonal" ? 500 : 400,
-          skipPostProcessing: filterType === "basic",
-        }).catch((error) => {
-          console.error(
-            "Failed to process media element for frequencies:",
-            error
-          );
-        });
-      }
 
       if (
         media.readyState === HTMLMediaElement.HAVE_ENOUGH_DATA &&

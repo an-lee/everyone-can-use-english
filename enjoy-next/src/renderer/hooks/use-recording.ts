@@ -28,7 +28,7 @@ export function useRecordingsByTarget(
 ) {
   const { enabled = true } = options || {};
   return useQuery({
-    queryKey: ["recordings", targetId, targetType, referenceId],
+    queryKey: ["recordings", targetId, targetType, referenceId?.toString()],
     queryFn: async () => {
       if (!window.EnjoyAPI) {
         throw new Error("EnjoyAPI not available");
@@ -74,18 +74,21 @@ export function useCreateRecording() {
     },
     onSuccess: (result, variables) => {
       const queryKey = ["recordings"];
+      console.log("result", result);
+      console.log("variables", variables);
 
       if (
         variables?.targetId &&
         variables?.targetType &&
-        variables?.referenceId
+        typeof variables?.referenceId === "number"
       ) {
         queryKey.push(
-          variables.targetId,
           variables.targetType,
+          variables.targetId,
           variables.referenceId.toString()
         );
       }
+      console.log("invalidating queries", queryKey);
       queryClient.invalidateQueries({ queryKey });
 
       return result;
