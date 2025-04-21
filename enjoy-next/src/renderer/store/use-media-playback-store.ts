@@ -34,13 +34,15 @@ type MediaPlayBackState = {
   }) => void;
 
   waveform: {
-    data: Float32Array;
+    peaks: Float32Array;
     sampleRate: number;
+    duration: number;
   } | null;
   setWaveform: (
     waveform: {
-      data: Float32Array;
+      peaks: Float32Array;
       sampleRate: number;
+      duration: number;
     } | null
   ) => void;
 
@@ -112,8 +114,9 @@ export const useMeidaPlayBackStore = create<MediaPlayBackState>((set, get) => ({
   waveform: null,
   setWaveform: (
     waveform: {
-      data: Float32Array;
+      peaks: Float32Array;
       sampleRate: number;
+      duration: number;
     } | null
   ) => set({ waveform }),
 

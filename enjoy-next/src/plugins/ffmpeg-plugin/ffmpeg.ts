@@ -85,10 +85,14 @@ export class Ffmpeg {
   getWaveform(
     url: string,
     options: AudioProcessOptions = {}
-  ): Promise<Float32Array> {
+  ): Promise<{
+    peaks: Float32Array;
+    duration: number;
+    sampleRate: number;
+  }> {
     this.logger.debug(`Getting waveform data for ${url}`);
 
-    return this.processAudioFile(url, options).then(({ peaks }) => peaks);
+    return this.processAudioFile(url, options);
   }
 
   /**

@@ -78,13 +78,9 @@ export function TranscriptionSentenceDetails(props: {
         </div>
       )}
 
-      {displayPitchContour && (
+      {displayPitchContour && frequencies.length > 0 && (
         <div className="mb-2 w-full">
-          <PitchContour
-            src={src}
-            startTime={sentence.startTime}
-            endTime={sentence.endTime}
-          />
+          <PitchContour />
         </div>
       )}
 

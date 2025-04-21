@@ -1,6 +1,5 @@
 import { useEffect, useMemo } from "react";
 import { useRecordingPlaybackStore } from "../store/use-recording-playback-store";
-import { useMediaFrequencies } from "./use-ffmpeg";
 
 type MediaEventHandler = (e: Event) => void;
 type EventHandlers = Record<string, MediaEventHandler>;
@@ -12,10 +11,6 @@ export function useRecordingControls(props: {
   const { recording, ref } = props;
   const { setIsPlaying, setRecording, setCurrentTime, setFrequencies, reset } =
     useRecordingPlaybackStore();
-
-  const { refetch: refetchFrequencies } = useMediaFrequencies(recording.src, {
-    enabled: false,
-  });
 
   const togglePlay = () => {
     if (!ref.current) return;
@@ -39,11 +34,6 @@ export function useRecordingControls(props: {
 
     Object.entries(handlers).forEach(([event, handler]) => {
       mediaElement.addEventListener(event, handler);
-    });
-
-    refetchFrequencies().then(({ data }) => {
-      const { frequencies = [] } = data ?? {};
-      setFrequencies(frequencies);
     });
   };
 

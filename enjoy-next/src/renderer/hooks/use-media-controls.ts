@@ -6,6 +6,7 @@ import {
 import { debounce } from "lodash";
 import { useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
+import { useWaveform } from "./use-ffmpeg";
 
 type MediaElement = HTMLVideoElement | HTMLAudioElement;
 type MediaEventHandler = (e: Event) => void;
@@ -40,6 +41,7 @@ export const useMediaControls = (
     setError,
     setInteractable,
     reset,
+    setWaveform,
   } = useMeidaPlayBackStore();
   const { playMode, looping, setLooping } = usePlayerSettingStore();
 

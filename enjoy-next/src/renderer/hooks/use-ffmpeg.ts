@@ -1,19 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 
 /**
- * Get the frequency data for an media file
+ * Get the waveform data for an media file
  * @param src - The source of the media file
- * @returns The frequency data for the media file
+ * @returns The waveform data for the media file
  */
-export const useMediaFrequencies = (
+export const useWaveform = (
   src: string,
-  options?: {
-    sampleRate?: number;
-    sensitivity?: number;
-    filterType?: "basic" | "language" | "tonal" | "speech";
-    timeoutMs?: number;
-    enhanceSpeech?: boolean;
-    algorithm?: "YIN" | "AMDF" | "ACF2PLUS";
+  options?: AudioProcessOptions & {
     enabled?: boolean;
   }
 ) => {
@@ -21,22 +15,23 @@ export const useMediaFrequencies = (
   delete options?.enabled;
 
   return useQuery<{
-    frequencies: (number | null)[];
-    metadata: { duration: number; timeStep: number };
+    peaks: Float32Array;
+    sampleRate: number;
+    duration: number;
   } | null>({
-    queryKey: ["frequency-data", src, options],
+    queryKey: ["waveform", src, options],
     queryFn: async () => {
       if (!src || !window.EnjoyAPI) {
         return null;
       }
-      console.debug("Getting frequency data for", src, options);
+      console.debug("Getting waveform for", src, options);
       return await window.EnjoyAPI.plugin.executeCommand(
         "ffmpeg-plugin",
-        "getFrequencyData",
+        "getWaveform",
         [src, options]
       );
     },
-    enabled,
+    enabled: enabled && !!src,
     staleTime: Infinity,
   });
 };
