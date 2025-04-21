@@ -26,6 +26,7 @@ export const useMediaControls = (
 } => {
   const loadingTime = useRef(0);
   const ref = useRef<MediaElement | null>(null);
+  const checkIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const {
     setSrc,
@@ -35,23 +36,18 @@ export const useMediaControls = (
     setIsPlaying,
     activeRange,
     setActiveRange,
+    loading,
     setLoading,
     setSeeking,
     setError,
-    setInteractable,
     reset,
   } = useMeidaPlayBackStore();
   const { playMode, looping, setLooping } = usePlayerSettingStore();
 
   const { nextSentence, previousSentence } = useTranscriptionStore();
 
-  const checkReadyState = () => {
-    if (!ref.current) return;
-    setLoading(ref.current.readyState !== HTMLMediaElement.HAVE_ENOUGH_DATA);
-  };
-
-  const checkInteractability = () => {
-    if (!ref.current) return;
+  const checkMediaStatus = () => {
+    if (!ref.current) return false;
 
     const media = ref.current;
 
@@ -63,21 +59,26 @@ export const useMediaControls = (
         media.seekable.length > 0 &&
         media.seekable.end(0) !== 0;
 
-      const canInteract = hasMetadata && hasDuration && hasSeekableRanges;
+      const isReady = hasMetadata && hasDuration && hasSeekableRanges;
 
-      logMediaStatus(media, canInteract);
+      logMediaStatus(media, isReady);
 
-      setInteractable(canInteract);
-
-      if (
+      if (isReady) {
+        if (loading) {
+          setLoading(false);
+        }
+      } else if (
         media.readyState === HTMLMediaElement.HAVE_ENOUGH_DATA &&
-        !canInteract
+        !isReady
       ) {
         console.debug(
-          "Media loaded, but not interactable, trying to reload",
+          "Media loaded, but not ready for playback, trying to reload",
           media.src
         );
-        ref.current.load();
+        if (!loading) {
+          setLoading(true);
+          ref.current.load();
+        }
       } else if (loadingTime.current > CHECKING_INTERVAL * 10) {
         toast.error("Media is taking too long to load, please wait");
         throw new Error("Media is taking too long to load, please wait");
@@ -88,23 +89,23 @@ export const useMediaControls = (
       } else {
         loadingTime.current += CHECKING_INTERVAL;
         console.debug(
-          `Still loading, used ${loadingTime.current}ms to check interactability`
+          `Still loading, used ${loadingTime.current}ms to check media status`
         );
       }
 
-      return canInteract;
+      return isReady;
     } catch (error) {
-      handleError("Error checking media interactability", error);
+      handleError("Error checking media status", error);
       throw error;
     }
   };
 
-  const debouncedCheckInteractability = useCallback(
-    debounce(checkInteractability, CHECKING_INTERVAL),
+  const debouncedCheckMediaStatus = useCallback(
+    debounce(checkMediaStatus, CHECKING_INTERVAL),
     []
   );
 
-  const logMediaStatus = (media: MediaElement, canInteract: boolean) => {
+  const logMediaStatus = (media: MediaElement, isReady: boolean) => {
     const hasSeekableRanges =
       media.seekable &&
       media.seekable.length > 0 &&
@@ -114,7 +115,7 @@ export const useMediaControls = (
       media.networkState
     ];
 
-    console.debug("Media interactability check:", {
+    console.debug("Media status check:", {
       src: media.src,
       readyState: media.readyState,
       networkState: networkStateText,
@@ -130,7 +131,7 @@ export const useMediaControls = (
             media.buffered.end(i),
           ])
         : [],
-      canInteract,
+      isReady,
     });
   };
 
@@ -288,7 +289,11 @@ export const useMediaControls = (
   };
 
   const handlers: EventHandlers = {
-    canplaythrough: () => checkReadyState(),
+    canplaythrough: () => {
+      if (loading) {
+        setLoading(false);
+      }
+    },
     timeupdate: (event: Event) => {
       const element = event.target as MediaElement;
       setCurrentTime(element.currentTime);
@@ -297,15 +302,23 @@ export const useMediaControls = (
       const element = event.target as MediaElement;
       console.debug("durationchange", element.duration);
       if (!isFinite(element.duration)) {
-        checkReadyState();
+        checkMediaStatus();
         return;
       }
       setDuration(element.duration);
       setActiveRange({ start: 0, end: element.duration });
     },
-    seeking: () => setSeeking(true),
-    seeked: () => setSeeking(false),
+    seeking: () => {
+      setSeeking(true);
+    },
+    seeked: () => {
+      setSeeking(false);
+      console.debug("seeked", ref.current?.currentTime);
+    },
     stalled: () => {
+      if (!loading) {
+        setLoading(true);
+      }
       toast.error("Stalled");
       setError(
         new Error("Media data is unexpectedly not forthcoming when fetching")
@@ -326,57 +339,61 @@ export const useMediaControls = (
         )
       );
       setIsPlaying(false);
+      setLoading(false);
     },
+    waiting: () => {},
+    playing: () => {},
+  };
+
+  const setupMedia = () => {
+    const mediaElement = ref.current!;
+
+    setSrc(src);
+    setMediaElement(mediaElement);
+    setLoading(true);
+    mediaElement.src = src;
+    mediaElement.load();
+  };
+
+  const setupMediaStatusCheck = () => {
+    if (!src) return;
+
+    setLoading(true);
+    try {
+      debouncedCheckMediaStatus();
+    } catch (error) {
+      console.error("Error checking media status:", error);
+    }
+
+    checkIntervalRef.current = setInterval(() => {
+      try {
+        if (checkMediaStatus()) {
+          console.debug("Media ready check passed, clearing interval");
+          clearInterval(checkIntervalRef.current!);
+          setLoading(false);
+        } else {
+          console.debug("Media ready check failed, continuing");
+          setLoading(true);
+        }
+      } catch (error) {
+        console.error("Error checking media status:", error);
+        clearInterval(checkIntervalRef.current!);
+      }
+    }, CHECKING_INTERVAL);
   };
 
   useEffect(() => {
     if (!ref.current) return;
 
-    const setupMedia = () => {
-      const mediaElement = ref.current!;
-
-      setSrc(src);
-      setMediaElement(mediaElement);
-      mediaElement.src = src;
-      mediaElement.load();
-      setLoading(true);
-
-      Object.entries(handlers).forEach(([event, handler]) => {
-        mediaElement.addEventListener(event, handler);
-      });
-    };
-
-    const setupInteractabilityCheck = () => {
-      setInteractable(false);
-      try {
-        debouncedCheckInteractability();
-      } catch (error) {
-        console.error("Error checking media interactability:", error);
-      }
-
-      const checkInterval = setInterval(() => {
-        try {
-          if (debouncedCheckInteractability()) {
-            console.debug("Interactability check passed, clearing interval");
-            clearInterval(checkInterval);
-          } else {
-            console.debug("Interactability check failed, continuing");
-          }
-        } catch (error) {
-          console.error("Error checking media interactability:", error);
-          clearInterval(checkInterval);
-        }
-      }, CHECKING_INTERVAL);
-
-      return checkInterval;
-    };
-
     setupMedia();
-    const checkInterval = setupInteractabilityCheck();
+    setupMediaStatusCheck();
+
+    Object.entries(handlers).forEach(([event, handler]) => {
+      ref.current!.addEventListener(event, handler);
+    });
 
     return () => {
-      clearInterval(checkInterval);
-
+      clearInterval(checkIntervalRef.current!);
       if (!ref.current) return;
       Object.entries(handlers).forEach(([event, handler]) => {
         console.debug("removing event listener", event);
@@ -389,14 +406,14 @@ export const useMediaControls = (
     if (!ref.current) return;
 
     console.debug("activeRange changed", activeRange);
-    seek(activeRange.start);
-    if (activeRange.autoPlay) {
-      ref.current.play();
+    if (typeof activeRange.start === "number") {
+      seek(activeRange.start);
     }
     ref.current.addEventListener("timeupdate", handleRangeConstraint);
-
     return () => {
-      ref.current?.removeEventListener("timeupdate", handleRangeConstraint);
+      if (!ref.current) return;
+
+      ref.current.removeEventListener("timeupdate", handleRangeConstraint);
     };
   }, [activeRange, src, looping]);
 

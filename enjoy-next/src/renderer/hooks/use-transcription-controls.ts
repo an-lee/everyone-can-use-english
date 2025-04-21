@@ -11,6 +11,8 @@ export const useTranscriptionControls = (props: {
   targetType: "Audio" | "Video" | "ChatMessage" | "None";
 }) => {
   const { targetId, targetType } = props;
+  const CURRENT_INDEX_CACHE_KEY = `current-index-${targetType}-${targetId}`;
+
   const {
     setTargetId,
     setTargetType,
@@ -22,7 +24,7 @@ export const useTranscriptionControls = (props: {
     setSelectedWords,
     reset,
   } = useTranscriptionStore();
-  const { currentTime, activeRange, setActiveRange, directSeek } =
+  const { currentTime, activeRange, setActiveRange, directSeek, loading } =
     useMeidaPlayBackStore();
   const { playMode } = usePlayerSettingStore();
 
@@ -162,10 +164,31 @@ export const useTranscriptionControls = (props: {
    * This effect is used to reset the selected words when the current index changes
    */
   useEffect(() => {
-    if (selectedWords.length === 0) return;
+    if (typeof currentIndex === "number" && currentIndex > 0) {
+      localStorage.setItem(CURRENT_INDEX_CACHE_KEY, currentIndex.toString());
+    }
 
+    if (selectedWords.length === 0) return;
     setSelectedWords([]);
   }, [currentIndex]);
+
+  useEffect(() => {
+    if (loading) return;
+    if (!sentences || sentences.length === 0) return;
+
+    if (playMode === "shadowMode") {
+      const cachedIndex = localStorage.getItem(CURRENT_INDEX_CACHE_KEY) || "0";
+      const index = parseInt(cachedIndex);
+      const sentence = sentences[index];
+      if (sentence) {
+        setActiveRange({
+          start: sentence.startTime,
+          end: sentence.endTime,
+          autoPlay: false,
+        });
+      }
+    }
+  }, [playMode, sentences, loading]);
 
   return {
     currentTime,

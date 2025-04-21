@@ -14,9 +14,6 @@ type MediaPlayBackState = {
   seeking: boolean;
   setSeeking: (seeking: boolean) => void;
 
-  interactable: boolean;
-  setInteractable: (interactable: boolean) => void;
-
   currentTime: number;
   setCurrentTime: (currentTime: number) => void;
 
@@ -75,14 +72,11 @@ export const useMeidaPlayBackStore = create<MediaPlayBackState>((set, get) => ({
     }
   },
 
-  loading: false,
+  loading: true,
   setLoading: (loading: boolean) => set({ loading }),
 
   seeking: false,
   setSeeking: (seeking: boolean) => set({ seeking }),
-
-  interactable: false,
-  setInteractable: (interactable: boolean) => set({ interactable }),
 
   currentTime: 0,
   setCurrentTime: (currentTime: number) => set({ currentTime }),
@@ -126,7 +120,7 @@ export const useMeidaPlayBackStore = create<MediaPlayBackState>((set, get) => ({
   reset: () => {
     set({
       mediaElement: null,
-      loading: false,
+      loading: true,
       currentTime: 0,
       duration: 0,
       isPlaying: false,

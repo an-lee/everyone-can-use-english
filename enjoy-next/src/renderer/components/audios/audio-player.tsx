@@ -16,22 +16,15 @@ export function AudioPlayer(props: { audio: AudioEntity }) {
   const { ref, togglePlay, destroy, playNextSentence, playPreviousSentence } =
     useMediaControls(audio.src!);
 
-  const {
-    currentTime,
-    duration,
-    isPlaying,
-    loading,
-    seeking,
-    interactable,
-    activeRange,
-  } = useMeidaPlayBackStore();
+  const { currentTime, duration, isPlaying, loading, seeking, activeRange } =
+    useMeidaPlayBackStore();
   const { playMode, looping, setLooping } = usePlayerSettingStore();
 
   useEffect(() => {
-    if (!loading && !seeking && interactable) {
+    if (!loading && !seeking) {
       setPlayable(true);
     }
-  }, [loading, seeking, interactable]);
+  }, [loading, seeking]);
 
   useEffect(() => {
     return () => {
