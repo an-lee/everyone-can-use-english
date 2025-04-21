@@ -12,7 +12,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
 } from "@renderer/components/ui";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import {
   CartesianGrid,
   Line,
@@ -442,4 +442,189 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     );
   }
   return null;
+};
+
+export const PitchContourCanvas = ({ className }: { className?: string }) => {
+  const { frequencies, activeRange, currentTime, waveform } =
+    useMeidaPlayBackStore();
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    if (!canvasRef.current || frequencies.length === 0) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // Set up canvas dimensions with device pixel ratio for sharper rendering
+    const dpr = window.devicePixelRatio || 1;
+    const width = (canvas.width = canvas.clientWidth * dpr);
+    const height = (canvas.height = canvas.clientHeight * dpr);
+    ctx.scale(dpr, dpr);
+
+    // Max and min frequency for y-axis scaling
+    const maxFreq = 400;
+    const minFreq = 75;
+
+    // Clear the canvas
+    ctx.clearRect(0, 0, width / dpr, height / dpr);
+
+    // Calculate time range to display
+    const rangeStart = activeRange.start;
+    const rangeEnd = activeRange.end;
+    const rangeDuration = rangeEnd - rangeStart;
+
+    // Draw background and grid
+    ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+    ctx.fillRect(0, 0, width / dpr, height / dpr);
+
+    // Draw grid lines
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+    ctx.lineWidth = 1;
+
+    // Horizontal grid lines (frequency)
+    for (let freq = 100; freq <= 400; freq += 50) {
+      const y =
+        height / dpr -
+        ((freq - minFreq) / (maxFreq - minFreq)) * (height / dpr);
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(width / dpr, y);
+      ctx.stroke();
+    }
+
+    // Draw waveform as background if available
+    if (waveform && waveform.peaks.length > 0) {
+      // Calculate the portion of peaks that corresponds to the active range
+      const duration = waveform.duration;
+      const startSample = Math.floor(
+        (rangeStart / duration) * waveform.peaks.length
+      );
+      const endSample = Math.ceil(
+        (rangeEnd / duration) * waveform.peaks.length
+      );
+
+      // Draw the waveform
+      ctx.beginPath();
+      ctx.strokeStyle = "rgba(100, 100, 100, 0.4)";
+      ctx.fillStyle = "rgba(100, 100, 100, 0.15)";
+      ctx.lineWidth = 1;
+
+      // Calculate the step size to avoid drawing too many samples
+      const step = Math.max(
+        1,
+        Math.floor((endSample - startSample) / (width / dpr))
+      );
+
+      // Draw the waveform using a path
+      ctx.beginPath();
+
+      // Middle of the canvas
+      const middleY = height / dpr / 2;
+
+      // Start at the bottom middle of the canvas
+      ctx.moveTo(0, middleY);
+
+      // Draw the top half of the waveform
+      for (let i = startSample; i < endSample; i += step) {
+        if (i >= waveform.peaks.length) break;
+        const x =
+          ((i - startSample) / (endSample - startSample)) * (width / dpr);
+        // Normalize the peak value to fit in half the canvas height
+        // Peaks should already be normalized to -1.0 to 1.0
+        const peakValue = waveform.peaks[i];
+        const y = middleY - Math.abs(peakValue) * (middleY * 0.9);
+        ctx.lineTo(x, y);
+      }
+
+      // Draw line to the end
+      ctx.lineTo(width / dpr, middleY);
+
+      // Draw the bottom half as a mirror of the top
+      for (let i = endSample - 1; i >= startSample; i -= step) {
+        if (i >= waveform.peaks.length) continue;
+        const x =
+          ((i - startSample) / (endSample - startSample)) * (width / dpr);
+        const peakValue = waveform.peaks[i];
+        const y = middleY + Math.abs(peakValue) * (middleY * 0.9);
+        ctx.lineTo(x, y);
+      }
+
+      // Close the path
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    // Draw the frequency plot
+    if (frequencies.length > 1) {
+      ctx.beginPath();
+      ctx.strokeStyle = "rgba(220, 38, 38, 0.7)";
+      ctx.lineWidth = 2;
+
+      let lastX = -1;
+      let lastY = -1;
+
+      // Time per frequency value (seconds)
+      const timeStep = 0.01; // Assume 10ms steps for frequencies
+
+      // Plot frequencies relevant to our active range
+      for (let i = 0; i < frequencies.length; i++) {
+        const time = i * timeStep;
+
+        // Skip if outside active range with a small buffer
+        if (time < rangeStart - 0.1 || time > rangeEnd + 0.1) continue;
+
+        // Normalize time to range [0, 1] within our active range
+        const normalizedTime = (time - rangeStart) / rangeDuration;
+        const x = normalizedTime * (width / dpr);
+
+        const frequency = frequencies[i];
+        if (frequency === null) {
+          // Skip null values - path will be discontinued
+          lastX = -1;
+          lastY = -1;
+          continue;
+        }
+
+        // Normalize frequency to range [0, 1] and calculate y position
+        // Note: y is inverted in canvas (0 is top)
+        const normalizedFreq = Math.max(
+          0,
+          Math.min(1, (frequency - minFreq) / (maxFreq - minFreq))
+        );
+        const y = height / dpr - normalizedFreq * (height / dpr);
+
+        if (lastX === -1) {
+          // Start a new path if previous point was missing
+          ctx.moveTo(x, y);
+        } else {
+          // Connect to previous point
+          ctx.lineTo(x, y);
+        }
+
+        lastX = x;
+        lastY = y;
+      }
+
+      ctx.stroke();
+    }
+
+    // Draw current time marker
+    if (currentTime >= rangeStart && currentTime <= rangeEnd) {
+      const normalizedCurrentTime = (currentTime - rangeStart) / rangeDuration;
+      const currentX = normalizedCurrentTime * (width / dpr);
+
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(currentX, 0);
+      ctx.lineTo(currentX, height / dpr);
+      ctx.stroke();
+    }
+  }, [frequencies, activeRange, currentTime, waveform]);
+
+  return (
+    <canvas ref={canvasRef} className={cn("w-full h-20 rounded", className)} />
+  );
 };

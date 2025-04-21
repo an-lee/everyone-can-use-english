@@ -6,7 +6,10 @@ import {
 } from "@renderer/store";
 import { cn, convertWordIpaToNormal } from "@renderer/lib/utils";
 import { useEffect, useRef, useMemo, memo } from "react";
-import { PitchContour } from "@renderer/components/charts";
+import {
+  PitchContourCanvas,
+  PitchContourChart,
+} from "@renderer/components/charts";
 import {
   PitchContourButton,
   TranslationButton,
@@ -67,7 +70,6 @@ export function TranscriptionSentenceDetails(props: {
 
       <div className="flex items-center gap-1.5">
         <TranslationButton />
-        {frequencies.length > 0 && <PitchContourButton />}
       </div>
 
       <div className="flex items-center flex-wrap mb-2">{wordComponents}</div>
@@ -75,12 +77,6 @@ export function TranscriptionSentenceDetails(props: {
       {displayTranslation && (
         <div className="mb-2 w-full">
           <Translation content={sentence.text} />
-        </div>
-      )}
-
-      {displayPitchContour && frequencies.length > 0 && (
-        <div className="mb-2 w-full">
-          <PitchContour />
         </div>
       )}
 
