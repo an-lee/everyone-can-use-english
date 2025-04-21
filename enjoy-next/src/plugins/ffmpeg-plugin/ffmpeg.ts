@@ -80,35 +80,99 @@ export class Ffmpeg {
   }
 
   /**
+   * Extract waveform data from an audio file
+   */
+  getWaveform(
+    url: string,
+    options: AudioProcessOptions = {}
+  ): Promise<Float32Array> {
+    this.logger.debug(`Getting waveform data for ${url}`);
+
+    return this.processAudioFile(url, options).then(({ peaks }) => peaks);
+  }
+
+  /**
    * Extract frequency data from an audio file
    * @param url The audio file URL
    * @param options Processing options
    */
   getFrequencyData(
     url: string,
-    options: {
-      sampleRate?: number;
+    options: AudioProcessOptions & {
       sensitivity?: number;
-      filterType?: "basic" | "language" | "tonal" | "speech";
-      timeoutMs?: number;
       algorithm?: "YIN" | "AMDF" | "ACF2PLUS";
-      enhanceSpeech?: boolean;
-      downsampling?: boolean; // New option to enable automatic downsampling for large files
     } = {}
   ): Promise<{
     frequencies: (number | null)[];
     metadata: { duration: number; timeStep: number };
   }> {
+    this.logger.debug(
+      `Getting frequency data for ${url} with mode: ${options.filterType || "language"}`
+    );
+
+    return this.processAudioFile(url, options).then(
+      ({ peaks, duration, sampleRate }) => {
+        // Process the frequency data with optimized settings
+        const filterType = options.filterType || "language";
+        const frequencies = extractFrequencies({
+          peaks,
+          sampleRate,
+          options: {
+            sensitivity:
+              options.sensitivity || (filterType === "speech" ? 0.03 : 0.05),
+            // Use AMDF for speech, YIN for tonal content
+            algorithm:
+              options.algorithm || (filterType === "speech" ? "AMDF" : "YIN"),
+            // Higher probability threshold for speech to detect more segments
+            probabilityThreshold: filterType === "speech" ? 0.05 : 0.1,
+            // Adjust frequency range based on content type
+            minFrequency: filterType === "tonal" ? 75 : 85,
+            maxFrequency: filterType === "tonal" ? 500 : 400,
+            // Use chunked processing for large files
+            chunkSize: 100000,
+            // Skip post-processing for basic mode
+            skipPostProcessing: filterType === "basic",
+          },
+        });
+
+        // Calculate metadata
+        const calculatedDuration = peaks.length / sampleRate;
+        const timeStep = 0.01; // 10ms steps
+
+        // Use the more accurate duration
+        const finalDuration =
+          Math.abs(calculatedDuration - duration) > 5
+            ? duration
+            : calculatedDuration;
+
+        this.logger.debug(
+          `Extracted ${frequencies.filter((f) => f !== null).length} valid frequencies from ${frequencies.length} total. Duration: ${finalDuration}s`
+        );
+
+        return {
+          frequencies,
+          metadata: {
+            duration: finalDuration,
+            timeStep,
+          },
+        };
+      }
+    );
+  }
+
+  /**
+   * Common audio file processing logic shared between waveform and frequency operations
+   */
+  private processAudioFile(
+    url: string,
+    options: AudioProcessOptions = {}
+  ): Promise<{ peaks: Float32Array; duration: number; sampleRate: number }> {
     const {
       filterType = "language",
       timeoutMs = FFMPEG_TIMEOUT_MS,
       enhanceSpeech = true,
       downsampling = true,
     } = options;
-
-    this.logger.debug(
-      `Getting frequency data for ${url} with mode: ${filterType}`
-    );
 
     // Validate the file asynchronously
     const filePath = enjoyUrlToPath(url);
@@ -124,7 +188,7 @@ export class Ffmpeg {
 
     // Configure options - preset sampleRate based on content type for performance
     let sampleRate =
-      options.sampleRate || (filterType === "speech" ? 16000 : 22050); // Lower sample rate for speech
+      options.sampleRate || (filterType === "speech" ? 16000 : 22050);
 
     // Create abort controller for timeout
     const controller = new AbortController();
@@ -206,49 +270,7 @@ export class Ffmpeg {
         ]);
       })
       .then(([duration, peaks]) => {
-        // Process the frequency data with optimized settings
-        const frequencies = extractFrequencies({
-          peaks,
-          sampleRate,
-          options: {
-            sensitivity:
-              options.sensitivity || (filterType === "speech" ? 0.03 : 0.05),
-            // Use AMDF for speech, YIN for tonal content
-            algorithm:
-              options.algorithm || (filterType === "speech" ? "AMDF" : "YIN"),
-            // Higher probability threshold for speech to detect more segments
-            probabilityThreshold: filterType === "speech" ? 0.05 : 0.1,
-            // Adjust frequency range based on content type
-            minFrequency: filterType === "tonal" ? 75 : 85,
-            maxFrequency: filterType === "tonal" ? 500 : 400,
-            // Use chunked processing for large files
-            chunkSize: 100000,
-            // Skip post-processing for basic mode
-            skipPostProcessing: filterType === "basic",
-          },
-        });
-
-        // Calculate metadata
-        const calculatedDuration = peaks.length / sampleRate;
-        const timeStep = 0.01; // 10ms steps
-
-        // Use the more accurate duration
-        const finalDuration =
-          Math.abs(calculatedDuration - duration) > 5
-            ? duration
-            : calculatedDuration;
-
-        this.logger.debug(
-          `Extracted ${frequencies.filter((f) => f !== null).length} valid frequencies from ${frequencies.length} total. Duration: ${finalDuration}s`
-        );
-
-        return {
-          frequencies,
-          metadata: {
-            duration: finalDuration,
-            timeStep,
-          },
-        };
+        return { peaks, duration, sampleRate };
       })
       .finally(() => {
         this.cleanupOperation(operationId, outputPath);
@@ -511,9 +533,19 @@ export const commands = [
     function: () => ffmpeg.checkCommand(),
   },
   {
+    name: "getWaveform",
+    function: (url: string, options: AudioProcessOptions = {}) =>
+      ffmpeg.getWaveform(url, options),
+  },
+  {
     name: "getFrequencyData",
-    function: (url: string, options = {}) =>
-      ffmpeg.getFrequencyData(url, options),
+    function: (
+      url: string,
+      options: AudioProcessOptions & {
+        sensitivity?: number;
+        algorithm?: "YIN" | "AMDF" | "ACF2PLUS";
+      } = {}
+    ) => ffmpeg.getFrequencyData(url, options),
   },
   {
     name: "compressAudio",
