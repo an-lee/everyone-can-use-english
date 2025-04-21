@@ -23,7 +23,7 @@ export function TranscriptionSentenceDetails(props: {
   recording?: RecordingEntity;
 }) {
   const { sentence, selectWord, recording } = props;
-  const { currentTime, src } = useMeidaPlayBackStore();
+  const { currentTime, src, frequencies } = useMeidaPlayBackStore();
   const { selectedWords, targetId, targetType, currentIndex } =
     useTranscriptionStore();
   const ref = useRef<HTMLDivElement>(null);
@@ -67,7 +67,7 @@ export function TranscriptionSentenceDetails(props: {
 
       <div className="flex items-center gap-1.5">
         <TranslationButton />
-        <PitchContourButton />
+        {frequencies.length > 0 && <PitchContourButton />}
       </div>
 
       <div className="flex items-center flex-wrap mb-2">{wordComponents}</div>

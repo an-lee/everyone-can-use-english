@@ -33,6 +33,20 @@ type MediaPlayBackState = {
     autoPlay?: boolean;
   }) => void;
 
+  waveform: {
+    data: Float32Array;
+    sampleRate: number;
+  } | null;
+  setWaveform: (
+    waveform: {
+      data: Float32Array;
+      sampleRate: number;
+    } | null
+  ) => void;
+
+  frequencies: (number | null)[];
+  setFrequencies: (frequencies: (number | null)[]) => void;
+
   error: Error | null;
   setError: (error: Error | null) => void;
 
@@ -94,6 +108,17 @@ export const useMeidaPlayBackStore = create<MediaPlayBackState>((set, get) => ({
       get().mediaElement!.currentTime = time;
     }
   },
+
+  waveform: null,
+  setWaveform: (
+    waveform: {
+      data: Float32Array;
+      sampleRate: number;
+    } | null
+  ) => set({ waveform }),
+
+  frequencies: [],
+  setFrequencies: (frequencies: (number | null)[]) => set({ frequencies }),
 
   reset: () => {
     set({
