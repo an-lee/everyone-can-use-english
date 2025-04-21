@@ -1,4 +1,3 @@
-import { useMediaFrequencies } from "@renderer/hooks";
 import {
   Button,
   Card,
@@ -25,50 +24,36 @@ import {
   ComposedChart,
   ReferenceLine,
 } from "recharts";
-import {
-  EmptyView,
-  ErrorView,
-  LoadingView,
-} from "@renderer/components/status-views";
 import { secondsToTimestamp } from "@renderer/lib/utils";
-import { useMeidaPlayBackStore } from "@renderer/store";
+import { useMeidaPlayBackStore, usePlayerSettingStore } from "@renderer/store";
 import { cn } from "@renderer/lib/utils";
 import { useTranslation } from "react-i18next";
 import { Icon } from "@iconify/react";
 
-export function PitchContourChart(props: {
-  data: {
-    frequencies: (number | null)[];
-    metadata: {
-      duration: number;
-    };
-  };
-  startTime?: number;
-  endTime?: number;
-}) {
-  const { data, startTime = 0 } = props;
-  let { endTime } = props;
+export function PitchContourChart() {
+  const { frequencies, activeRange, duration } = useMeidaPlayBackStore();
+  const startTime = activeRange.start;
+  const endTime = activeRange.end || duration;
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<HTMLDivElement>(null);
   const { currentTime } = useMeidaPlayBackStore();
 
   const chartData = useMemo(() => {
-    if (!data) return [];
+    if (!frequencies.length) return [];
 
-    endTime = endTime || data.metadata.duration;
     const duration = endTime - startTime;
 
     const startIndex = Math.floor(
-      (startTime / data.metadata.duration) * data.frequencies.length
+      (startTime / (duration || 1)) * frequencies.length
     );
     const endIndex = Math.floor(
-      (endTime / data.metadata.duration) * data.frequencies.length
+      (endTime / (duration || 1)) * frequencies.length
     );
 
     // Apply some smoothing to the frequency data to make it look nicer
     const smoothingFactor = 3; // Adjust this to control the amount of smoothing
-    const frequencies = data.frequencies.slice(startIndex, endIndex);
-    const smoothedFrequencies = frequencies.map((frequency, index) => {
+    const frequencySlice = frequencies.slice(startIndex, endIndex);
+    const smoothedFrequencies = frequencySlice.map((frequency, index) => {
       if (frequency === null || isNaN(frequency as number)) return null;
 
       let sum = 0;
@@ -76,11 +61,11 @@ export function PitchContourChart(props: {
 
       for (
         let i = Math.max(0, index - smoothingFactor);
-        i <= Math.min(frequencies.length - 1, index + smoothingFactor);
+        i <= Math.min(frequencySlice.length - 1, index + smoothingFactor);
         i++
       ) {
-        if (frequencies[i] !== null && !isNaN(frequencies[i] as number)) {
-          sum += frequencies[i] as number;
+        if (frequencySlice[i] !== null && !isNaN(frequencySlice[i] as number)) {
+          sum += frequencySlice[i] as number;
           count++;
         }
       }
@@ -92,7 +77,7 @@ export function PitchContourChart(props: {
       frequency,
       time: startTime + (index / (endIndex - startIndex)) * duration,
     }));
-  }, [data, startTime, endTime]);
+  }, [frequencies, startTime, endTime, duration]);
 
   // Calculate domain for Y axis
   const yDomain = useMemo(() => {
@@ -159,13 +144,10 @@ export function PitchContourChart(props: {
 
   // Get a bounded current time for positioning the cursor
   const boundedCurrentTime = useMemo(() => {
-    if (!shouldShowCursor || !data) return null;
-    const bounded = Math.max(
-      startTime,
-      Math.min(endTime || data.metadata.duration, currentTime)
-    );
+    if (!shouldShowCursor) return null;
+    const bounded = Math.max(startTime, Math.min(endTime, currentTime));
     return bounded;
-  }, [currentTime, startTime, endTime, data, shouldShowCursor]);
+  }, [currentTime, startTime, endTime, shouldShowCursor]);
 
   // Find the nearest data point index to the current time for the cursor
   const cursorDataPoint = useMemo(() => {
@@ -340,29 +322,14 @@ export function PitchContourChart(props: {
   );
 }
 
-export function PitchContour(props: {
-  src: string;
-  startTime?: number;
-  endTime?: number;
-}) {
+export function PitchContour() {
   const { t } = useTranslation("components/charts");
-  const { src, startTime = 0 } = props;
-  let { endTime } = props;
-  const [algorithm, setAlgorithm] = useState<"YIN" | "AMDF" | "ACF2PLUS">(
-    "AMDF"
-  );
-  const [filterType, setFilterType] = useState<
-    "basic" | "language" | "tonal" | "speech"
-  >("speech");
-
-  const { data, isLoading, error } = useMediaFrequencies(src, {
-    filterType,
-    algorithm,
-  });
-
-  if (isLoading) return <LoadingView />;
-  if (error) return <ErrorView error={error?.message || "Unknown error"} />;
-  if (!data) return <EmptyView />;
+  const {
+    frequencyAlgorithm,
+    setFrequencyAlgorithm,
+    frequencyFilterType,
+    setFrequencyFilterType,
+  } = usePlayerSettingStore();
 
   return (
     <Card>
@@ -381,17 +348,29 @@ export function PitchContour(props: {
                   {t("algorithm")}
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent>
-                  <DropdownMenuItem onClick={() => setAlgorithm("YIN")}>
+                  <DropdownMenuItem
+                    onClick={() => setFrequencyAlgorithm("YIN")}
+                  >
                     YIN
-                    {algorithm === "YIN" && <Icon icon="tabler:check" />}
+                    {frequencyAlgorithm === "YIN" && (
+                      <Icon icon="tabler:check" />
+                    )}
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setAlgorithm("AMDF")}>
+                  <DropdownMenuItem
+                    onClick={() => setFrequencyAlgorithm("AMDF")}
+                  >
                     AMDF
-                    {algorithm === "AMDF" && <Icon icon="tabler:check" />}
+                    {frequencyAlgorithm === "AMDF" && (
+                      <Icon icon="tabler:check" />
+                    )}
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setAlgorithm("ACF2PLUS")}>
+                  <DropdownMenuItem
+                    onClick={() => setFrequencyAlgorithm("ACF2PLUS")}
+                  >
                     ACF2PLUS
-                    {algorithm === "ACF2PLUS" && <Icon icon="tabler:check" />}
+                    {frequencyAlgorithm === "ACF2PLUS" && (
+                      <Icon icon="tabler:check" />
+                    )}
                   </DropdownMenuItem>
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
@@ -400,21 +379,37 @@ export function PitchContour(props: {
                   {t("filterType")}
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent>
-                  <DropdownMenuItem onClick={() => setFilterType("basic")}>
+                  <DropdownMenuItem
+                    onClick={() => setFrequencyFilterType("basic")}
+                  >
                     {t("basic")}
-                    {filterType === "basic" && <Icon icon="tabler:check" />}
+                    {frequencyFilterType === "basic" && (
+                      <Icon icon="tabler:check" />
+                    )}
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setFilterType("language")}>
+                  <DropdownMenuItem
+                    onClick={() => setFrequencyFilterType("language")}
+                  >
                     {t("language")}
-                    {filterType === "language" && <Icon icon="tabler:check" />}
+                    {frequencyFilterType === "language" && (
+                      <Icon icon="tabler:check" />
+                    )}
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setFilterType("tonal")}>
+                  <DropdownMenuItem
+                    onClick={() => setFrequencyFilterType("tonal")}
+                  >
                     {t("tonal")}
-                    {filterType === "tonal" && <Icon icon="tabler:check" />}
+                    {frequencyFilterType === "tonal" && (
+                      <Icon icon="tabler:check" />
+                    )}
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setFilterType("speech")}>
+                  <DropdownMenuItem
+                    onClick={() => setFrequencyFilterType("speech")}
+                  >
                     {t("speech")}
-                    {filterType === "speech" && <Icon icon="tabler:check" />}
+                    {frequencyFilterType === "speech" && (
+                      <Icon icon="tabler:check" />
+                    )}
                   </DropdownMenuItem>
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
@@ -423,16 +418,7 @@ export function PitchContour(props: {
         </div>
       </CardHeader>
       <CardContent>
-        <PitchContourChart
-          data={{
-            frequencies: data.frequencies,
-            metadata: {
-              duration: data.metadata.duration,
-            },
-          }}
-          startTime={startTime}
-          endTime={endTime}
-        />
+        <PitchContourChart />
         <p className="text-xs italic text-muted-foreground">
           * {t("pitchContorExplanation")}
         </p>
