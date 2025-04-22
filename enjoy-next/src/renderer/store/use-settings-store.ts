@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import i18n from "../lib/i18n";
+import { Client } from "../api";
 
 const languages: { code: Language; name: string }[] = [
   {
@@ -87,7 +88,15 @@ type SettingsState = {
   };
   setRecorderConfig: (recorderConfig: { [key: string]: string }) => void;
 
+  // Remote config
+  ipaMappings: {
+    [key: string]: string;
+  };
+  latestVersion: string;
+
   refresh: () => void;
+  refreshFromIpc: () => void;
+  refreshFromAPI: () => void;
 };
 
 export const useSettingsStore = create<SettingsState>()(
@@ -191,54 +200,73 @@ export const useSettingsStore = create<SettingsState>()(
         window.EnjoyAPI.db.userSetting.set("recorderConfig", recorderConfig);
       },
 
+      ipaMappings: {},
+      latestVersion: "",
+
       // Actions
       refresh: async () => {
+        get().refreshFromIpc();
+        get().refreshFromAPI();
+      },
+
+      refreshFromIpc: async () => {
         window.EnjoyAPI.db.userSetting.all().then((settings) => {
-          console.log("settings refreshed:", settings);
           for (const setting of settings) {
             switch (setting.key) {
               case "language":
-                get().setLanguage(setting.value);
+                set({ language: setting.value });
                 break;
               case "theme":
-                get().setTheme(setting.value);
+                set({ theme: setting.value });
                 break;
               case "fontSize":
-                get().setFontSize(setting.value);
+                set({ fontSize: setting.value });
                 break;
               case "nativeLanguage":
-                get().setNativeLanguage(setting.value);
+                set({ nativeLanguage: setting.value });
                 break;
               case "learningLanguage":
-                get().setLearningLanguage(setting.value);
+                set({ learningLanguage: setting.value });
                 break;
               case "whisper":
-                get().setWhisper(setting.value);
+                set({ whisper: setting.value });
                 break;
               case "openai":
-                get().setOpenai(setting.value);
+                set({ openai: setting.value });
                 break;
               case "gptEngine":
-                get().setGptEngine(setting.value);
+                set({ gptEngine: setting.value });
                 break;
               case "sttEngine":
-                get().setSttEngine(setting.value);
+                set({ sttEngine: setting.value });
                 break;
               case "ttsConfig":
-                get().setTtsConfig(setting.value);
+                set({ ttsConfig: setting.value });
                 break;
               case "echogarden":
-                get().setEchogarden(setting.value);
+                set({ echogarden: setting.value });
                 break;
               case "hotkeys":
-                get().setHotkeys(setting.value);
+                set({ hotkeys: setting.value });
                 break;
               case "recorder":
-                get().setRecorderConfig(setting.value);
+                set({ recorderConfig: setting.value });
                 break;
             }
           }
         });
+      },
+
+      refreshFromAPI: async () => {
+        const client = new Client();
+        Promise.all([
+          client.config("ipa_mappings").then((ipaMappings) => {
+            set({ ipaMappings });
+          }),
+          client.config("app_version").then((appVersion) => {
+            set({ latestVersion: appVersion.version });
+          }),
+        ]);
       },
     }),
     {
