@@ -5,7 +5,15 @@
   "logout": "Log out",
   "home": "Home",
   "materials": "Materials",
-  "audios": "Audios",
-  "videos": "Videos",
-  "documents": "Documents"
+  "localAudios": "Local Audios",
+  "localVideos": "Local Videos",
+  "localDocuments": "Local Documents",
+  "aiTools": "AI Tools",
+  "stt": "Speech to Text",
+  "tts": "Text to Speech",
+  "translate": "Translate",
+  "moreTools": "More Tools",
+  "aiChats": "AI Chats",
+  "newChat": "New Chat",
+  "moreChats": "More Chats"
 }

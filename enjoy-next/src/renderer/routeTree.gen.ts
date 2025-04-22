@@ -17,9 +17,18 @@ import { Route as IndexImport } from './routes/index'
 import { Route as UnauthenticatedLoginImport } from './routes/_unauthenticated/login'
 import { Route as AuthenticatedDashboardImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedVideosIndexImport } from './routes/_authenticated/videos/index'
+import { Route as AuthenticatedToolsIndexImport } from './routes/_authenticated/tools/index'
 import { Route as AuthenticatedDocumentsIndexImport } from './routes/_authenticated/documents/index'
+import { Route as AuthenticatedChatsIndexImport } from './routes/_authenticated/chats/index'
 import { Route as AuthenticatedAudiosIndexImport } from './routes/_authenticated/audios/index'
+import { Route as AuthenticatedToolsTtsImport } from './routes/_authenticated/tools/tts'
+import { Route as AuthenticatedToolsTranslateImport } from './routes/_authenticated/tools/translate'
+import { Route as AuthenticatedToolsSttImport } from './routes/_authenticated/tools/stt'
+import { Route as AuthenticatedToolsLookupImport } from './routes/_authenticated/tools/lookup'
+import { Route as AuthenticatedToolsAssessImport } from './routes/_authenticated/tools/assess'
+import { Route as AuthenticatedToolsToolIdImport } from './routes/_authenticated/tools/$toolId'
 import { Route as AuthenticatedDocumentsDocumentIdImport } from './routes/_authenticated/documents/$documentId'
+import { Route as AuthenticatedChatsChatIdImport } from './routes/_authenticated/chats/$chatId'
 import { Route as AuthenticatedAudiosAudioIdImport } from './routes/_authenticated/audios/$audioId'
 
 // Create/Update Routes
@@ -58,6 +67,12 @@ const AuthenticatedVideosIndexRoute = AuthenticatedVideosIndexImport.update({
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 
+const AuthenticatedToolsIndexRoute = AuthenticatedToolsIndexImport.update({
+  id: '/tools/',
+  path: '/tools/',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+
 const AuthenticatedDocumentsIndexRoute =
   AuthenticatedDocumentsIndexImport.update({
     id: '/documents/',
@@ -65,9 +80,52 @@ const AuthenticatedDocumentsIndexRoute =
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 
+const AuthenticatedChatsIndexRoute = AuthenticatedChatsIndexImport.update({
+  id: '/chats/',
+  path: '/chats/',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+
 const AuthenticatedAudiosIndexRoute = AuthenticatedAudiosIndexImport.update({
   id: '/audios/',
   path: '/audios/',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+
+const AuthenticatedToolsTtsRoute = AuthenticatedToolsTtsImport.update({
+  id: '/tools/tts',
+  path: '/tools/tts',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+
+const AuthenticatedToolsTranslateRoute =
+  AuthenticatedToolsTranslateImport.update({
+    id: '/tools/translate',
+    path: '/tools/translate',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+
+const AuthenticatedToolsSttRoute = AuthenticatedToolsSttImport.update({
+  id: '/tools/stt',
+  path: '/tools/stt',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+
+const AuthenticatedToolsLookupRoute = AuthenticatedToolsLookupImport.update({
+  id: '/tools/lookup',
+  path: '/tools/lookup',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+
+const AuthenticatedToolsAssessRoute = AuthenticatedToolsAssessImport.update({
+  id: '/tools/assess',
+  path: '/tools/assess',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+
+const AuthenticatedToolsToolIdRoute = AuthenticatedToolsToolIdImport.update({
+  id: '/tools/$toolId',
+  path: '/tools/$toolId',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 
@@ -77,6 +135,12 @@ const AuthenticatedDocumentsDocumentIdRoute =
     path: '/documents/$documentId',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+
+const AuthenticatedChatsChatIdRoute = AuthenticatedChatsChatIdImport.update({
+  id: '/chats/$chatId',
+  path: '/chats/$chatId',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 
 const AuthenticatedAudiosAudioIdRoute = AuthenticatedAudiosAudioIdImport.update(
   {
@@ -132,11 +196,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAudiosAudioIdImport
       parentRoute: typeof AuthenticatedImport
     }
+    '/_authenticated/chats/$chatId': {
+      id: '/_authenticated/chats/$chatId'
+      path: '/chats/$chatId'
+      fullPath: '/chats/$chatId'
+      preLoaderRoute: typeof AuthenticatedChatsChatIdImport
+      parentRoute: typeof AuthenticatedImport
+    }
     '/_authenticated/documents/$documentId': {
       id: '/_authenticated/documents/$documentId'
       path: '/documents/$documentId'
       fullPath: '/documents/$documentId'
       preLoaderRoute: typeof AuthenticatedDocumentsDocumentIdImport
+      parentRoute: typeof AuthenticatedImport
+    }
+    '/_authenticated/tools/$toolId': {
+      id: '/_authenticated/tools/$toolId'
+      path: '/tools/$toolId'
+      fullPath: '/tools/$toolId'
+      preLoaderRoute: typeof AuthenticatedToolsToolIdImport
+      parentRoute: typeof AuthenticatedImport
+    }
+    '/_authenticated/tools/assess': {
+      id: '/_authenticated/tools/assess'
+      path: '/tools/assess'
+      fullPath: '/tools/assess'
+      preLoaderRoute: typeof AuthenticatedToolsAssessImport
+      parentRoute: typeof AuthenticatedImport
+    }
+    '/_authenticated/tools/lookup': {
+      id: '/_authenticated/tools/lookup'
+      path: '/tools/lookup'
+      fullPath: '/tools/lookup'
+      preLoaderRoute: typeof AuthenticatedToolsLookupImport
+      parentRoute: typeof AuthenticatedImport
+    }
+    '/_authenticated/tools/stt': {
+      id: '/_authenticated/tools/stt'
+      path: '/tools/stt'
+      fullPath: '/tools/stt'
+      preLoaderRoute: typeof AuthenticatedToolsSttImport
+      parentRoute: typeof AuthenticatedImport
+    }
+    '/_authenticated/tools/translate': {
+      id: '/_authenticated/tools/translate'
+      path: '/tools/translate'
+      fullPath: '/tools/translate'
+      preLoaderRoute: typeof AuthenticatedToolsTranslateImport
+      parentRoute: typeof AuthenticatedImport
+    }
+    '/_authenticated/tools/tts': {
+      id: '/_authenticated/tools/tts'
+      path: '/tools/tts'
+      fullPath: '/tools/tts'
+      preLoaderRoute: typeof AuthenticatedToolsTtsImport
       parentRoute: typeof AuthenticatedImport
     }
     '/_authenticated/audios/': {
@@ -146,11 +259,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAudiosIndexImport
       parentRoute: typeof AuthenticatedImport
     }
+    '/_authenticated/chats/': {
+      id: '/_authenticated/chats/'
+      path: '/chats'
+      fullPath: '/chats'
+      preLoaderRoute: typeof AuthenticatedChatsIndexImport
+      parentRoute: typeof AuthenticatedImport
+    }
     '/_authenticated/documents/': {
       id: '/_authenticated/documents/'
       path: '/documents'
       fullPath: '/documents'
       preLoaderRoute: typeof AuthenticatedDocumentsIndexImport
+      parentRoute: typeof AuthenticatedImport
+    }
+    '/_authenticated/tools/': {
+      id: '/_authenticated/tools/'
+      path: '/tools'
+      fullPath: '/tools'
+      preLoaderRoute: typeof AuthenticatedToolsIndexImport
       parentRoute: typeof AuthenticatedImport
     }
     '/_authenticated/videos/': {
@@ -168,18 +295,36 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedAudiosAudioIdRoute: typeof AuthenticatedAudiosAudioIdRoute
+  AuthenticatedChatsChatIdRoute: typeof AuthenticatedChatsChatIdRoute
   AuthenticatedDocumentsDocumentIdRoute: typeof AuthenticatedDocumentsDocumentIdRoute
+  AuthenticatedToolsToolIdRoute: typeof AuthenticatedToolsToolIdRoute
+  AuthenticatedToolsAssessRoute: typeof AuthenticatedToolsAssessRoute
+  AuthenticatedToolsLookupRoute: typeof AuthenticatedToolsLookupRoute
+  AuthenticatedToolsSttRoute: typeof AuthenticatedToolsSttRoute
+  AuthenticatedToolsTranslateRoute: typeof AuthenticatedToolsTranslateRoute
+  AuthenticatedToolsTtsRoute: typeof AuthenticatedToolsTtsRoute
   AuthenticatedAudiosIndexRoute: typeof AuthenticatedAudiosIndexRoute
+  AuthenticatedChatsIndexRoute: typeof AuthenticatedChatsIndexRoute
   AuthenticatedDocumentsIndexRoute: typeof AuthenticatedDocumentsIndexRoute
+  AuthenticatedToolsIndexRoute: typeof AuthenticatedToolsIndexRoute
   AuthenticatedVideosIndexRoute: typeof AuthenticatedVideosIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedAudiosAudioIdRoute: AuthenticatedAudiosAudioIdRoute,
+  AuthenticatedChatsChatIdRoute: AuthenticatedChatsChatIdRoute,
   AuthenticatedDocumentsDocumentIdRoute: AuthenticatedDocumentsDocumentIdRoute,
+  AuthenticatedToolsToolIdRoute: AuthenticatedToolsToolIdRoute,
+  AuthenticatedToolsAssessRoute: AuthenticatedToolsAssessRoute,
+  AuthenticatedToolsLookupRoute: AuthenticatedToolsLookupRoute,
+  AuthenticatedToolsSttRoute: AuthenticatedToolsSttRoute,
+  AuthenticatedToolsTranslateRoute: AuthenticatedToolsTranslateRoute,
+  AuthenticatedToolsTtsRoute: AuthenticatedToolsTtsRoute,
   AuthenticatedAudiosIndexRoute: AuthenticatedAudiosIndexRoute,
+  AuthenticatedChatsIndexRoute: AuthenticatedChatsIndexRoute,
   AuthenticatedDocumentsIndexRoute: AuthenticatedDocumentsIndexRoute,
+  AuthenticatedToolsIndexRoute: AuthenticatedToolsIndexRoute,
   AuthenticatedVideosIndexRoute: AuthenticatedVideosIndexRoute,
 }
 
@@ -205,9 +350,18 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/login': typeof UnauthenticatedLoginRoute
   '/audios/$audioId': typeof AuthenticatedAudiosAudioIdRoute
+  '/chats/$chatId': typeof AuthenticatedChatsChatIdRoute
   '/documents/$documentId': typeof AuthenticatedDocumentsDocumentIdRoute
+  '/tools/$toolId': typeof AuthenticatedToolsToolIdRoute
+  '/tools/assess': typeof AuthenticatedToolsAssessRoute
+  '/tools/lookup': typeof AuthenticatedToolsLookupRoute
+  '/tools/stt': typeof AuthenticatedToolsSttRoute
+  '/tools/translate': typeof AuthenticatedToolsTranslateRoute
+  '/tools/tts': typeof AuthenticatedToolsTtsRoute
   '/audios': typeof AuthenticatedAudiosIndexRoute
+  '/chats': typeof AuthenticatedChatsIndexRoute
   '/documents': typeof AuthenticatedDocumentsIndexRoute
+  '/tools': typeof AuthenticatedToolsIndexRoute
   '/videos': typeof AuthenticatedVideosIndexRoute
 }
 
@@ -217,9 +371,18 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/login': typeof UnauthenticatedLoginRoute
   '/audios/$audioId': typeof AuthenticatedAudiosAudioIdRoute
+  '/chats/$chatId': typeof AuthenticatedChatsChatIdRoute
   '/documents/$documentId': typeof AuthenticatedDocumentsDocumentIdRoute
+  '/tools/$toolId': typeof AuthenticatedToolsToolIdRoute
+  '/tools/assess': typeof AuthenticatedToolsAssessRoute
+  '/tools/lookup': typeof AuthenticatedToolsLookupRoute
+  '/tools/stt': typeof AuthenticatedToolsSttRoute
+  '/tools/translate': typeof AuthenticatedToolsTranslateRoute
+  '/tools/tts': typeof AuthenticatedToolsTtsRoute
   '/audios': typeof AuthenticatedAudiosIndexRoute
+  '/chats': typeof AuthenticatedChatsIndexRoute
   '/documents': typeof AuthenticatedDocumentsIndexRoute
+  '/tools': typeof AuthenticatedToolsIndexRoute
   '/videos': typeof AuthenticatedVideosIndexRoute
 }
 
@@ -231,9 +394,18 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_unauthenticated/login': typeof UnauthenticatedLoginRoute
   '/_authenticated/audios/$audioId': typeof AuthenticatedAudiosAudioIdRoute
+  '/_authenticated/chats/$chatId': typeof AuthenticatedChatsChatIdRoute
   '/_authenticated/documents/$documentId': typeof AuthenticatedDocumentsDocumentIdRoute
+  '/_authenticated/tools/$toolId': typeof AuthenticatedToolsToolIdRoute
+  '/_authenticated/tools/assess': typeof AuthenticatedToolsAssessRoute
+  '/_authenticated/tools/lookup': typeof AuthenticatedToolsLookupRoute
+  '/_authenticated/tools/stt': typeof AuthenticatedToolsSttRoute
+  '/_authenticated/tools/translate': typeof AuthenticatedToolsTranslateRoute
+  '/_authenticated/tools/tts': typeof AuthenticatedToolsTtsRoute
   '/_authenticated/audios/': typeof AuthenticatedAudiosIndexRoute
+  '/_authenticated/chats/': typeof AuthenticatedChatsIndexRoute
   '/_authenticated/documents/': typeof AuthenticatedDocumentsIndexRoute
+  '/_authenticated/tools/': typeof AuthenticatedToolsIndexRoute
   '/_authenticated/videos/': typeof AuthenticatedVideosIndexRoute
 }
 
@@ -245,9 +417,18 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/audios/$audioId'
+    | '/chats/$chatId'
     | '/documents/$documentId'
+    | '/tools/$toolId'
+    | '/tools/assess'
+    | '/tools/lookup'
+    | '/tools/stt'
+    | '/tools/translate'
+    | '/tools/tts'
     | '/audios'
+    | '/chats'
     | '/documents'
+    | '/tools'
     | '/videos'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -256,9 +437,18 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/audios/$audioId'
+    | '/chats/$chatId'
     | '/documents/$documentId'
+    | '/tools/$toolId'
+    | '/tools/assess'
+    | '/tools/lookup'
+    | '/tools/stt'
+    | '/tools/translate'
+    | '/tools/tts'
     | '/audios'
+    | '/chats'
     | '/documents'
+    | '/tools'
     | '/videos'
   id:
     | '__root__'
@@ -268,9 +458,18 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_unauthenticated/login'
     | '/_authenticated/audios/$audioId'
+    | '/_authenticated/chats/$chatId'
     | '/_authenticated/documents/$documentId'
+    | '/_authenticated/tools/$toolId'
+    | '/_authenticated/tools/assess'
+    | '/_authenticated/tools/lookup'
+    | '/_authenticated/tools/stt'
+    | '/_authenticated/tools/translate'
+    | '/_authenticated/tools/tts'
     | '/_authenticated/audios/'
+    | '/_authenticated/chats/'
     | '/_authenticated/documents/'
+    | '/_authenticated/tools/'
     | '/_authenticated/videos/'
   fileRoutesById: FileRoutesById
 }
@@ -310,9 +509,18 @@ export const routeTree = rootRoute
       "children": [
         "/_authenticated/dashboard",
         "/_authenticated/audios/$audioId",
+        "/_authenticated/chats/$chatId",
         "/_authenticated/documents/$documentId",
+        "/_authenticated/tools/$toolId",
+        "/_authenticated/tools/assess",
+        "/_authenticated/tools/lookup",
+        "/_authenticated/tools/stt",
+        "/_authenticated/tools/translate",
+        "/_authenticated/tools/tts",
         "/_authenticated/audios/",
+        "/_authenticated/chats/",
         "/_authenticated/documents/",
+        "/_authenticated/tools/",
         "/_authenticated/videos/"
       ]
     },
@@ -334,16 +542,52 @@ export const routeTree = rootRoute
       "filePath": "_authenticated/audios/$audioId.tsx",
       "parent": "/_authenticated"
     },
+    "/_authenticated/chats/$chatId": {
+      "filePath": "_authenticated/chats/$chatId.tsx",
+      "parent": "/_authenticated"
+    },
     "/_authenticated/documents/$documentId": {
       "filePath": "_authenticated/documents/$documentId.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/tools/$toolId": {
+      "filePath": "_authenticated/tools/$toolId.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/tools/assess": {
+      "filePath": "_authenticated/tools/assess.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/tools/lookup": {
+      "filePath": "_authenticated/tools/lookup.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/tools/stt": {
+      "filePath": "_authenticated/tools/stt.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/tools/translate": {
+      "filePath": "_authenticated/tools/translate.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/tools/tts": {
+      "filePath": "_authenticated/tools/tts.tsx",
       "parent": "/_authenticated"
     },
     "/_authenticated/audios/": {
       "filePath": "_authenticated/audios/index.tsx",
       "parent": "/_authenticated"
     },
+    "/_authenticated/chats/": {
+      "filePath": "_authenticated/chats/index.tsx",
+      "parent": "/_authenticated"
+    },
     "/_authenticated/documents/": {
       "filePath": "_authenticated/documents/index.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/tools/": {
+      "filePath": "_authenticated/tools/index.tsx",
       "parent": "/_authenticated"
     },
     "/_authenticated/videos/": {

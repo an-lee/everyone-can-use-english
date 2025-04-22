@@ -4,7 +4,7 @@ import {
   useTranscriptionStore,
   usePlayerSettingStore,
 } from "@renderer/store";
-import { useTranscriptionByTarget } from "./use-transcription";
+import { useTranscriptionByTargetQuery } from "./use-transcription-queries";
 
 export const useTranscriptionControls = (props: {
   targetId: string;
@@ -65,7 +65,7 @@ export const useTranscriptionControls = (props: {
     data: transcription,
     isLoading,
     error,
-  } = useTranscriptionByTarget(targetId, targetType);
+  } = useTranscriptionByTargetQuery(targetId, targetType);
 
   useEffect(() => {
     if (!transcription) return;

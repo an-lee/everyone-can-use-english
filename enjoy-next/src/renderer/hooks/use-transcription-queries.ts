@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 /**
  * Get a single transcription by target
  */
-export const useTranscriptionByTarget = (
+export const useTranscriptionByTargetQuery = (
   targetId: string,
   targetType: string
 ) => {
@@ -25,7 +25,7 @@ export const useTranscriptionByTarget = (
 /**
  * Create a new audio
  */
-export const createTranscription = () => {
+export const useCreateTranscriptionMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -44,7 +44,7 @@ export const createTranscription = () => {
 /**
  * Update an audio
  */
-export const updateTranscription = () => {
+export const useUpdateTranscriptionMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -70,7 +70,7 @@ export const updateTranscription = () => {
 /**
  * Delete an audio
  */
-export const deleteTranscription = () => {
+export const useDeleteTranscriptionMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({

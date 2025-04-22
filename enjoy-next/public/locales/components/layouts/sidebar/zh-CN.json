@@ -5,7 +5,15 @@
   "logout": "登出",
   "home": "首页",
   "materials": "练习素材",
-  "audios": "音频",
-  "videos": "视频",
-  "documents": "文档"
+  "localAudios": "本地音频",
+  "localVideos": "本地视频",
+  "localDocuments": "本地文档",
+  "aiTools": "AI 工具",
+  "stt": "语音转文字",
+  "tts": "文字转语音",
+  "translate": "翻译",
+  "moreTools": "更多工具",
+  "aiChats": "AI 对话",
+  "newChat": "新对话",
+  "moreChats": "更多对话"
 }

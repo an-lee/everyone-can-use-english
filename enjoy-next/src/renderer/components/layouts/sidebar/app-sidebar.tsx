@@ -13,6 +13,8 @@ import {
   SidebarRail,
 } from "@renderer/components/ui";
 import { useTranslation } from "react-i18next";
+import { NavAiChats } from "./nav-ai-chats";
+import { NavAiTools } from "./nav-ai-tools";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { t } = useTranslation("components/layouts/sidebar");
@@ -26,17 +28,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const navMaterials = [
     {
-      title: t("audios"),
+      title: t("localAudios"),
       url: "/audios",
       icon: "tabler:headphones",
     },
     {
-      title: t("videos"),
+      title: t("localVideos"),
       url: "/videos",
       icon: "tabler:video",
     },
     {
-      title: t("documents"),
+      title: t("localDocuments"),
       url: "/documents",
       icon: "tabler:file-text",
     },
@@ -50,6 +52,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent className="draggable-region">
         <NavMain items={navMain} />
         <NavMaterials items={navMaterials} />
+        <NavAiTools />
+        <NavAiChats />
       </SidebarContent>
       <SidebarFooter>
         <AppInfo />

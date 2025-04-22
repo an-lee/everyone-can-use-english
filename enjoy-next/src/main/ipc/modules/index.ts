@@ -24,6 +24,7 @@ export * from "./shell-ipc";
 import { entityAudioIpcModule } from "./entity-audio-ipc";
 import { entityCacheObjectIpcModule } from "./entity-cache-object-ipc";
 import { entityChatAgentIpcModule } from "./entity-chat-agent-ipc";
+import { entityChatIpcModule } from "./entity-chat-ipc";
 import { entityChatMessageIpcModule } from "./entity-chat-message-ipc";
 import { entityChatMemberIpcModule } from "./entity-chat-member-ipc";
 import { entityConversationIpcModule } from "./entity-conversation-ipc";
@@ -40,6 +41,7 @@ export const entityIpcModules = [
   entityAudioIpcModule,
   entityCacheObjectIpcModule,
   entityChatAgentIpcModule,
+  entityChatIpcModule,
   entityChatMessageIpcModule,
   entityChatMemberIpcModule,
   entityConversationIpcModule,
