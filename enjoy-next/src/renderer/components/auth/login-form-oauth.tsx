@@ -1,5 +1,5 @@
-import { Client } from "@/renderer/api";
-import { useAppStore, useAuthStore } from "@/renderer/store";
+import { Client } from "@renderer/api";
+import { useAppStore, useAuthStore } from "@renderer/store";
 import { Icon } from "@iconify/react";
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";

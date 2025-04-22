@@ -30,6 +30,7 @@ export class EntityUserSettingIpcModule extends EntityBaseIpcModule<
         description?: string;
       }>
     > = {
+      all: [],
       get: [
         {
           name: "key",
@@ -47,7 +48,7 @@ export class EntityUserSettingIpcModule extends EntityBaseIpcModule<
         },
         {
           name: "value",
-          type: "string",
+          type: "any",
           required: true,
           description: "Value",
         },
@@ -72,6 +73,7 @@ export class EntityUserSettingIpcModule extends EntityBaseIpcModule<
   protected getMethodReturnType(methodName: string): string {
     // Define return types for each method directly
     const returnTypeMap: Record<string, string> = {
+      all: "Promise<{ key: string; value: any }[]>",
       get: "Promise<UserSettingEntity['value'] | null>",
       set: "Promise<UserSettingEntity | null>",
       delete: "Promise<boolean>",

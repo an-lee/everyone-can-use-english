@@ -21,13 +21,16 @@ export class BaseClient {
 
   constructor(options: ClientOptions = {}) {
     const {
-      baseUrl = useAppStore.getState().webApiUrl,
+      baseUrl = useAppStore.getState().config.webApiUrl!,
       accessToken = useAuthStore.getState().currentUser?.accessToken,
       logger = console,
       locale = "en",
       onError,
       onSuccess,
     } = options;
+    if (!baseUrl) {
+      throw new Error("baseUrl is required");
+    }
     this.baseUrl = baseUrl;
     this.logger = logger;
 
