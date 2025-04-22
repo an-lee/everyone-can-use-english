@@ -48,22 +48,10 @@ export class EntityRecordingIpcModule extends EntityBaseIpcModule<
       ],
       findByTarget: [
         {
-          name: "targetId",
-          type: "string",
+          name: "options",
+          type: "RecordingsQueryOptions",
           required: true,
-          description: "Target ID",
-        },
-        {
-          name: "targetType",
-          type: "string",
-          required: true,
-          description: "Target type",
-        },
-        {
-          name: "referenceId",
-          type: "number",
-          required: false,
-          description: "Reference ID",
+          description: "Query options",
         },
       ],
       create: [

@@ -9,7 +9,7 @@ import { useIntersectionObserver } from "@uidotdev/usehooks";
 
 export function TranscriptionSentence(props: {
   targetId: string;
-  targetType: string;
+  targetType: RecordingEntity["targetType"];
   sentence: TimelineEntry;
   index: number;
   active: boolean;
@@ -18,6 +18,7 @@ export function TranscriptionSentence(props: {
 }) {
   const { targetId, targetType, sentence, index, active, onClick, selectWord } =
     props;
+  const [shown, setShown] = useState(false);
 
   const [inViewRef, entry] = useIntersectionObserver({
     threshold: 0,
@@ -25,12 +26,11 @@ export function TranscriptionSentence(props: {
     rootMargin: "0px",
   });
   const { playMode, displayTranslation } = usePlayerSettingStore();
-  const {
-    data: recordings,
-    refetch,
-    isFetched,
-  } = useRecordingsByTarget(targetId, targetType, index, {
-    enabled: false,
+  const { data: recordings } = useRecordingsByTarget({
+    targetId,
+    targetType,
+    referenceId: index,
+    enabled: shown,
   });
 
   const ref = useRef<HTMLDivElement>(null);
@@ -43,10 +43,9 @@ export function TranscriptionSentence(props: {
   }, [ref, active]);
 
   useEffect(() => {
-    if (!entry?.isIntersecting) return;
-    if (isFetched) return;
-
-    refetch();
+    if (!shown && entry?.isIntersecting) {
+      setShown(true);
+    }
   }, [entry?.isIntersecting]);
 
   return (

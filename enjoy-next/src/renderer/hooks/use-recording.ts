@@ -19,25 +19,22 @@ export function useRecordings(options?: {
 }
 
 export function useRecordingsByTarget(
-  targetId: string,
-  targetType: string,
-  referenceId?: number,
-  options?: {
+  options: RecordingsQueryOptions & {
     enabled?: boolean;
   }
 ) {
-  const { enabled = true } = options || {};
+  const { targetId, targetType, referenceId, enabled = true } = options || {};
   return useQuery({
     queryKey: ["recordings", targetId, targetType, referenceId?.toString()],
     queryFn: async () => {
       if (!window.EnjoyAPI) {
         throw new Error("EnjoyAPI not available");
       }
-      return await window.EnjoyAPI.db.recording.findByTarget(
+      return await window.EnjoyAPI.db.recording.findByTarget({
         targetId,
         targetType,
-        referenceId
-      );
+        referenceId,
+      });
     },
     enabled: enabled,
   });
@@ -83,8 +80,8 @@ export function useCreateRecording() {
         typeof variables?.referenceId === "number"
       ) {
         queryKey.push(
-          variables.targetType,
           variables.targetId,
+          variables.targetType,
           variables.referenceId.toString()
         );
       }

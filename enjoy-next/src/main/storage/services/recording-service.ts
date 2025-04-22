@@ -62,10 +62,9 @@ export class RecordingService {
   }
 
   async findByTarget(
-    targetId: string,
-    targetType: RecordingEntity["targetType"],
-    referenceId?: number
+    options: RecordingsQueryOptions
   ): Promise<RecordingEntity[]> {
+    const { targetId, targetType, referenceId } = options;
     const queryBuilder = Recording.createQueryBuilder("recording");
 
     this.logger.info(

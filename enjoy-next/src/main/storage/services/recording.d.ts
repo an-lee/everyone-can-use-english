@@ -14,3 +14,9 @@ declare interface RecordingEntity {
   updatedAt: string;
   src: string;
 }
+
+declare type RecordingsQueryOptions = {
+  targetId: string;
+  targetType: RecordingEntity["targetType"];
+  referenceId?: number;
+};
