@@ -1,4 +1,4 @@
-import { useAudios } from "@renderer/hooks/use-audio";
+import { useAudiosQuery } from "@renderer/hooks";
 import { Icon } from "@iconify/react";
 import { EmptyView, ErrorView } from "@renderer/components/status-views";
 import { AudioCard } from "@renderer/components/audios/audio-card";
@@ -23,7 +23,7 @@ export function AudiosPage() {
   >("updated_at");
   const [order, setOrder] = useState<"asc" | "desc">("desc");
   const debouncedQuery = useDebounce(query, 500);
-  const { data, isLoading, error } = useAudios({
+  const { data, isLoading, error } = useAudiosQuery({
     search: debouncedQuery,
     sort,
     order,

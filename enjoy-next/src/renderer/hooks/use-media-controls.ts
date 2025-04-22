@@ -409,6 +409,11 @@ export const useMediaControls = (
     if (typeof activeRange.start === "number") {
       seek(activeRange.start);
     }
+    if (activeRange.autoPlay && ref.current.paused) {
+      setTimeout(() => {
+        ref.current?.play();
+      }, 100);
+    }
     ref.current.addEventListener("timeupdate", handleRangeConstraint);
     return () => {
       if (!ref.current) return;

@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 /**
  * Get all audios with pagination
  */
-export const useAudios = (options?: {
+export const useAudiosQuery = (options?: {
   page?: number;
   limit?: number;
   search?: string;
@@ -24,7 +24,7 @@ export const useAudios = (options?: {
 /**
  * Get a single audio by ID
  */
-export const useAudioById = (id: string | null) => {
+export const useAudioByIdQuery = (id: string | null) => {
   return useQuery<AudioEntity | null>({
     queryKey: ["audio", id],
     queryFn: async () => {
@@ -40,7 +40,7 @@ export const useAudioById = (id: string | null) => {
 /**
  * Create a new audio
  */
-export const createAudio = () => {
+export const useCreateAudioMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -59,7 +59,7 @@ export const createAudio = () => {
 /**
  * Update an audio
  */
-export const updateAudio = () => {
+export const useUpdateAudioMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -85,7 +85,7 @@ export const updateAudio = () => {
 /**
  * Delete an audio
  */
-export const deleteAudio = () => {
+export const useDeleteAudioMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({

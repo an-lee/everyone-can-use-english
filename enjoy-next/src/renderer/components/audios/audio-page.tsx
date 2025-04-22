@@ -1,4 +1,4 @@
-import { useAudioById } from "@renderer/hooks";
+import { useAudioByIdQuery } from "@renderer/hooks";
 import {
   EmptyView,
   ErrorView,
@@ -11,7 +11,7 @@ import { ScrollArea } from "../ui/scroll-area";
 export function AudioPage(props: { audioId: string }) {
   const { audioId } = props;
 
-  const { data, isLoading, error } = useAudioById(audioId);
+  const { data, isLoading, error } = useAudioByIdQuery(audioId);
 
   if (isLoading) {
     return <LoadingView />;

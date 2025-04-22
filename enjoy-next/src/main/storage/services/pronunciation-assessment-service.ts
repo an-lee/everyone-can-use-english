@@ -5,6 +5,18 @@ import { log } from "@main/core";
 log.scope("Storage/PronunciationAssessmentService");
 
 export class PronunciationAssessmentService {
+  async findByTarget(
+    targetId: string,
+    targetType: string
+  ): Promise<PronunciationAssessmentEntity | null> {
+    const pronunciationAssessment = await PronunciationAssessment.findOne({
+      where: { targetId, targetType },
+    });
+    return instanceToPlain(
+      pronunciationAssessment
+    ) as PronunciationAssessmentEntity | null;
+  }
+
   async create(
     data: Partial<PronunciationAssessmentEntity>
   ): Promise<PronunciationAssessmentEntity> {

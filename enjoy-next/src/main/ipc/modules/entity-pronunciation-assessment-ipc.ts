@@ -34,6 +34,20 @@ export class EntityPronunciationAssessmentIpcModule extends EntityBaseIpcModule<
         description?: string;
       }>
     > = {
+      findByTarget: [
+        {
+          name: "targetId",
+          type: "string",
+          required: true,
+          description: "Target ID",
+        },
+        {
+          name: "targetType",
+          type: "string",
+          required: true,
+          description: "Target type",
+        },
+      ],
       create: [
         {
           name: "data",
@@ -76,6 +90,7 @@ export class EntityPronunciationAssessmentIpcModule extends EntityBaseIpcModule<
   protected getMethodReturnType(methodName: string): string {
     // Define return types for each method directly
     const returnTypeMap: Record<string, string> = {
+      findByTarget: "Promise<PronunciationAssessmentEntity | null>",
       create: "Promise<PronunciationAssessmentEntity>",
       update: "Promise<PronunciationAssessmentEntity | null>",
       delete: "Promise<boolean>",

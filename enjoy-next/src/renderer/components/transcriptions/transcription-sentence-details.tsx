@@ -6,14 +6,7 @@ import {
 } from "@renderer/store";
 import { cn, convertWordIpaToNormal } from "@renderer/lib/utils";
 import { useEffect, useRef, useMemo, memo } from "react";
-import {
-  PitchContourCanvas,
-  PitchContourChart,
-} from "@renderer/components/charts";
-import {
-  PitchContourButton,
-  TranslationButton,
-} from "@renderer/components/medias";
+import { TranslationButton } from "@renderer/components/medias";
 import {
   RecordButton,
   RecordingPlayButton,

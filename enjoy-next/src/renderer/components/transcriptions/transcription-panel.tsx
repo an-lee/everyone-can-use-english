@@ -8,7 +8,7 @@ import {
 
 export function TranscriptionPanel(props: {
   targetId: string;
-  targetType: string;
+  targetType: RecordingEntity["targetType"];
 }) {
   const { targetId, targetType } = props;
 
