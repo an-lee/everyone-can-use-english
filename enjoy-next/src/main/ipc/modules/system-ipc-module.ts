@@ -1,10 +1,23 @@
-import { systemPreferences } from "electron";
+import { app, systemPreferences } from "electron";
 import { BaseIpcModule, IpcMethod } from "@/main/ipc/modules/base-ipc-module";
 import { IpcMainInvokeEvent } from "electron";
 
 export class SystemIpcModule extends BaseIpcModule {
   constructor() {
     super("System", "system");
+  }
+
+  @IpcMethod({
+    description: "Check is packaged",
+    errorHandling: "standard",
+    parameters: [],
+    returns: {
+      type: "boolean",
+      description: "Check if the application is packaged",
+    },
+  })
+  async isPackaged(_event: IpcMainInvokeEvent): Promise<boolean> {
+    return app.isPackaged;
   }
 
   @IpcMethod({

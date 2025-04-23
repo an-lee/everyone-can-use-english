@@ -38,7 +38,7 @@ export default defineConfig({
         main: "src/main.ts",
         ...createPluginEntries(),
       },
-      fileName: (format, entryName) => `${entryName}.js`,
+      fileName: (_format, entryName) => `${entryName}.js`,
       formats: ["es"],
     },
     rollupOptions: {
