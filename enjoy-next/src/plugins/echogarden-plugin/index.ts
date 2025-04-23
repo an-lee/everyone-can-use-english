@@ -1,19 +1,18 @@
 /**
- * Template Plugin for Enjoy
+ * EchoGarden Plugin for Enjoy
  *
- * This is a template for creating built-in plugins.
- * Use this as a starting point for your own plugins.
+ * This plugin provides access to the EchoGarden API.
  */
 
-import { dialog } from "electron";
 import { log } from "@main/core/utils";
 import { BasePlugin } from "@main/plugin/core/base-plugin";
+import { commands } from "./echogarden";
 
 /**
- * Template Plugin implementation
+ * EchoGarden Plugin implementation
  */
-export default class TemplatePlugin extends BasePlugin {
-  private logger = log.scope("plugin-template");
+export default class EchoGardenPlugin extends BasePlugin {
+  private logger = log.scope("echogarden-plugin");
   /**
    * Plugin constructor
    *
@@ -22,7 +21,6 @@ export default class TemplatePlugin extends BasePlugin {
    */
   constructor(manifest: PluginManifest, isBuiltIn: boolean) {
     super(manifest, isBuiltIn);
-    this.logger.info("Template plugin constructed");
   }
 
   /**
@@ -35,8 +33,7 @@ export default class TemplatePlugin extends BasePlugin {
     // Always call parent method first to get context set up
     await super.load(context);
 
-    // Do initialization that doesn't require activation
-    this.logger.info("Template plugin loaded");
+    this.logger.info("EchoGarden plugin loaded");
   }
 
   /**
@@ -49,26 +46,14 @@ export default class TemplatePlugin extends BasePlugin {
 
     // Register commands
     if (this.context) {
-      this.context.registerCommand("templateCommand", () => {
-        dialog.showMessageBox({
-          type: "info",
-          title: "Template Plugin",
-          message: "This is a template plugin command!",
-          buttons: ["OK"],
-        });
-
-        this.logger.info("Template command executed");
-      });
-
-      // Subscribe to events
-      this.context.subscribe("app:ready", () => {
-        this.logger.info("Application is ready - template plugin");
+      commands.forEach((command) => {
+        this.context.registerCommand(command.name, command.function);
       });
     } else {
       this.logger.error("Context not initialized, cannot register commands");
     }
 
-    this.logger.info("Template plugin activated");
+    this.logger.info("EchoGarden plugin activated");
   }
 
   /**
@@ -77,7 +62,7 @@ export default class TemplatePlugin extends BasePlugin {
    */
   async deactivate(): Promise<void> {
     // Clean up resources
-    this.logger.info("Template plugin deactivating");
+    this.logger.info("EchoGarden plugin deactivating");
 
     // Always call parent deactivate method last
     await super.deactivate();

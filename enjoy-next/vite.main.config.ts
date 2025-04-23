@@ -43,7 +43,7 @@ export default defineConfig({
     },
     rollupOptions: {
       // External dependencies that shouldn't be bundled
-      external: ["typeorm", "sqlite3"],
+      external: ["typeorm", "sqlite3", "echogarden"],
       output: {
         // Ensure imports of the plugin-types are directed to the built version
         paths: {
