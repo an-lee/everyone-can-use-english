@@ -13,7 +13,7 @@ function RouteComponent() {
     <SidebarProvider>
       <AppMenubar isAuthenticated={true} />
       <AppSidebar />
-      <SidebarInset className="overflow-x-hidden overflow-y-hidden max-h-[calc(100svh-var(--menubar-height))]">
+      <SidebarInset className="overflow-x-hidden overflow-y-hidden max-h-content">
         <ScrollArea className="h-full">
           <Outlet />
         </ScrollArea>

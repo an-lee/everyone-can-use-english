@@ -116,6 +116,13 @@
 
 @theme {
   --font-code: "CharisSIL", mono;
+
+  --width-sidebar: 16rem;
+  --width-sidebar-mobile: 18rem;
+  --width-sidebar-icon: 3rem;
+
+  --height-menubar: 2.25rem;
+  --height-content: calc(100svh - 2.25rem);
 }
 
 @layer base {

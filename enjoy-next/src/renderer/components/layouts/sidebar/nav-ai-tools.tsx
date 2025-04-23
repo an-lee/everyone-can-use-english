@@ -19,19 +19,6 @@ export function NavAiTools() {
     <SidebarGroup className="non-draggable-region">
       <SidebarGroupLabel>{t("aiTools")}</SidebarGroupLabel>
       <SidebarMenu>
-        <SidebarMenuItem key="stt">
-          <SidebarMenuButton
-            tooltip={t("stt")}
-            className="cursor-pointer"
-            isActive={pathname.startsWith("/tools/stt")}
-            asChild
-          >
-            <Link to="/tools/stt" replace={true}>
-              <Icon icon="tabler:bubble-text" />
-              <span>{t("stt")}</span>
-            </Link>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
         <SidebarMenuItem key="tts">
           <SidebarMenuButton
             tooltip={t("tts")}
@@ -55,6 +42,19 @@ export function NavAiTools() {
             <Link to="/tools/translate" replace={true}>
               <Icon icon="tabler:language" />
               <span>{t("translate")}</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem key="stt">
+          <SidebarMenuButton
+            tooltip={t("stt")}
+            className="cursor-pointer"
+            isActive={pathname.startsWith("/tools/stt")}
+            asChild
+          >
+            <Link to="/tools/stt" replace={true}>
+              <Icon icon="tabler:bubble-text" />
+              <span>{t("stt")}</span>
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
