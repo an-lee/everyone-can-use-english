@@ -8,8 +8,8 @@ i18n
   .use(initReactI18next)
   .init({
     backend: {
-      loadPath: "/assets/locales/{{ns}}/{{lng}}.json",
-      addPath: "/assets/locales/{{ns}}/{{lng}}.missing.json",
+      loadPath: "./assets/locales/{{ns}}/{{lng}}.json",
+      addPath: "./assets/locales/{{ns}}/{{lng}}.missing.json",
     },
     ns: ["common", "components"], // Default namespaces
     defaultNS: "common",

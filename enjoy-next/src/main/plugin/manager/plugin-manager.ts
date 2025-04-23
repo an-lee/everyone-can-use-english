@@ -27,25 +27,12 @@ export class PluginManager {
 
   constructor() {
     this.pluginsDir = path.join(app.getPath("userData"), "plugins");
-
-    // Determine built-in plugins directory based on app packaging status
-    if (app.isPackaged) {
-      // In production, use the bundled plugins directory
-      this.builtInPluginsDir = path.join(
-        app.getAppPath(),
-        ".vite",
-        "build",
-        "plugins"
-      );
-    } else {
-      // In development, directly use the transpiled output
-      this.builtInPluginsDir = path.join(
-        app.getAppPath(),
-        ".vite",
-        "build",
-        "plugins"
-      );
-    }
+    this.builtInPluginsDir = path.join(
+      app.getAppPath(),
+      ".vite",
+      "build",
+      "plugins"
+    );
 
     // Ensure the plugins directory exists
     fs.ensureDirSync(this.pluginsDir);
@@ -111,7 +98,8 @@ export class PluginManager {
     try {
       const manifestPath = path.join(
         app.getAppPath(),
-        "src",
+        ".vite",
+        "build",
         "plugins",
         path.basename(pluginDir),
         "manifest.json"

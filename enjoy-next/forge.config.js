@@ -5,10 +5,14 @@ import { MakerRpm } from "@electron-forge/maker-rpm";
 import { VitePlugin } from "@electron-forge/plugin-vite";
 import { FusesPlugin } from "@electron-forge/plugin-fuses";
 import { FuseV1Options, FuseVersion } from "@electron/fuses";
+import os from "os";
 
 const config = {
   packagerConfig: {
-    asar: true,
+    asar: {
+      // Binary files won't work in asar, so we need to unpack them
+      unpackDir: `{node_modules/ffmpeg-static,node_modules/ffmpeg-static/bin,node_modules/@andrkrn/ffprobe-static,node_modules/onnxruntime-node/bin/napi-v3/${os.platform()}/${os.arch()},lib/dictionaries}`,
+    },
   },
   rebuildConfig: {},
   makers: [

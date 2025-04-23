@@ -1,6 +1,9 @@
 import { defineConfig } from "vite";
 import { resolve } from "path";
 import { readdirSync } from "fs";
+import { viteStaticCopy } from "vite-plugin-static-copy";
+
+const copyTargets: { src: string; dest: string }[] = [];
 
 // Get built-in plugin directories
 const getBuiltInPlugins = () => {
@@ -26,12 +29,23 @@ const createPluginEntries = () => {
       __dirname,
       `./src/plugins/${plugin}/index.ts`
     );
+
+    // Copy manifest.json to plugins directory
+    copyTargets.push({
+      src: `src/plugins/${plugin}/manifest.json`,
+      dest: `plugins/${plugin}`,
+    });
   });
   return entries;
 };
 
 // https://vitejs.dev/config
 export default defineConfig({
+  plugins: [
+    viteStaticCopy({
+      targets: copyTargets,
+    }),
+  ],
   build: {
     lib: {
       entry: {
@@ -43,7 +57,7 @@ export default defineConfig({
     },
     rollupOptions: {
       // External dependencies that shouldn't be bundled
-      external: ["typeorm", "sqlite3", "echogarden"],
+      external: ["typeorm", "sqlite3", "echogarden", "ffmpeg-static"],
       output: {
         // Ensure imports of the plugin-types are directed to the built version
         paths: {

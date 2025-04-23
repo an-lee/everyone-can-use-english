@@ -5,6 +5,7 @@ import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
 // eslint-disable-next-line import/no-unresolved
 import tailwindcss from "@tailwindcss/vite";
 import path from "node:path";
+import { viteStaticCopy } from "vite-plugin-static-copy";
 
 // https://vitejs.dev/config
 export default defineConfig({
@@ -17,6 +18,14 @@ export default defineConfig({
     }),
     react(),
     tailwindcss(),
+    viteStaticCopy({
+      targets: [
+        {
+          src: "assets/locales/*",
+          dest: "assets/locales",
+        },
+      ],
+    }),
   ],
   resolve: {
     preserveSymlinks: true,
