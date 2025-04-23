@@ -1,5 +1,4 @@
-import { log } from "@main/core/utils";
-import { BasePlugin } from "@main/plugin/core/base-plugin";
+import { log, BasePlugin } from "./plugin-deps";
 import { commands } from "./ffmpeg";
 
 // No need to define the enum locally as we're importing it now

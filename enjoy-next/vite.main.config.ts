@@ -2,6 +2,8 @@ import { defineConfig } from "vite";
 import { resolve } from "path";
 import { readdirSync } from "fs";
 import { viteStaticCopy } from "vite-plugin-static-copy";
+import fs from "fs-extra";
+import pkg from "./package.json";
 
 const copyTargets: { src: string; dest: string }[] = [];
 
@@ -30,6 +32,14 @@ const createPluginEntries = () => {
       `./src/plugins/${plugin}/index.ts`
     );
 
+    const depsPath = resolve(
+      __dirname,
+      `./src/plugins/${plugin}/plugin-deps.ts`
+    );
+    if (fs.existsSync(depsPath)) {
+      entries[`plugins/${plugin}/plugin-deps`] = depsPath;
+    }
+
     // Copy manifest.json to plugins directory
     copyTargets.push({
       src: `src/plugins/${plugin}/manifest.json`,
@@ -57,7 +67,7 @@ export default defineConfig({
     },
     rollupOptions: {
       // External dependencies that shouldn't be bundled
-      external: ["typeorm", "sqlite3", "echogarden", "ffmpeg-static"],
+      external: [...Object.keys(pkg.dependencies)],
       output: {
         // Ensure imports of the plugin-types are directed to the built version
         paths: {

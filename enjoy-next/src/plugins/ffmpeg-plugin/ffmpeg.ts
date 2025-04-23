@@ -1,11 +1,14 @@
-import FluentFfmpeg from "fluent-ffmpeg";
-import { log } from "@main/core/utils";
-import { extractFrequencies, getFfmpegPath } from "./utils";
-import { enjoyUrlToPath } from "@/main/core";
-import path from "path";
-import fs from "fs";
-import { app } from "electron";
-import crypto from "crypto";
+import {
+  log,
+  FluentFfmpeg,
+  extractFrequencies,
+  getFfmpegPath,
+  enjoyUrlToPath,
+  path,
+  fs,
+  app,
+  crypto,
+} from "./plugin-deps";
 
 // Limits and timeouts
 const MAX_CONCURRENT_FFMPEG = 2;

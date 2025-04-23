@@ -1,13 +1,13 @@
-import { log } from "@main/core/utils";
 import {
+  log,
   align,
   recognize,
   setGlobalOption,
   type AlignmentOptions,
   type RecognitionOptions,
-} from "echogarden";
-import path from "path";
-import ffmpegPath from "ffmpeg-static";
+  ffmpegPath,
+  path,
+} from "./plugin-deps";
 
 const __dirname = import.meta.dirname.replace("app.asar", "app.asar.unpacked");
 

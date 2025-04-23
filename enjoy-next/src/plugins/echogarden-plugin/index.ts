@@ -4,8 +4,7 @@
  * This plugin provides access to the EchoGarden API.
  */
 
-import { log } from "@main/core/utils";
-import { BasePlugin } from "@main/plugin/core/base-plugin";
+import { BasePlugin, log } from "./plugin-deps";
 import { commands } from "./echogarden";
 
 /**
