@@ -12,6 +12,7 @@ export * from "./form";
 export * from "./input";
 export * from "./label";
 export * from "./menubar";
+export * from "./pagination";
 export * from "./progress";
 export * from "./select";
 export * from "./separator";

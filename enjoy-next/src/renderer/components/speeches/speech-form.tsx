@@ -20,8 +20,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 
-export function TextToSpeechForm() {
-  const { t } = useTranslation("components/tools");
+export function SpeechForm() {
+  const { t } = useTranslation("components/speeches");
   const {
     ttsConfig,
     ttsProviders,
@@ -56,7 +56,7 @@ export function TextToSpeechForm() {
               <FormControl>
                 <Textarea
                   className="min-h-32"
-                  placeholder={t("ttsPlaceHolder")}
+                  placeholder={t("speechPlaceHolder")}
                   {...field}
                 />
               </FormControl>

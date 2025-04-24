@@ -10,6 +10,9 @@ export const useSpeechQueries = (options?: PaginationOptions) => {
 
       return await window.EnjoyAPI.db.speech.findAll(options);
     },
+    placeholderData: (prev) => {
+      return prev;
+    },
   });
 };
 

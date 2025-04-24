@@ -23,10 +23,10 @@ export function NavAiTools() {
           <SidebarMenuButton
             tooltip={t("tts")}
             className="cursor-pointer"
-            isActive={pathname.startsWith("/tools/tts")}
+            isActive={pathname.startsWith("/speeches")}
             asChild
           >
-            <Link to="/tools/tts" replace={true}>
+            <Link to="/speeches" replace={true}>
               <Icon icon="tabler:text-recognition" />
               <span>{t("tts")}</span>
             </Link>

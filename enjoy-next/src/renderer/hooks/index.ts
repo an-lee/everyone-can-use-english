@@ -13,7 +13,8 @@ export * from "./use-transcription-queries";
 export * from "./use-pronunciation-assessment-queries";
 
 export * from "./use-media-controls";
-export * from "./use-transcription-controls";
 export * from "./use-recording-controls";
+export * from "./use-speech-controls";
+export * from "./use-transcription-controls";
 
 export * from "./use-ffmpeg";
