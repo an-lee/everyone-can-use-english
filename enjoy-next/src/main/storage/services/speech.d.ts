@@ -8,6 +8,7 @@ declare interface SpeechEntity {
   configuration: Record<string, any>;
   md5: string;
   extname: string;
+  src: string;
   createdAt: string;
   updatedAt: string;
   isSynced: boolean;

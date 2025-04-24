@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import i18n from "../lib/i18n";
 import { Client } from "../api";
+import { GPT_PROVIDERS, TTS_PROVIDERS } from "@/shared/constants";
 
 const languages: { code: Language; name: string }[] = [
   {
@@ -32,6 +33,39 @@ type SettingsState = {
 
   whisper: string;
   setWhisper: (whisper: string) => void;
+
+  gptProviders: {
+    [key: string]: {
+      name: string;
+      models: string[];
+    };
+  };
+  setGptProviders: (gptProviders: {
+    [key: string]: { name: string; models: string[] };
+  }) => void;
+
+  ttsProviders: {
+    [key: string]: {
+      name: string;
+      models: string[];
+      voices: {
+        label: string;
+        value: string;
+        language?: string;
+      }[];
+    };
+  };
+  setTtsProviders: (ttsProviders: {
+    [key: string]: {
+      name: string;
+      models: string[];
+      voices: {
+        label: string;
+        value: string;
+        language?: string;
+      }[];
+    };
+  }) => void;
 
   openai: {
     baseUrl: string;
@@ -140,6 +174,16 @@ export const useSettingsStore = create<SettingsState>()(
       setWhisper: (whisper) => {
         set({ whisper });
         window.EnjoyAPI.db.userSetting.set("whisper", whisper);
+      },
+
+      gptProviders: GPT_PROVIDERS,
+      setGptProviders: (gptProviders) => {
+        set({ gptProviders });
+      },
+
+      ttsProviders: TTS_PROVIDERS,
+      setTtsProviders: (ttsProviders) => {
+        set({ ttsProviders });
       },
 
       openai: {
@@ -265,6 +309,12 @@ export const useSettingsStore = create<SettingsState>()(
           }),
           client.config("app_version").then((appVersion) => {
             set({ latestVersion: appVersion.version });
+          }),
+          client.config("gpt_providers").then((gptProviders) => {
+            set({ gptProviders });
+          }),
+          client.config("tts_providers").then((ttsProviders) => {
+            set({ ttsProviders });
           }),
         ]);
       },

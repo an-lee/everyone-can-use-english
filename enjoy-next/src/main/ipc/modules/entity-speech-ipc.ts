@@ -30,6 +30,14 @@ export class EntitySpeechIpcModule extends EntityBaseIpcModule<
         description?: string;
       }>
     > = {
+      findAll: [
+        {
+          name: "options",
+          type: "PaginationOptions",
+          required: false,
+          description: "Pagination options",
+        },
+      ],
       findBySource: [
         {
           name: "sourceId",
@@ -86,6 +94,7 @@ export class EntitySpeechIpcModule extends EntityBaseIpcModule<
   protected getMethodReturnType(methodName: string): string {
     // Define return types for each method directly
     const returnTypeMap: Record<string, string> = {
+      findAll: "Promise<PaginationResult<SpeechEntity>>",
       findBySource: "Promise<SpeechEntity | null>",
       create: "Promise<SpeechEntity>",
       update: "Promise<SpeechEntity | null>",

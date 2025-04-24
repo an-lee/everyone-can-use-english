@@ -1,9 +1,6 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from "@tanstack/react-router";
+import { TTSPage } from "@renderer/components/tools";
 
-export const Route = createFileRoute('/_authenticated/tools/tts')({
-  component: RouteComponent,
-})
-
-function RouteComponent() {
-  return <div>Hello "/tools/tts"!</div>
-}
+export const Route = createFileRoute("/_authenticated/tools/tts")({
+  component: TTSPage,
+});

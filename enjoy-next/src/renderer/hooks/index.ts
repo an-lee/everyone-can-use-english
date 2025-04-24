@@ -8,6 +8,7 @@ export * from "./use-chat-queries";
 export * from "./use-chat-message-queries";
 export * from "./use-chat-member-queries";
 export * from "./use-conversation-queries";
+export * from "./use-speech-queries";
 export * from "./use-transcription-queries";
 export * from "./use-pronunciation-assessment-queries";
 
