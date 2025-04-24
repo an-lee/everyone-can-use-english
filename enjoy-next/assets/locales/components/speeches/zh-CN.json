@@ -1,4 +1,5 @@
 {
+  "speechFormPlaceholder": "输入要转换的文本",
   "generatedSpeeches": "已生成音频",
   "search": "搜索",
   "download": "下载",

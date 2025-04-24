@@ -74,12 +74,15 @@ export function SpeechPlayer(props: {
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <DropdownMenuItem>
-                  <Icon icon="tabler:download" />
+                  <Icon icon="tabler:download" className="size-4" />
                   <span>{t("download")}</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <Icon icon="tabler:trash" />
-                  <span>{t("delete")}</span>
+                  <Icon
+                    icon="tabler:trash"
+                    className="size-4 text-destructive"
+                  />
+                  <span className="text-destructive">{t("delete")}</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

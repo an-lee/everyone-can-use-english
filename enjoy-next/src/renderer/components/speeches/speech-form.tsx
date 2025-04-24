@@ -45,9 +45,16 @@ export function SpeechForm() {
     },
   });
 
+  const handleSubmit = (data: z.infer<typeof ttsFormSchema>) => {
+    console.log(data);
+  };
+
   return (
     <Form {...form}>
-      <form className="flex flex-col gap-2">
+      <form
+        onSubmit={form.handleSubmit(handleSubmit)}
+        className="flex flex-col gap-2"
+      >
         <FormField
           control={form.control}
           name="text"
@@ -56,7 +63,7 @@ export function SpeechForm() {
               <FormControl>
                 <Textarea
                   className="min-h-32"
-                  placeholder={t("speechPlaceHolder")}
+                  placeholder={t("speechFormPlaceholder")}
                   {...field}
                 />
               </FormControl>
@@ -144,7 +151,7 @@ export function SpeechForm() {
             />
           </div>
           <div className="flex items-center gap-2">
-            <Button>
+            <Button type="submit" className="size-8 rounded-full">
               <Icon icon="tabler:play" />
             </Button>
           </div>
