@@ -1,6 +1,5 @@
 import { Chat } from "../entities/chat";
 import { instanceToPlain } from "class-transformer";
-import { ChatAgentService } from "./chat-agent-service";
 
 export class ChatService {
   async findAll(

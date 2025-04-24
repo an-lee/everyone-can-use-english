@@ -15,7 +15,7 @@ declare interface ChatMessageEntity {
   updatedAt: string;
 }
 
-declare interface ChatMessageFindAllOptions extends PaginationOptions {
+declare interface ChatMessageFindAllOptions {
   chat_id?: string;
   role?: string;
   category?: string;

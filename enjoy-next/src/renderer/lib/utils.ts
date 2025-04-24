@@ -5,6 +5,8 @@ import {
 } from "@shared/constants/ipa";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import dayjs from "./dayjs";
+import i18next, { t } from "i18next";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -99,3 +101,33 @@ export const convertIpaToNormal = (
     return converted;
   }
 };
+
+export function formatDateTime(date: Date | string) {
+  dayjs.locale(i18next.resolvedLanguage?.toLowerCase() || "en");
+  const now = dayjs();
+  const then = dayjs(date);
+
+  if (now.diff(then, "hour") === 0) {
+    return then.fromNow();
+  } else if (now.isSame(then, "day")) {
+    return then.format("HH:mm");
+  } else if (now.diff(then, "year") === 0) {
+    return then.format("MM/DD HH:mm");
+  } else {
+    return then.format("YYYY/MM/DD HH:mm");
+  }
+}
+
+export function formatDate(date: string | Date) {
+  dayjs.locale(i18next.resolvedLanguage?.toLowerCase() || "en");
+  const now = dayjs();
+  const then = dayjs(date);
+
+  if (now.diff(then, "day") === 0) {
+    return t("common.today");
+  } else if (now.diff(then, "day") === 1) {
+    return t("common.yesterday");
+  } else {
+    return then.fromNow();
+  }
+}

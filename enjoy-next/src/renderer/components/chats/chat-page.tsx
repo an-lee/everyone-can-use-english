@@ -24,11 +24,13 @@ export function ChatPage({ chatId }: { chatId: string }) {
   }
 
   return (
-    <div className="w-full px-4 flex flex-col relative h-content overflow-hidden bg-muted/50">
+    <div className="w-full flex flex-col relative h-content overflow-hidden bg-muted">
       <ScrollArea className="flex-1">
         <div className="h-4"></div>
-        <div className="min-h-[calc(100svh-var(--menubar-height)-8rem)] flex flex-col w-full max-w-screen-sm mx-auto">
-          <ChatMessages chatId={chatId} />
+        <div className="min-h-[calc(100svh-var(--menubar-height)-8rem)] flex flex-col w-full sm:max-w-screen-sm mx-auto">
+          <div className="px-4">
+            <ChatMessages chatId={chatId} />
+          </div>
         </div>
         <div className="h-48" />
       </ScrollArea>

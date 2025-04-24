@@ -54,6 +54,7 @@
     "class-validator": "^0.14.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "dayjs": "^1.11.13",
     "decamelize-keys": "^2.0.1",
     "electron": "35.2.0",
     "electron-forge-plugin-dependencies": "^1.0.0",

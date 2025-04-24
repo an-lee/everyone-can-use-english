@@ -1,5 +1,7 @@
 import { useChatMessagesQuery } from "@renderer/hooks";
 import { LoadingView, ErrorView } from "@renderer/components/status-views";
+import { ChatAgent } from "../chat-agents/chat-agent";
+import { ChatMessage } from "./chat-message";
 
 export function ChatMessages(props: { chatId: string }) {
   const { data, isLoading, error } = useChatMessagesQuery(props.chatId);
@@ -13,18 +15,9 @@ export function ChatMessages(props: { chatId: string }) {
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      {(data?.items ?? []).map((message: ChatMessageEntity) => (
-        <div key={message.id}>
-          <div className="flex flex-col items-start gap-2 overflow-hidden">
-            <div className="w-full bg-background rounded-lg px-4 py-2 overflow-x-auto">
-              {message.content}
-            </div>
-            <div className="text-xs text-muted-foreground">
-              {message.createdAt}
-            </div>
-          </div>
-        </div>
+    <div className="flex flex-col gap-4">
+      {(data || []).map((message: ChatMessageEntity) => (
+        <ChatMessage key={message.id} message={message} />
       ))}
     </div>
   );

@@ -16,18 +16,13 @@ export class ChatMessageService {
    */
   async findAll(
     options?: ChatMessageFindAllOptions
-  ): Promise<PaginationResult<ChatMessageEntity>> {
+  ): Promise<ChatMessageEntity[]> {
     const chatId = options?.chat_id;
     const role = options?.role;
     const category = options?.category;
     const memberId = options?.member_id;
     const agentId = options?.agent_id;
     const state = options?.state;
-
-    const page = options?.page || 1;
-    const limit = options?.limit || 10;
-    const sort = options?.sort || "updated_at";
-    const order = options?.order == "asc" ? "ASC" : "DESC";
 
     const queryBuilder = ChatMessage.createQueryBuilder("chat_message");
 
@@ -50,25 +45,15 @@ export class ChatMessageService {
       queryBuilder.andWhere({ state: state });
     }
 
-    queryBuilder.orderBy(`chat_message.${sort}`, order);
-    queryBuilder.skip((page - 1) * limit);
-    queryBuilder.take(limit);
-
     log.info(
       `Querying chat messages with chat_id: ${chatId}, role: ${role}, category: ${category}, member_id: ${memberId}, agent_id: ${agentId}, state: ${state}`
     );
 
-    const [chatMessages, total] = await queryBuilder.getManyAndCount();
+    const chatMessages = await queryBuilder.getMany();
 
-    return {
-      items: chatMessages.map(
-        (chatMessage) => instanceToPlain(chatMessage) as ChatMessageEntity
-      ),
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    return chatMessages.map(
+      (chatMessage) => instanceToPlain(chatMessage) as ChatMessageEntity
+    );
   }
 
   /**
