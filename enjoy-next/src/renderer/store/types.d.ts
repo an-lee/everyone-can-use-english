@@ -86,3 +86,10 @@ declare type DbStore = {
 
 declare type Theme = "light" | "dark" | "system";
 declare type Language = "en" | "zh-CN" | "ja";
+
+declare type TTSConfig = {
+  engine: "enjoyai" | "openai";
+  language: (typeof LEARNING_LANGUAGES)[number]["code"];
+  model: TTS_PROVIDERS[number]["models"][number];
+  voice: TTS_PROVIDERS[number]["voices"][number];
+};

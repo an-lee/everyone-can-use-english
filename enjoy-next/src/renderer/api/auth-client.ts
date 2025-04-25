@@ -1,5 +1,4 @@
 import { BaseClient } from "./base";
-import { UserType } from "./types";
 
 export class AuthClient extends BaseClient {
   me(): Promise<UserType> {

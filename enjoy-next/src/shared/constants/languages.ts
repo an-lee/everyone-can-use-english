@@ -1,4 +1,4 @@
-export const TTS_LANGUAGES = [
+export const LEARNING_LANGUAGES = [
   {
     code: "en-US",
     name: "English (United States)",

@@ -83,18 +83,8 @@ type SettingsState = {
   sttEngine: string;
   setSttEngine: (sttEngine: string) => void;
 
-  ttsConfig: {
-    engine: string;
-    language: string;
-    model: string;
-    voice: string;
-  };
-  setTtsConfig: (ttsConfig: {
-    engine: string;
-    language: string;
-    model: string;
-    voice: string;
-  }) => void;
+  ttsConfig: TTSConfig;
+  setTtsConfig: (ttsConfig: TTSConfig) => void;
 
   echogarden: {
     engine: "whisper" | "whisperCpp";
@@ -207,10 +197,10 @@ export const useSettingsStore = create<SettingsState>()(
       },
 
       ttsConfig: {
-        engine: "",
-        language: "",
-        model: "",
-        voice: "",
+        engine: "enjoyai",
+        language: "en-US",
+        model: "azure/speech",
+        voice: "en-US-JennyNeural",
       },
       setTtsConfig: (ttsConfig) => {
         set({ ttsConfig });

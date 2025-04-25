@@ -3,6 +3,7 @@ import { AuthClient } from "./auth-client";
 import { UserClient } from "./user-client";
 import { PostClient } from "./post-client";
 import { MediaClient } from "./media-client";
+import { SpeechClient } from "./speech-client";
 // Import other client modules as needed
 
 export class Client extends BaseClient {
@@ -10,6 +11,7 @@ export class Client extends BaseClient {
   user: UserClient;
   post: PostClient;
   media: MediaClient;
+  speech: SpeechClient;
   // Declare other client modules
 
   constructor(options?: ClientOptions) {
@@ -20,6 +22,7 @@ export class Client extends BaseClient {
     this.user = new UserClient(options);
     this.post = new PostClient(options);
     this.media = new MediaClient(options);
+    this.speech = new SpeechClient(options);
     // Initialize other clients
   }
 

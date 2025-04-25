@@ -19,7 +19,7 @@ import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { TTS_LANGUAGES } from "@/shared/constants";
+import { LEARNING_LANGUAGES } from "@/shared/constants";
 
 export function SpeechForm() {
   const { t } = useTranslation("components/speeches");
@@ -170,7 +170,7 @@ export function SpeechForm() {
                         <SelectValue placeholder={t("selectTtsLanguage")} />
                       </SelectTrigger>
                       <SelectContent>
-                        {TTS_LANGUAGES.map((language) => (
+                        {LEARNING_LANGUAGES.map((language) => (
                           <SelectItem key={language.code} value={language.code}>
                             {language.name}
                           </SelectItem>

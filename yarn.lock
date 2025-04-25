@@ -4094,6 +4094,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@langchain/core@npm:^0.3.48":
+  version: 0.3.48
+  resolution: "@langchain/core@npm:0.3.48"
+  dependencies:
+    "@cfworker/json-schema": "npm:^4.0.2"
+    ansi-styles: "npm:^5.0.0"
+    camelcase: "npm:6"
+    decamelize: "npm:1.2.0"
+    js-tiktoken: "npm:^1.0.12"
+    langsmith: "npm:^0.3.16"
+    mustache: "npm:^4.2.0"
+    p-queue: "npm:^6.6.2"
+    p-retry: "npm:4"
+    uuid: "npm:^10.0.0"
+    zod: "npm:^3.22.4"
+    zod-to-json-schema: "npm:^3.22.3"
+  checksum: 10c0/0328ce4b61aaa9b1860c9ff4ebfe8696d5039b640c926a6826ff3b40450658ba4059c34ecc0dad670409b85a9fa003e329adefa9dcd9a29711a538f07892b88f
+  languageName: node
+  linkType: hard
+
 "@langchain/ollama@npm:^0.2.0":
   version: 0.2.0
   resolution: "@langchain/ollama@npm:0.2.0"
@@ -4119,6 +4139,20 @@ __metadata:
   peerDependencies:
     "@langchain/core": ">=0.3.39 <0.4.0"
   checksum: 10c0/ee26829fd194ceba8cd964926ab25bd83d5d02f6fda13dd1ef99b88d3f6c600004caf0c3705f707edd2886b896154d875a3b4d57c4957883d0d94f204a062383
+  languageName: node
+  linkType: hard
+
+"@langchain/openai@npm:^0.5.7":
+  version: 0.5.7
+  resolution: "@langchain/openai@npm:0.5.7"
+  dependencies:
+    js-tiktoken: "npm:^1.0.12"
+    openai: "npm:^4.93.0"
+    zod: "npm:^3.22.4"
+    zod-to-json-schema: "npm:^3.22.3"
+  peerDependencies:
+    "@langchain/core": ">=0.3.48 <0.4.0"
+  checksum: 10c0/a70cf552be7a7c9ee1b7e6f15605bc229267c482f3374fdd07487bd512fae233d7a4d7df4421e6a0b87d31200cbb75a9a0c7a0a4fbe257ba28dcfc5633b991c1
   languageName: node
   linkType: hard
 
@@ -14244,6 +14278,8 @@ __metadata:
     "@electron/fuses": "npm:^1.8.0"
     "@hookform/resolvers": "npm:^5.0.1"
     "@iconify/react": "npm:^5.2.1"
+    "@langchain/core": "npm:^0.3.48"
+    "@langchain/openai": "npm:^0.5.7"
     "@tailwindcss/vite": "npm:^4.1.0"
     "@tanstack/react-query": "npm:^5.71.10"
     "@tanstack/react-router": "npm:^1.114.32"
@@ -14285,6 +14321,7 @@ __metadata:
     i18next-http-backend: "npm:^3.0.2"
     lodash: "npm:^4.17.21"
     lucide-react: "npm:^0.487.0"
+    microsoft-cognitiveservices-speech-sdk: "npm:^1.43.1"
     next-themes: "npm:^0.4.6"
     pitchfinder: "npm:^2.3.2"
     radix-ui: "npm:^1.1.3"
