@@ -3,5 +3,14 @@
   "generatedSpeeches": "已生成音频",
   "search": "搜索",
   "download": "下载",
-  "delete": "删除"
+  "delete": "删除",
+  "youHaveNotInputTextYet": "你还没有输入文本",
+  "selectTtsEngine": "TTS 引擎",
+  "selectTtsModel": "TTS 模型",
+  "selectTtsLanguage": "TTS 语言",
+  "selectTtsVoice": "TTS 声音",
+  "invalidTtsEngine": "无效的 TTS 引擎",
+  "invalidTtsModel": "无效的 TTS 模型",
+  "invalidTtsVoice": "无效的 TTS 声音",
+  "invalidTtsLanguage": "无效的 TTS 语言"
 }

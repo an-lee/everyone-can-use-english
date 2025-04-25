@@ -2,18 +2,11 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import i18n from "../lib/i18n";
 import { Client } from "../api";
-import { GPT_PROVIDERS, TTS_PROVIDERS } from "@/shared/constants";
-
-const languages: { code: Language; name: string }[] = [
-  {
-    code: "en",
-    name: "English",
-  },
-  {
-    code: "zh-CN",
-    name: "中文",
-  },
-];
+import {
+  GPT_PROVIDERS,
+  TTS_PROVIDERS,
+  APPEARANCE_LANGUAGES,
+} from "@/shared/constants";
 
 type SettingsState = {
   theme: Theme;
@@ -22,9 +15,9 @@ type SettingsState = {
   fontSize: number;
   setFontSize: (size: number) => void;
 
-  languages: { code: Language; name: string }[];
-  language: Language;
-  setLanguage: (language: Language) => void;
+  languages: { code: string; name: string }[];
+  language: string;
+  setLanguage: (language: string) => void;
 
   nativeLanguage: string;
   learningLanguage: string;
@@ -51,6 +44,7 @@ type SettingsState = {
       voices: {
         label: string;
         value: string;
+        provider: string;
         language?: string;
       }[];
     };
@@ -62,6 +56,7 @@ type SettingsState = {
       voices: {
         label: string;
         value: string;
+        provider: string;
         language?: string;
       }[];
     };
@@ -137,7 +132,7 @@ export const useSettingsStore = create<SettingsState>()(
   persist(
     (set, get) => ({
       language: "zh-CN",
-      languages,
+      languages: APPEARANCE_LANGUAGES,
       setLanguage: (language) => {
         set({ language });
         i18n.changeLanguage(language);

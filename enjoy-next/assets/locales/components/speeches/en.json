@@ -3,5 +3,14 @@
   "generatedSpeeches": "Generated Speeches",
   "search": "Search",
   "download": "Download",
-  "delete": "Delete"
+  "delete": "Delete",
+  "youHaveNotInputTextYet": "You have not input text yet",
+  "selectTtsEngine": "TTS Engine",
+  "selectTtsModel": "TTS Model",
+  "selectTtsLanguage": "TTS Language",
+  "selectTtsVoice": "TTS Voice",
+  "invalidTtsEngine": "Invalid TTS Engine",
+  "invalidTtsModel": "Invalid TTS Model",
+  "invalidTtsVoice": "Invalid TTS Voice",
+  "invalidTtsLanguage": "Invalid TTS Language"
 }

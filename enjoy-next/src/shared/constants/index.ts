@@ -1,6 +1,7 @@
 export * from "./ipa";
 export * from "./gpt-providers";
 export * from "./tts-providers";
+export * from "./languages";
 
 export const DATABASE_NAME = "enjoy_database";
 export const LIBRARY_PATH_SUFFIX = "EnjoyLibrary";

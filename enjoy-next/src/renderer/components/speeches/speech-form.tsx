@@ -19,6 +19,7 @@ import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { TTS_LANGUAGES } from "@/shared/constants";
 
 export function SpeechForm() {
   const { t } = useTranslation("components/speeches");
@@ -29,9 +30,10 @@ export function SpeechForm() {
   } = useSettingsStore();
 
   const ttsFormSchema = z.object({
-    text: z.string().min(1),
+    text: z.string().min(1, { message: t("youHaveNotInputTextYet") }),
     engine: z.enum(["enjoyai", "openai"]),
     model: z.string(),
+    language: z.string(),
     voice: z.string(),
   });
 
@@ -41,11 +43,45 @@ export function SpeechForm() {
       text: "",
       engine: (ttsConfig.engine as "enjoyai" | "openai") || "enjoyai",
       model: ttsConfig.model || "azure/speech",
+      language: ttsConfig.language || "en-US",
       voice: ttsConfig.voice || "en-US-AvaNeural",
     },
   });
 
+  const modelOptions = ttsProviders[form.watch("engine")].models;
+  const voiceOptions = ttsProviders[form.watch("engine")].voices.filter(
+    (voice) =>
+      (voice.language === form.watch("language") || !voice.language) &&
+      (voice.provider === form.watch("engine") ||
+        form.watch("model").startsWith(voice.provider))
+  );
+
+  const validate = (data: z.infer<typeof ttsFormSchema>) => {
+    if (!Object.keys(ttsProviders).includes(data.engine)) {
+      form.setError("engine", {
+        message: t("invalidTtsEngine"),
+      });
+      return false;
+    }
+    if (!modelOptions.includes(data.model)) {
+      form.setError("model", {
+        message: t("invalidTtsModel"),
+      });
+      return false;
+    }
+    if (!voiceOptions.some((voice) => voice.value === data.voice)) {
+      form.setError("voice", {
+        message: t("invalidTtsVoice"),
+      });
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = (data: z.infer<typeof ttsFormSchema>) => {
+    if (!validate(data)) {
+      return;
+    }
     console.log(data);
   };
 
@@ -62,7 +98,7 @@ export function SpeechForm() {
             <FormItem>
               <FormControl>
                 <Textarea
-                  className="min-h-32"
+                  className="min-h-32 focus-visible:bg-background"
                   placeholder={t("speechFormPlaceholder")}
                   {...field}
                 />
@@ -72,7 +108,7 @@ export function SpeechForm() {
           )}
         />
         <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
+          <div className="flex items-start gap-2">
             <FormField
               control={form.control}
               name="engine"
@@ -81,7 +117,7 @@ export function SpeechForm() {
                   <FormControl>
                     <Select value={field.value} onValueChange={field.onChange}>
                       <SelectTrigger>
-                        <SelectValue />
+                        <SelectValue placeholder={t("selectTtsEngine")} />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="enjoyai">Enjoy AI</SelectItem>
@@ -98,6 +134,7 @@ export function SpeechForm() {
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="model"
@@ -106,16 +143,38 @@ export function SpeechForm() {
                   <FormControl>
                     <Select value={field.value} onValueChange={field.onChange}>
                       <SelectTrigger>
-                        <SelectValue />
+                        <SelectValue placeholder={t("selectTtsModel")} />
                       </SelectTrigger>
                       <SelectContent>
-                        {ttsProviders[form.watch("engine")].models.map(
-                          (model) => (
-                            <SelectItem key={model} value={model}>
-                              {model}
-                            </SelectItem>
-                          )
-                        )}
+                        {modelOptions.map((model) => (
+                          <SelectItem key={model} value={model}>
+                            {model}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="language"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("selectTtsLanguage")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TTS_LANGUAGES.map((language) => (
+                          <SelectItem key={language.code} value={language.code}>
+                            {language.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </FormControl>
@@ -132,16 +191,14 @@ export function SpeechForm() {
                   <FormControl>
                     <Select value={field.value} onValueChange={field.onChange}>
                       <SelectTrigger>
-                        <SelectValue />
+                        <SelectValue placeholder={t("selectTtsVoice")} />
                       </SelectTrigger>
-                      <SelectContent>
-                        {ttsProviders[form.watch("engine")].voices.map(
-                          (voice) => (
-                            <SelectItem key={voice.value} value={voice.value}>
-                              {voice.label}
-                            </SelectItem>
-                          )
-                        )}
+                      <SelectContent className="max-h-64">
+                        {voiceOptions.map((voice) => (
+                          <SelectItem key={voice.value} value={voice.value}>
+                            {voice.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </FormControl>
