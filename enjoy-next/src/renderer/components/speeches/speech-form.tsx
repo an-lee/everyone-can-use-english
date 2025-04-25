@@ -49,7 +49,7 @@ export function SpeechForm() {
     resolver: zodResolver(ttsFormSchema),
     defaultValues: {
       text: "",
-      engine: (ttsConfig.engine as "enjoyai" | "openai") || "enjoyai",
+      engine: ttsConfig.engine || "enjoyai",
       model: ttsConfig.model || "azure/speech",
       language: ttsConfig.language || "en-US",
       voice: ttsConfig.voice || "en-US-AvaNeural",

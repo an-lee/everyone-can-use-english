@@ -270,7 +270,14 @@ export const useSettingsStore = create<SettingsState>()(
                 set({ sttEngine: setting.value });
                 break;
               case "ttsConfig":
-                set({ ttsConfig: setting.value });
+                if (setting.value) {
+                  set({
+                    ttsConfig: {
+                      ...get().ttsConfig,
+                      ...setting.value,
+                    },
+                  });
+                }
                 break;
               case "echogarden":
                 set({ echogarden: setting.value });

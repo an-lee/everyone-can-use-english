@@ -10,6 +10,7 @@ import {
 import { useEffect, useState } from "react";
 import { cn, secondsToTimestamp } from "@/renderer/lib/utils";
 import { useSpeechControls } from "@renderer/hooks";
+import { toast } from "sonner";
 
 export function SpeechPlayer(props: {
   speech: SpeechEntity;
@@ -19,7 +20,7 @@ export function SpeechPlayer(props: {
   const { speech, currentSpeechId, setCurrentSpeechId } = props;
   const [collapsed, setCollapsed] = useState(true);
   const { t } = useTranslation("components/speeches");
-  const { currentTime, duration, isPlaying, togglePlay, pause, ref } =
+  const { currentTime, duration, isPlaying, togglePlay, pause, ref, error } =
     useSpeechControls();
 
   useEffect(() => {
@@ -27,6 +28,12 @@ export function SpeechPlayer(props: {
       pause();
     }
   }, [currentSpeechId]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error.message);
+    }
+  }, [error]);
 
   return (
     <div
@@ -55,8 +62,16 @@ export function SpeechPlayer(props: {
       <div className="flex-1">
         <audio ref={ref} src={speech.src} />
         <div className="flex items-center justify-between gap-2">
-          <div className="text-sm font-serif text-muted-foreground">
-            {secondsToTimestamp(currentTime)} / {secondsToTimestamp(duration)}
+          <div className="flex items-center gap-2">
+            {error && (
+              <Icon
+                icon="tabler:alert-circle-filled"
+                className="size-4 text-destructive"
+              />
+            )}
+            <div className="text-sm font-serif text-muted-foreground">
+              {secondsToTimestamp(currentTime)} / {secondsToTimestamp(duration)}
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <div className="text-xs text-muted-foreground">

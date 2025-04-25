@@ -12,5 +12,6 @@
   "invalidTtsEngine": "无效的 TTS 引擎",
   "invalidTtsModel": "无效的 TTS 模型",
   "invalidTtsVoice": "无效的 TTS 声音",
-  "invalidTtsLanguage": "无效的 TTS 语言"
+  "invalidTtsLanguage": "无效的 TTS 语言",
+  "speechCreatedSuccessfully": "音频创建成功"
 }

@@ -12,5 +12,6 @@
   "invalidTtsEngine": "Invalid TTS Engine",
   "invalidTtsModel": "Invalid TTS Model",
   "invalidTtsVoice": "Invalid TTS Voice",
-  "invalidTtsLanguage": "Invalid TTS Language"
+  "invalidTtsLanguage": "Invalid TTS Language",
+  "speechCreatedSuccessfully": "Speech created successfully"
 }

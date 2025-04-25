@@ -5,6 +5,7 @@ export function useSpeechControls() {
   const [currentTime, setCurrentTime] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
+  const [error, setError] = useState<MediaError | null>(null);
   const ref = useRef<HTMLAudioElement | null>(null);
 
   const handlers = {
@@ -20,13 +21,20 @@ export function useSpeechControls() {
     pause: () => {
       setIsPlaying(false);
     },
+    error: () => {
+      setError(ref.current?.error ?? null);
+    },
   };
 
-  const togglePlay = () => {
+  const togglePlay = async () => {
     if (!ref.current) return;
 
     if (ref.current.paused) {
-      ref.current.play();
+      try {
+        await ref.current.play();
+      } catch (error) {
+        setError(error as MediaError);
+      }
     } else {
       ref.current.pause();
     }
@@ -66,5 +74,6 @@ export function useSpeechControls() {
     currentTime,
     duration,
     isPlaying,
+    error,
   };
 }

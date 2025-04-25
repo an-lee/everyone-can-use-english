@@ -14,8 +14,14 @@ export const ttsCommand = async (
 
   if (options.engine === "enjoyai" && options.model === "azure/speech") {
     return azureTTS(text, options);
-  } else if (options.engine === "openai" || options.model === "openai/tts") {
+  } else if (
+    options.engine === "openai" ||
+    options.model.startsWith("openai/")
+  ) {
     return openaiTTS(text, options);
+  } else {
+    console.error("Invalid TTS engine or model", options);
+    throw new Error("Invalid TTS engine or model");
   }
 };
 
