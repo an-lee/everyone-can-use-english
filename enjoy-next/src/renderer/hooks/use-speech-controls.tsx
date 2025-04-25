@@ -20,9 +20,6 @@ export function useSpeechControls() {
     pause: () => {
       setIsPlaying(false);
     },
-    ended: () => {
-      setCurrentTime(0);
-    },
   };
 
   const togglePlay = () => {
