@@ -11,7 +11,6 @@ import {
   Form,
   FormField,
   FormItem,
-  FormLabel,
   FormControl,
   FormMessage,
 } from "@renderer/components/ui";
@@ -20,6 +19,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { LEARNING_LANGUAGES } from "@/shared/constants";
+import { useCreateSpeechMutation } from "@/renderer/hooks";
+import { useEffect } from "react";
+import { toast } from "sonner";
 
 export function SpeechForm() {
   const { t } = useTranslation("components/speeches");
@@ -28,6 +30,12 @@ export function SpeechForm() {
     ttsProviders,
     openai: openaiSettings,
   } = useSettingsStore();
+  const {
+    mutate: createSpeech,
+    isPending,
+    error,
+    data,
+  } = useCreateSpeechMutation();
 
   const ttsFormSchema = z.object({
     text: z.string().min(1, { message: t("youHaveNotInputTextYet") }),
@@ -82,8 +90,25 @@ export function SpeechForm() {
     if (!validate(data)) {
       return;
     }
-    console.log(data);
+    const { text, ...configuration } = data;
+    createSpeech({
+      text,
+      configuration,
+    });
   };
+
+  useEffect(() => {
+    if (data) {
+      form.reset();
+      toast.success(t("speechCreatedSuccessfully"));
+    }
+  }, [data]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error.message);
+    }
+  }, [error]);
 
   return (
     <Form {...form}>
@@ -208,8 +233,16 @@ export function SpeechForm() {
             />
           </div>
           <div className="flex items-center gap-2">
-            <Button type="submit" className="size-8 rounded-full">
-              <Icon icon="tabler:play" />
+            <Button
+              type="submit"
+              className="size-8 rounded-full"
+              disabled={isPending}
+            >
+              {isPending ? (
+                <Icon icon="tabler:loader" className="animate-spin" />
+              ) : (
+                <Icon icon="tabler:play" />
+              )}
             </Button>
           </div>
         </div>

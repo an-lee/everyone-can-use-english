@@ -1,7 +1,9 @@
 import { Speech } from "@main/storage/entities/speech";
 import { instanceToPlain } from "class-transformer";
-import { log } from "@main/core";
+import { appConfig, hashFile, log } from "@main/core";
 import { ILike } from "typeorm";
+import fs from "fs-extra";
+import path from "path";
 
 log.scope("Storage/SpeechService");
 
@@ -59,9 +61,55 @@ export class SpeechService {
     } as SpeechEntity;
   }
 
-  async create(data: Partial<SpeechEntity>): Promise<SpeechEntity> {
+  async create(
+    data: Partial<SpeechEntity> & {
+      blob: {
+        type: string;
+        arrayBuffer: ArrayBuffer;
+      };
+    }
+  ): Promise<SpeechEntity> {
+    const { blob, ...speechData } = data;
+
+    if (!blob || !blob.arrayBuffer) {
+      throw new Error("Blob is required");
+    }
+    if (blob.arrayBuffer.byteLength === 0) {
+      throw new Error("Array buffer is required");
+    }
+
+    speechData.sourceId =
+      speechData.sourceId || "00000000-0000-0000-0000-000000000000";
+    speechData.sourceType = speechData.sourceType || "NONE";
+
+    const tmpFile = path.join(appConfig.cachePath(), `${Date.now()}.mp3`);
+    await fs.writeFileSync(tmpFile, new Uint8Array(blob.arrayBuffer));
+
+    // hash file
+    const md5 = await hashFile(tmpFile, { algo: "md5" });
+
+    // check if speech already exists
+    const existed = await Speech.findOne({ where: { md5 } });
+    if (existed) {
+      fs.unlinkSync(tmpFile);
+      return {
+        ...instanceToPlain(existed),
+        src: existed.src,
+      } as SpeechEntity;
+    }
+
+    // create new speech
+    const extname = `.` + blob.type.split("/")[1];
+    const filename = `${md5}${extname}`;
+    const filePath = path.join(appConfig.userDataPath("speeches")!, filename);
+    await fs.copyFile(tmpFile, filePath);
+
     const speech = new Speech();
-    Object.assign(speech, data);
+    Object.assign(speech, {
+      ...speechData,
+      md5,
+      extname,
+    });
     await speech.save();
     return {
       ...instanceToPlain(speech),

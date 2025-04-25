@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ttsCommand } from "@renderer/commands";
 
 export const useSpeechQueries = (options?: PaginationOptions) => {
   return useQuery({
@@ -36,12 +37,33 @@ export const useCreateSpeechMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: Partial<SpeechEntity>) => {
+    mutationFn: async (
+      data: Partial<
+        SpeechEntity & {
+          blob: {
+            type: string;
+            arrayBuffer: ArrayBuffer;
+          };
+        }
+      >
+    ) => {
       if (!window) {
         throw new Error("Window is not available");
       }
+      const { text, configuration } = data;
+      if (!text) {
+        throw new Error("Text is required");
+      }
 
-      return await window.EnjoyAPI.db.speech.create(data);
+      const buffer = await ttsCommand(text, configuration as TTSConfig);
+      data.blob = {
+        type: "audio/mp3",
+        arrayBuffer: buffer as ArrayBuffer,
+      };
+
+      return await window.EnjoyAPI.db.speech.create({
+        ...data,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["speeches"] });

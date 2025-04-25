@@ -17,6 +17,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   login: (currentUser: UserType) => {
+    if (!currentUser.accessToken) return;
+
     set({ currentUser, nonce: null, logingMethod: null });
     // Sync to main process
     if (window.EnjoyAPI) {
@@ -76,6 +78,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   autoLogin: async () => {
     if (window.EnjoyAPI) {
       const user = await window.EnjoyAPI.appConfig.currentUser();
+      if (!user?.accessToken) return;
+
       set({ currentUser: user });
     }
   },

@@ -1,25 +1,25 @@
 import { BaseClient } from "./base";
 
 export class MediaClient extends BaseClient {
-  syncAudio(audio: Partial<AudioType>) {
-    return this.makeRequest("post", "/api/mine/audios", audio);
+  syncAudio(data: Partial<AudioType>) {
+    return this.makeRequest("post", "/api/mine/audios", data);
   }
 
   deleteAudio(id: string) {
     return this.makeRequest("delete", `/api/mine/audios/${id}`);
   }
 
-  syncVideo(video: Partial<VideoType>) {
-    return this.makeRequest("post", "/api/mine/videos", video);
+  syncVideo(data: Partial<VideoType>) {
+    return this.makeRequest("post", "/api/mine/videos", data);
   }
 
   deleteVideo(id: string) {
     return this.makeRequest("delete", `/api/mine/videos/${id}`);
   }
 
-  syncRecording(recording: Partial<RecordingType>) {
-    if (!recording) return;
-    return this.makeRequest("post", "/api/mine/recordings", recording);
+  syncRecording(data: Partial<RecordingType>) {
+    if (!data) return;
+    return this.makeRequest("post", "/api/mine/recordings", data);
   }
 
   deleteRecording(id: string) {

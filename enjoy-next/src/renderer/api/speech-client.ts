@@ -1,7 +1,7 @@
 import { BaseClient } from "./base";
 
 export class SpeechClient extends BaseClient {
-  generateToken(params: {
+  generateToken(data: {
     purpose: "tts" | "stt";
     input: string;
     targetType?: string;
@@ -9,8 +9,8 @@ export class SpeechClient extends BaseClient {
   }): Promise<{ id: string; token: string; region: string }> {
     return this.makeRequest<{ id: string; token: string; region: string }>(
       "post",
-      "/api/speech/token",
-      params
+      "/api/speech/tokens",
+      data
     );
   }
 

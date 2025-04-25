@@ -10,5 +10,7 @@
   "privacyPolicy": "Privacy Policy",
   "loading": "Loading...",
   "somethingWentWrong": "Something went wrong",
-  "noData": "No data"
+  "noData": "No data",
+  "databaseConnected": "Database connected",
+  "refresh": "Refresh"
 }

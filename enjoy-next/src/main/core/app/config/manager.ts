@@ -179,15 +179,10 @@ class AppConfig {
     let sessions = this.get("sessions") || [];
     sessions = sessions.filter((s: UserType) => typeof s.id === "number");
 
-    // Check if user already exists in sessions
-    const existingSessionIndex = sessions.findIndex(
-      (s: UserType) => s.id === currentUser.id
-    );
-
-    // Only add to sessions if not already there
-    if (existingSessionIndex === -1) {
-      this.set("sessions", [...sessions, currentUser]);
-    }
+    this.set("sessions", [
+      currentUser,
+      ...sessions.filter((s: UserType) => s.id !== currentUser.id),
+    ]);
 
     // Delete user
     logger.info(`Logging out user: ${currentUser.id}`);

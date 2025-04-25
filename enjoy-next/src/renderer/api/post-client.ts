@@ -27,16 +27,16 @@ export class PostClient extends BaseClient {
     return this.makeRequest<PostType>("get", `/api/posts/${id}`);
   }
 
-  createPost(params: {
+  createPost(data: {
     metadata?: PostType["metadata"];
     targetType?: string;
     targetId?: string;
   }): Promise<PostType> {
-    return this.makeRequest<PostType>("post", "/api/posts", params);
+    return this.makeRequest<PostType>("post", "/api/posts", data);
   }
 
-  updatePost(id: string, params: { content: string }): Promise<PostType> {
-    return this.makeRequest<PostType>("put", `/api/posts/${id}`, params);
+  updatePost(id: string, data: { content: string }): Promise<PostType> {
+    return this.makeRequest<PostType>("put", `/api/posts/${id}`, data);
   }
 
   deletePost(id: string): Promise<void> {

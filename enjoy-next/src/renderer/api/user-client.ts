@@ -3,13 +3,13 @@ import { BaseClient } from "./base";
 export class UserClient extends BaseClient {
   updateProfile(
     id: string,
-    params: {
+    data: {
       name?: string;
       email?: string;
       code?: string;
     }
   ): Promise<UserType> {
-    return this.makeRequest<UserType>("put", `/api/users/${id}`, params);
+    return this.makeRequest<UserType>("put", `/api/users/${id}`, data);
   }
 
   rankings(range: "day" | "week" | "month" | "year" | "all" = "day"): Promise<{

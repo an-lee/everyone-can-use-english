@@ -61,21 +61,23 @@ export function LoginForm({
             {sessions.length > 0 && (
               <div className="flex flex-col gap-3">
                 <div className="flex items-center justify-center gap-3">
-                  {sessions.map((session) => (
-                    <Button
-                      key={session.id}
-                      variant="outline"
-                      className="size-10 rounded-full"
-                      onClick={() => login(session)}
-                    >
-                      <Avatar className="size-10">
-                        <AvatarImage src={session.avatarUrl} />
-                        <AvatarFallback>
-                          {session.name?.slice(0, 2)}
-                        </AvatarFallback>
-                      </Avatar>
-                    </Button>
-                  ))}
+                  {sessions
+                    .filter((session) => session.accessToken)
+                    .map((session) => (
+                      <Button
+                        key={session.id}
+                        variant="outline"
+                        className="size-10 rounded-full"
+                        onClick={() => login(session)}
+                      >
+                        <Avatar className="size-10">
+                          <AvatarImage src={session.avatarUrl} />
+                          <AvatarFallback>
+                            {session.name?.slice(0, 2)}
+                          </AvatarFallback>
+                        </Avatar>
+                      </Button>
+                    ))}
                 </div>
                 <Separator />
                 <p className="text-center text-sm text-muted-foreground">

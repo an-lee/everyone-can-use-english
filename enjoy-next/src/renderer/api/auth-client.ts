@@ -5,7 +5,7 @@ export class AuthClient extends BaseClient {
     return this.makeRequest<UserType>("get", "/api/me");
   }
 
-  auth(params: {
+  auth(data: {
     provider: "mixin" | "github" | "bandu" | "email";
     code?: string;
     deviceCode?: string;
@@ -13,7 +13,7 @@ export class AuthClient extends BaseClient {
     email?: string;
     mixinId?: string;
   }): Promise<UserType> {
-    return this.makeRequest<UserType>("post", "/api/sessions", params);
+    return this.makeRequest<UserType>("post", "/api/sessions", data);
   }
 
   oauthState(state: string): Promise<UserType> {
@@ -29,15 +29,17 @@ export class AuthClient extends BaseClient {
     expiresIn: number;
     interval: number;
   }> {
-    return this.makeRequest("post", "/api/sessions/device_code", { provider });
+    return this.makeRequest("post", "/api/sessions/device_code", {
+      provider,
+    });
   }
 
-  loginCode(params: {
+  loginCode(data: {
     phoneNumber?: string;
     email?: string;
     mixinId?: string;
   }): Promise<void> {
-    return this.makeRequest<void>("post", "/api/sessions/login_code", params);
+    return this.makeRequest<void>("post", "/api/sessions/login_code", data);
   }
 
   usages(): Promise<{ label: string; data: number[] }[]> {

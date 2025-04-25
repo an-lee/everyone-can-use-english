@@ -2,7 +2,7 @@ import { useDbStore } from "@renderer/store";
 import { Icon } from "@iconify/react";
 import { useTranslation } from "react-i18next";
 import { LoadingView } from "./loading-view";
-import { Progress } from "@renderer/components/ui";
+import { Button, Progress } from "@renderer/components/ui";
 
 const MAX_RETRIES = 5;
 
@@ -97,6 +97,9 @@ const DatabaseConnectedView = () => {
           {t("databaseConnected")}
         </p>
       </div>
+      <Button variant="outline" onClick={() => (location.href = "/")}>
+        {t("refresh")}
+      </Button>
     </div>
   );
 };

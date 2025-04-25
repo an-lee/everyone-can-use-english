@@ -71,8 +71,6 @@ export function useCreateRecording() {
     },
     onSuccess: (result, variables) => {
       const queryKey = ["recordings"];
-      console.log("result", result);
-      console.log("variables", variables);
 
       if (
         variables?.targetId &&
