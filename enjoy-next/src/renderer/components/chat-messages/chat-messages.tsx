@@ -1,24 +1,27 @@
-import { useChatMessagesQuery } from "@renderer/hooks";
-import { LoadingView, ErrorView } from "@renderer/components/status-views";
-import { ChatAgent } from "../chat-agents/chat-agent";
-import { ChatMessage } from "./chat-message";
+import { ChatAgentMessage } from "./chat-agent-message";
+import { ChatUserMessage } from "./chat-user-message";
+import { ChatPendingMessage } from "./chat-pending-message";
 
-export function ChatMessages(props: { chatId: string }) {
-  const { data, isLoading, error } = useChatMessagesQuery(props.chatId);
-
-  if (isLoading) {
-    return <LoadingView />;
-  }
-
-  if (error) {
-    return <ErrorView error={error.message} />;
-  }
+export function ChatMessages(props: { messages: ChatMessageEntity[] }) {
+  const { messages = [] } = props;
 
   return (
     <div className="flex flex-col gap-4">
-      {(data || []).map((message: ChatMessageEntity) => (
-        <ChatMessage key={message.id} message={message} />
-      ))}
+      {messages.map((message: ChatMessageEntity) => {
+        if (message.role === "USER") {
+          return <ChatUserMessage key={message.id} message={message} />;
+        } else if (message.state === "pending") {
+          return (
+            <ChatPendingMessage
+              key={message.id}
+              message={message}
+              messages={messages}
+            />
+          );
+        } else {
+          return <ChatAgentMessage key={message.id} message={message} />;
+        }
+      })}
     </div>
   );
 }

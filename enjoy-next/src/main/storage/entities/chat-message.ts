@@ -16,7 +16,7 @@ export class ChatMessage extends BaseEntity {
   chatId!: string;
 
   @Column({ type: "varchar" })
-  role!: string;
+  role!: ChatMessageRoleType;
 
   @Column({ type: "varchar" })
   category!: string;

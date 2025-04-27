@@ -9,6 +9,7 @@ declare interface ChatMemberEntity {
   config: Record<string, any>;
   createdAt: string;
   updatedAt: string;
+  agent?: ChatAgentEntity;
 }
 
 declare interface ChatMemberFindAllOptions {

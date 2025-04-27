@@ -3,10 +3,10 @@ import { persist } from "zustand/middleware";
 import i18n from "../lib/i18n";
 import { Client } from "../api";
 import {
+  DEFAULT_USER_SETTINGS,
   GPT_PROVIDERS,
   TTS_PROVIDERS,
-  APPEARANCE_LANGUAGES,
-} from "@/shared/constants";
+} from "@shared/constants";
 
 type SettingsState = {
   theme: Theme;
@@ -103,7 +103,7 @@ type SettingsState = {
   setHotkeys: (hotkeys: { [key: string]: string }) => void;
 
   recorderConfig: {
-    [key: string]: string;
+    [key: string]: any;
   };
   setRecorderConfig: (recorderConfig: { [key: string]: string }) => void;
 
@@ -121,28 +121,23 @@ type SettingsState = {
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set, get) => ({
-      language: "zh-CN",
-      languages: APPEARANCE_LANGUAGES,
+      ...DEFAULT_USER_SETTINGS,
       setLanguage: (language) => {
         set({ language });
         i18n.changeLanguage(language);
         window.EnjoyAPI.db.userSetting.set("language", language);
       },
 
-      theme: "system",
       setTheme: (theme) => {
         set({ theme });
         window.EnjoyAPI.db.userSetting.set("theme", theme);
       },
 
-      fontSize: 16,
       setFontSize: (fontSize) => {
         set({ fontSize });
         window.EnjoyAPI.db.userSetting.set("fontSize", fontSize);
       },
 
-      nativeLanguage: "zh-CN",
-      learningLanguage: "en-US",
       setNativeLanguage: (nativeLanguage) => {
         set({ nativeLanguage });
         window.EnjoyAPI.db.userSetting.set("nativeLanguage", nativeLanguage);
@@ -155,82 +150,53 @@ export const useSettingsStore = create<SettingsState>()(
         );
       },
 
-      whisper: "azure",
       setWhisper: (whisper) => {
         set({ whisper });
         window.EnjoyAPI.db.userSetting.set("whisper", whisper);
       },
 
-      gptProviders: GPT_PROVIDERS,
       setGptProviders: (gptProviders) => {
         set({ gptProviders });
       },
 
-      ttsProviders: TTS_PROVIDERS,
       setTtsProviders: (ttsProviders) => {
         set({ ttsProviders });
       },
 
-      openai: {
-        baseUrl: "",
-        key: "",
-        models: "",
-      },
       setOpenai: (openai) => {
         set({ openai });
         window.EnjoyAPI.db.userSetting.set("openai", openai);
       },
 
-      gptEngine: {
-        name: "",
-        models: {},
-      },
       setGptEngine: (gptEngine) => {
         set({ gptEngine });
         window.EnjoyAPI.db.userSetting.set("gptEngine", gptEngine);
       },
 
-      sttEngine: "",
       setSttEngine: (sttEngine) => {
         set({ sttEngine });
         window.EnjoyAPI.db.userSetting.set("sttEngine", sttEngine);
       },
 
-      ttsConfig: {
-        engine: "enjoyai",
-        language: "en-US",
-        model: "azure/speech",
-        voice: "en-US-JennyNeural",
-      },
       setTtsConfig: (ttsConfig) => {
         set({ ttsConfig });
         window.EnjoyAPI.db.userSetting.set("ttsConfig", ttsConfig);
       },
 
-      echogarden: {
-        engine: "whisper",
-        whisper: {},
-        whisperCpp: {},
-      },
       setEchogarden: (echogarden) => {
         set({ echogarden });
         window.EnjoyAPI.db.userSetting.set("echogarden", echogarden);
       },
 
-      hotkeys: {},
       setHotkeys: (hotkeys) => {
         set({ hotkeys });
         window.EnjoyAPI.db.userSetting.set("hotkeys", hotkeys);
       },
 
-      recorderConfig: {},
       setRecorderConfig: (recorderConfig) => {
         set({ recorderConfig });
         window.EnjoyAPI.db.userSetting.set("recorderConfig", recorderConfig);
       },
-
-      ipaMappings: {},
-      latestVersion: "",
 
       // Actions
       refresh: async () => {
@@ -241,6 +207,7 @@ export const useSettingsStore = create<SettingsState>()(
       refreshFromIpc: async () => {
         window.EnjoyAPI.db.userSetting.all().then((settings) => {
           for (const setting of settings) {
+            if (!setting.value) continue;
             switch (setting.key) {
               case "language":
                 set({ language: setting.value });
@@ -261,32 +228,50 @@ export const useSettingsStore = create<SettingsState>()(
                 set({ whisper: setting.value });
                 break;
               case "openai":
-                set({ openai: setting.value });
+                set({ openai: { ...get().openai, ...setting.value } });
                 break;
               case "gptEngine":
-                set({ gptEngine: setting.value });
+                set({
+                  gptEngine: {
+                    ...get().gptEngine,
+                    ...setting.value,
+                  },
+                });
                 break;
               case "sttEngine":
                 set({ sttEngine: setting.value });
                 break;
               case "ttsConfig":
-                if (setting.value) {
-                  set({
-                    ttsConfig: {
-                      ...get().ttsConfig,
-                      ...setting.value,
-                    },
-                  });
-                }
+                set({
+                  ttsConfig: {
+                    ...get().ttsConfig,
+                    ...setting.value,
+                  },
+                });
                 break;
               case "echogarden":
-                set({ echogarden: setting.value });
+                set({
+                  echogarden: {
+                    ...get().echogarden,
+                    ...setting.value,
+                  },
+                });
                 break;
               case "hotkeys":
-                set({ hotkeys: setting.value });
+                set({
+                  hotkeys: {
+                    ...get().hotkeys,
+                    ...setting.value,
+                  },
+                });
                 break;
               case "recorder":
-                set({ recorderConfig: setting.value });
+                set({
+                  recorderConfig: {
+                    ...get().recorderConfig,
+                    ...setting.value,
+                  },
+                });
                 break;
             }
           }

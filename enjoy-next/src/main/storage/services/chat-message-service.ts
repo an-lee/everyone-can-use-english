@@ -1,7 +1,8 @@
 import { ILike } from "typeorm";
 import { log } from "@main/core";
 import { instanceToPlain } from "class-transformer";
-import { ChatMessage } from "../entities/chat-message";
+import { ChatMessage, ChatMember } from "@main/storage/entities";
+import { NULL_UUID } from "@shared/constants";
 
 /**
  * Simple Audio service for managing audio files
@@ -49,8 +50,9 @@ export class ChatMessageService {
       `Querying chat messages with chat_id: ${chatId}, role: ${role}, category: ${category}, member_id: ${memberId}, agent_id: ${agentId}, state: ${state}`
     );
 
-    const chatMessages = await queryBuilder.getMany();
-
+    const chatMessages = await queryBuilder
+      .orderBy("created_at", "ASC")
+      .getMany();
     return chatMessages.map(
       (chatMessage) => instanceToPlain(chatMessage) as ChatMessageEntity
     );
@@ -72,8 +74,57 @@ export class ChatMessageService {
    * Create a new chat member
    */
   async create(data: Partial<ChatMessageEntity>): Promise<ChatMessageEntity> {
-    const chatMessage = ChatMessage.create(data as any);
+    const { chatId, role, mentions, content, state } = data;
+
+    const chatMessage = ChatMessage.create(data);
     await chatMessage.save();
+    if (role !== "USER")
+      return instanceToPlain(chatMessage) as ChatMessageEntity;
+
+    let agentId: string;
+    const lastAgentMessage = await ChatMessage.findOne({
+      where: {
+        chatId: chatId,
+        role: "AGENT",
+      },
+      order: {
+        createdAt: "DESC",
+      },
+    });
+    if (mentions && mentions.length > 0) {
+      agentId = mentions[0];
+    } else if (lastAgentMessage) {
+      agentId = lastAgentMessage.agentId;
+    } else {
+      agentId = NULL_UUID;
+    }
+
+    let chatMember = await ChatMember.findOne({
+      where: {
+        chatId: chatId,
+        userId: agentId,
+        userType: "ChatAgent",
+      },
+    });
+
+    if (!chatMember) {
+      chatMember = await ChatMember.create({
+        chatId: chatId,
+        userId: agentId,
+        userType: "ChatAgent",
+      });
+      await chatMember.save();
+    }
+
+    const pendingMessage = await ChatMessage.create({
+      chatId: chatId,
+      role: "AGENT",
+      memberId: chatMember.id,
+      agentId: agentId,
+      content: "",
+      state: "pending",
+    });
+    await pendingMessage.save();
 
     return instanceToPlain(chatMessage) as ChatMessageEntity;
   }

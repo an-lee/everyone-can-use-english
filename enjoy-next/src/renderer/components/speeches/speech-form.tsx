@@ -18,8 +18,8 @@ import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { LEARNING_LANGUAGES } from "@/shared/constants";
-import { useCreateSpeechMutation } from "@/renderer/hooks";
+import { LEARNING_LANGUAGES } from "@shared/constants";
+import { useCreateSpeechMutation } from "@renderer/hooks";
 import { useEffect } from "react";
 import { toast } from "sonner";
 

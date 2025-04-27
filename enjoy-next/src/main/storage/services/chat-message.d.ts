@@ -4,13 +4,13 @@
 declare interface ChatMessageEntity {
   id: string;
   chatId: string;
-  role: string;
+  role: ChatMessageRoleType;
   category: string;
   memberId: string;
   agentId: string;
   mentions: string[];
   content: string;
-  state: string;
+  state: ChatMessageStateType;
   createdAt: string;
   updatedAt: string;
 }
@@ -23,3 +23,6 @@ declare interface ChatMessageFindAllOptions {
   agent_id?: string;
   state?: string;
 }
+
+declare type ChatMessageRoleType = "USER" | "AGENT";
+declare type ChatMessageStateType = "pending" | "completed";

@@ -1,6 +1,7 @@
 import { log } from "@main/core";
 import { instanceToPlain } from "class-transformer";
 import { ChatMember } from "../entities/chat-member";
+import { ChatAgent } from "../entities/chat-agent";
 
 /**
  * Simple Audio service for managing audio files
@@ -53,8 +54,19 @@ export class ChatMemberService {
     if (!chatMember) {
       return null;
     }
+    let chatAgent: ChatAgent | null = null;
+    if (chatMember.userType === "agent") {
+      chatAgent = await ChatAgent.findOne({
+        where: { id: chatMember.userId },
+      });
+    }
 
-    return instanceToPlain(chatMember) as ChatMemberEntity;
+    const chatMemberEntity = instanceToPlain(chatMember) as ChatMemberEntity;
+    if (chatAgent) {
+      chatMemberEntity.agent = instanceToPlain(chatAgent) as ChatAgentEntity;
+    }
+
+    return chatMemberEntity;
   }
 
   /**

@@ -6,6 +6,7 @@ import { formatDateTime } from "@renderer/lib/utils";
 
 export function ChatAgentMessage(props: { message: ChatMessageEntity }) {
   const { message } = props;
+
   return (
     <div className="overflow-hidden">
       <div className="flex items-center justify-between gap-2 mb-1">

@@ -1,3 +1,8 @@
+import { GPT_PROVIDERS } from "./gpt-providers";
+import { IPA_MAPPINGS } from "./ipa";
+import { APPEARANCE_LANGUAGES } from "./languages";
+import { TTS_PROVIDERS } from "./tts-providers";
+
 export * from "./ipa";
 export * from "./gpt-providers";
 export * from "./tts-providers";
@@ -29,4 +34,54 @@ export const MIME_TYPES: Record<string, string> = {
   ".aac": "audio/aac",
   ".flac": "audio/flac",
   ".wma": "audio/x-ms-wma",
+};
+
+export const NULL_UUID = "00000000-0000-0000-0000-000000000000";
+
+export const DEFAULT_USER_SETTINGS = {
+  language: "zh-CN",
+  languages: APPEARANCE_LANGUAGES,
+  theme: "system" as Theme,
+  fontSize: 16,
+  nativeLanguage: "zh-CN",
+  learningLanguage: "en-US",
+  whisper: "azure",
+  gptEngine: {
+    name: "enjoyai",
+    models: {
+      default: "gpt-4o",
+    },
+  },
+  gptProviders: GPT_PROVIDERS,
+  ttsProviders: TTS_PROVIDERS,
+  openai: {
+    baseUrl: "",
+    key: "",
+    models: "",
+  },
+  // 'local', 'enjoy_azure', 'enjoy_cloudflare', 'openai'
+  sttEngine: "enjoy_azure",
+  ttsConfig: {
+    engine: "enjoyai",
+    language: "en-US",
+    model: "azure/speech",
+    voice: "en-US-JennyNeural",
+  } as TTSConfig,
+  // 'whisper', 'whisperCpp'
+  echogarden: {
+    engine: "whisper" as "whisper" | "whisperCpp",
+    whisper: {},
+    whisperCpp: {},
+  },
+  recorderConfig: {
+    autoGainControl: false,
+    echoCancellation: true,
+    noiseSuppression: true,
+    sampleRate: 16000,
+    sampleSize: 16,
+  },
+  hotkeys: {},
+  ipaMappings: IPA_MAPPINGS,
+  profile: null,
+  latestVersion: "",
 };
