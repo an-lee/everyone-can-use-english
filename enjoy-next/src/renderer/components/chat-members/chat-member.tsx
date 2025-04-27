@@ -11,9 +11,16 @@ export function ChatMember(props: { id: string }) {
 
   if (data.config.gpt) {
     return (
-      <div className="text-sm text-muted-foreground font-serif">
-        {data.config.gpt?.engine} | {data.config.gpt?.model}
-      </div>
+      <>
+        {data.agent && (
+          <div className="text-sm text-muted-foreground font-serif">
+            {data.agent.name}-{data.agent.type}
+          </div>
+        )}
+        <div className="text-sm text-muted-foreground font-serif">
+          {data.config.gpt?.engine} | {data.config.gpt?.model}
+        </div>
+      </>
     );
   } else if (data.config.tts) {
     return (

@@ -10,7 +10,7 @@ export function ChatUserMessage(props: { message: ChatMessageEntity }) {
         {message.content}
       </div>
       <div className="flex items-center justify-between">
-        <div className="flex items-center">
+        <div className="flex items-center opacity-0 hover:opacity-100">
           <Button variant="ghost" size="icon" className="size-8 rounded-full">
             <Icon icon="tabler:copy" className="size-4 text-muted-foreground" />
           </Button>

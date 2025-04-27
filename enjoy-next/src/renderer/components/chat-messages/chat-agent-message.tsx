@@ -1,4 +1,3 @@
-import { ChatAgent } from "@renderer/components/chat-agents";
 import { ChatMember } from "@renderer/components/chat-members";
 import { Button } from "../ui/button";
 import { Icon } from "@iconify/react";
@@ -9,15 +8,14 @@ export function ChatAgentMessage(props: { message: ChatMessageEntity }) {
 
   return (
     <div className="overflow-hidden">
-      <div className="flex items-center justify-between gap-2 mb-1">
-        <ChatAgent id={message.agentId} type="name" />
+      <div className="flex items-center gap-2 mb-1">
         <ChatMember id={message.memberId} />
       </div>
       <div className="w-full bg-background rounded-lg px-4 py-2 overflow-x-auto font-serif text-lg">
         {message.content}
       </div>
       <div className="flex items-center justify-between">
-        <div className="flex items-center">
+        <div className="flex items-center opacity-0 hover:opacity-100">
           <Button variant="ghost" size="icon" className="size-8 rounded-full">
             <Icon icon="tabler:copy" className="size-4 text-muted-foreground" />
           </Button>

@@ -55,7 +55,7 @@ export class ChatMemberService {
       return null;
     }
     let chatAgent: ChatAgent | null = null;
-    if (chatMember.userType === "agent") {
+    if (chatMember.userType === "ChatAgent") {
       chatAgent = await ChatAgent.findOne({
         where: { id: chatMember.userId },
       });
