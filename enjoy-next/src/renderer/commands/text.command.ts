@@ -27,6 +27,7 @@ export const textCommand = async (
     temperature,
     configuration: {
       baseURL: baseUrl,
+      dangerouslyAllowBrowser: true,
     },
     cache,
     verbose: true,

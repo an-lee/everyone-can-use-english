@@ -194,7 +194,7 @@ export const useSettingsStore = create<SettingsState>()(
         }
         return {
           key: currentUser?.accessToken || "",
-          baseUrl: appConfig.webApiUrl,
+          baseUrl: `${appConfig.webApiUrl}/api/ai`,
           models: gptEngine.models,
         };
       },

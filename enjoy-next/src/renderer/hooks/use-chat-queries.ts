@@ -46,13 +46,9 @@ export const useUpdateChat = () => {
       const { id, data } = params;
       return window.EnjoyAPI.db.chat.update(id, data);
     },
-    onSuccess: (result, variables) => {
-      queryClient.setQueryData(["chats"], (oldData: ChatEntity[]) => {
-        return oldData.map((chat) =>
-          chat.id === variables.id ? { ...chat, ...result } : chat
-        );
-      });
-      queryClient.invalidateQueries({ queryKey: ["chat", variables.id] });
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ["chat", result.id] });
+      queryClient.invalidateQueries({ queryKey: ["chats"] });
     },
   });
 };

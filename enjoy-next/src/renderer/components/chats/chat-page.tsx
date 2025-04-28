@@ -4,25 +4,25 @@ import {
   ChatMessageForm,
   ChatMessages,
 } from "@renderer/components/chat-messages";
-import { Button, ScrollArea } from "@renderer/components/ui";
+import { Button, Input, ScrollArea } from "@renderer/components/ui";
 import { Icon } from "@iconify/react";
 import { toast } from "sonner";
 import { summarizeTopicCommand } from "@renderer/commands";
 import { useSettingsStore } from "@renderer/store/use-settings-store";
-import { useAppStore } from "@renderer/store/use-app-store";
 import { cn } from "@renderer/lib/utils";
+import { useState } from "react";
 
 export function ChatPage({ chatId }: { chatId: string }) {
   const { data, isLoading, error } = useChat(chatId);
   const { data: messages } = useChatMessagesQuery(chatId);
-  const { mutate: updateChat, isPending: isUpdatingChat } = useUpdateChat();
-  const { currentGptEngine, learningLanguage, language } = useSettingsStore();
-  const { config: appConfig } = useAppStore();
+  const { mutate: updateChat } = useUpdateChat();
+  const { currentGptEngine } = useSettingsStore();
+
+  const [updatingName, setUpdatingName] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   const generateChatName = async () => {
     const gptOptions = currentGptEngine();
-    console.log(gptOptions);
-    console.log(learningLanguage, language);
     if (
       messages?.filter((m: ChatMessageEntity) => m.role === "AGENT").length < 1
     )
@@ -34,16 +34,19 @@ export function ChatPage({ chatId }: { chatId: string }) {
       .map((m: ChatMessageEntity) => m.content)
       .join("\n");
     try {
+      setUpdatingName(true);
       const topic = await summarizeTopicCommand(content, {
         key: gptOptions.key,
         baseUrl: gptOptions.baseUrl,
-        model: gptOptions.models.default || "gpt-4.1-nano",
+        model: gptOptions.models.default,
       });
       if (topic) {
-        updateChat({ id: chatId, data: { name: topic } });
+        await updateChat({ id: chatId, data: { name: topic } });
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : String(error));
+    } finally {
+      setUpdatingName(false);
     }
   };
 
@@ -66,29 +69,56 @@ export function ChatPage({ chatId }: { chatId: string }) {
   return (
     <div className="w-full flex flex-col relative h-content overflow-hidden bg-muted">
       <ScrollArea className="flex-1">
-        <div className="h-4"></div>
-        <div className="flex items-center justify-center mb-4">
+        <div className="flex items-center justify-center my-2">
           <Button
             variant="ghost"
             size="icon"
             className="opacity-10 hover:opacity-100"
             onClick={generateChatName}
+            disabled={updatingName}
           >
             <Icon
               icon="tabler:refresh"
               className={cn(
                 "transition-transform duration-300",
-                isUpdatingChat ? "animate-spin" : ""
+                updatingName ? "animate-spin" : ""
               )}
             />
           </Button>
-          <div className="text-sm text-muted-foreground max-w-24 truncate">
-            {data?.name}
+          <div className="max-w-32 truncate">
+            {editing ? (
+              <Input
+                defaultValue={data?.name}
+                onBlur={(e) => {
+                  setUpdatingName(true);
+                  updateChat(
+                    { id: chatId, data: { name: e.target.value } },
+                    {
+                      onError: (error) => {
+                        toast.error(
+                          error instanceof Error ? error.message : String(error)
+                        );
+                      },
+                      onSettled: () => {
+                        setUpdatingName(false);
+                        setEditing(false);
+                      },
+                    }
+                  );
+                }}
+              />
+            ) : (
+              <span className="text-sm text-muted-foreground max-w-full">
+                {data?.name}
+              </span>
+            )}
           </div>
           <Button
             variant="ghost"
             size="icon"
             className="opacity-10 hover:opacity-100"
+            disabled={editing}
+            onClick={() => setEditing(true)}
           >
             <Icon icon="tabler:pencil" />
           </Button>
