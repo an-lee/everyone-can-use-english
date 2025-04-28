@@ -7,6 +7,8 @@ import {
   GPT_PROVIDERS,
   TTS_PROVIDERS,
 } from "@shared/constants";
+import { useAppStore } from "./use-app-store";
+import useAuthStore from "./use-auth-store";
 
 type SettingsState = {
   theme: Theme;
@@ -79,6 +81,11 @@ type SettingsState = {
     name: string;
     models: { [key: string]: string };
   }) => void;
+  currentGptEngine: () => {
+    key: string;
+    baseUrl?: string;
+    models: { [key: string]: string };
+  };
 
   sttEngine: string;
   setSttEngine: (sttEngine: string) => void;
@@ -135,17 +142,17 @@ export const useSettingsStore = create<SettingsState>()(
 
       setFontSize: (fontSize) => {
         set({ fontSize });
-        window.EnjoyAPI.db.userSetting.set("fontSize", fontSize);
+        window.EnjoyAPI.db.userSetting.set("font_size", fontSize);
       },
 
       setNativeLanguage: (nativeLanguage) => {
         set({ nativeLanguage });
-        window.EnjoyAPI.db.userSetting.set("nativeLanguage", nativeLanguage);
+        window.EnjoyAPI.db.userSetting.set("native_language", nativeLanguage);
       },
       setLearningLanguage: (learningLanguage) => {
         set({ learningLanguage });
         window.EnjoyAPI.db.userSetting.set(
-          "learningLanguage",
+          "learning_language",
           learningLanguage
         );
       },
@@ -170,17 +177,36 @@ export const useSettingsStore = create<SettingsState>()(
 
       setGptEngine: (gptEngine) => {
         set({ gptEngine });
-        window.EnjoyAPI.db.userSetting.set("gptEngine", gptEngine);
+        window.EnjoyAPI.db.userSetting.set("gpt_engine", gptEngine);
+      },
+
+      currentGptEngine: () => {
+        const { gptEngine, openai } = get();
+        const appConfig = useAppStore.getState().config;
+        const currentUser = useAuthStore.getState().currentUser;
+
+        if (gptEngine.name === "openai" && openai.key) {
+          return {
+            key: openai.key,
+            baseUrl: openai.baseUrl,
+            models: gptEngine.models,
+          };
+        }
+        return {
+          key: currentUser?.accessToken || "",
+          baseUrl: appConfig.webApiUrl,
+          models: gptEngine.models,
+        };
       },
 
       setSttEngine: (sttEngine) => {
         set({ sttEngine });
-        window.EnjoyAPI.db.userSetting.set("sttEngine", sttEngine);
+        window.EnjoyAPI.db.userSetting.set("stt_engine", sttEngine);
       },
 
       setTtsConfig: (ttsConfig) => {
         set({ ttsConfig });
-        window.EnjoyAPI.db.userSetting.set("ttsConfig", ttsConfig);
+        window.EnjoyAPI.db.userSetting.set("tts_config", ttsConfig);
       },
 
       setEchogarden: (echogarden) => {
@@ -195,7 +221,7 @@ export const useSettingsStore = create<SettingsState>()(
 
       setRecorderConfig: (recorderConfig) => {
         set({ recorderConfig });
-        window.EnjoyAPI.db.userSetting.set("recorderConfig", recorderConfig);
+        window.EnjoyAPI.db.userSetting.set("recorder", recorderConfig);
       },
 
       // Actions
@@ -215,13 +241,13 @@ export const useSettingsStore = create<SettingsState>()(
               case "theme":
                 set({ theme: setting.value });
                 break;
-              case "fontSize":
+              case "font_size":
                 set({ fontSize: setting.value });
                 break;
-              case "nativeLanguage":
+              case "native_language":
                 set({ nativeLanguage: setting.value });
                 break;
-              case "learningLanguage":
+              case "learning_language":
                 set({ learningLanguage: setting.value });
                 break;
               case "whisper":
@@ -230,7 +256,7 @@ export const useSettingsStore = create<SettingsState>()(
               case "openai":
                 set({ openai: { ...get().openai, ...setting.value } });
                 break;
-              case "gptEngine":
+              case "gpt_engine":
                 set({
                   gptEngine: {
                     ...get().gptEngine,
@@ -238,10 +264,10 @@ export const useSettingsStore = create<SettingsState>()(
                   },
                 });
                 break;
-              case "sttEngine":
+              case "stt_engine":
                 set({ sttEngine: setting.value });
                 break;
-              case "ttsConfig":
+              case "tts_config":
                 set({
                   ttsConfig: {
                     ...get().ttsConfig,

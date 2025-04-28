@@ -16,11 +16,11 @@ export class Chat extends BaseEntity {
   @Column({ type: "varchar" })
   name!: string;
 
-  @Column({ type: "varchar" })
+  @Column({ type: "varchar", default: "CONVERSATION" })
   type!: string;
 
-  @Column({ type: "varchar" })
-  digest!: string;
+  @Column({ type: "varchar", nullable: true })
+  digest?: string;
 
   @Column({ type: "json", default: "{}" })
   config!: Record<string, any>;

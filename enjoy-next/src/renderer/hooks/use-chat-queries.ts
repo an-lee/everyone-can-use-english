@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const useChats = () => {
   return useQuery({
@@ -27,25 +27,44 @@ export const useChat = (chatId: string) => {
 };
 
 export const useCreateChat = () => {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (chat: ChatEntity) => {
-      return window.EnjoyAPI.db.chat.create(chat);
+    mutationFn: (data: Partial<ChatEntity>) => {
+      return window.EnjoyAPI.db.chat.create(data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["chats"] });
     },
   });
 };
 
 export const useUpdateChat = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: (chat: ChatEntity) => {
-      return window.EnjoyAPI.db.chat.update(chat.id, chat);
+    mutationFn: (params: { id: string; data: Partial<ChatEntity> }) => {
+      const { id, data } = params;
+      return window.EnjoyAPI.db.chat.update(id, data);
+    },
+    onSuccess: (result, variables) => {
+      queryClient.setQueryData(["chats"], (oldData: ChatEntity[]) => {
+        return oldData.map((chat) =>
+          chat.id === variables.id ? { ...chat, ...result } : chat
+        );
+      });
+      queryClient.invalidateQueries({ queryKey: ["chat", variables.id] });
     },
   });
 };
 
 export const useDeleteChat = () => {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (chatId: string) => {
-      return window.EnjoyAPI.db.chat.delete(chatId);
+    mutationFn: (id: string) => {
+      return window.EnjoyAPI.db.chat.delete(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["chats"] });
     },
   });
 };

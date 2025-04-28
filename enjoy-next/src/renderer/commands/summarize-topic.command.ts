@@ -1,10 +1,7 @@
-import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { textCommand } from "./text.command";
-import { LEARNING_LANGUAGES } from "@shared/constants";
 
 export const summarizeTopicCommand = async (
   text: string,
-  learningLanguage: string,
   options: {
     key: string;
     model?: string;
@@ -16,16 +13,19 @@ export const summarizeTopicCommand = async (
 
   const formattedText = text.replace(/\{/g, "{{").replace(/\}/g, "}}");
 
-  const prompt = await ChatPromptTemplate.fromMessages([
-    ["system", SYSTEM_PROMPT],
-    ["human", formattedText],
-  ]).format({
-    learning_language: LEARNING_LANGUAGES.find(
-      (l) => l.code === learningLanguage
-    )!.name,
-  });
-
-  return textCommand(prompt, options);
+  return textCommand(
+    [
+      {
+        role: "system",
+        content: SYSTEM_PROMPT,
+      },
+      {
+        role: "user",
+        content: formattedText,
+      },
+    ],
+    options
+  );
 };
 
 const SYSTEM_PROMPT =

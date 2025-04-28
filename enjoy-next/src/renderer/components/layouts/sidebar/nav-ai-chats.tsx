@@ -11,12 +11,16 @@ import {
 import { Icon } from "@iconify/react";
 import { Link, useLocation } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { useChats } from "@renderer/hooks";
+import { useChats, useCreateChat } from "@renderer/hooks";
+import { toast } from "sonner";
+import { useRouter } from "@tanstack/react-router";
 
 export function NavAiChats() {
   const { pathname } = useLocation();
   const { t } = useTranslation("components/layouts/sidebar");
   const { data, isLoading } = useChats();
+  const { mutate: createChat } = useCreateChat();
+  const router = useRouter();
 
   return (
     <SidebarGroup className="non-draggable-region">
@@ -27,13 +31,25 @@ export function NavAiChats() {
           <SidebarMenuButton
             tooltip={t("newChat")}
             className="cursor-pointer"
-            isActive={pathname.startsWith("/chats/new")}
-            asChild
+            onClick={() =>
+              createChat(
+                { name: t("newChat") },
+                {
+                  onSuccess: (chat) => {
+                    router.navigate({
+                      to: "/chats/$chatId",
+                      params: { chatId: chat.id },
+                    });
+                  },
+                  onError: (error) => {
+                    toast.error(error.message);
+                  },
+                }
+              )
+            }
           >
-            <Link to="/chats/$chatId" params={{ chatId: "new" }} replace={true}>
-              <Icon icon="tabler:plus" />
-              <span>{t("newChat")}</span>
-            </Link>
+            <Icon icon="tabler:plus" />
+            <span>{t("newChat")}</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
         {(data?.items || []).slice(0, 3).map((chat: ChatEntity) => (
