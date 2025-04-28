@@ -2,11 +2,12 @@ import { useEffect } from "react";
 import { ChatMember } from "../chat-members";
 import { useAskAgentMutation } from "@renderer/hooks";
 import { Icon } from "@iconify/react";
-import { Button } from "../ui";
+import { useChatMemberByIdQuery } from "@renderer/hooks";
+import { Button } from "@renderer/components/ui";
 import { formatDateTime } from "@renderer/lib/utils";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import { useDebounce } from "@uidotdev/usehooks";
+import debounce from "lodash/debounce";
 
 export function ChatPendingMessage(props: {
   message: ChatMessageEntity;
@@ -14,16 +15,23 @@ export function ChatPendingMessage(props: {
 }) {
   const { message, messages } = props;
   const { t } = useTranslation("components/chat-messages");
-  const {
-    mutate: askAgent,
-    isPending,
-    error,
-  } = useAskAgentMutation({
-    message,
-    messages,
-  });
+  const { data: member, isPending: isMemberPending } = useChatMemberByIdQuery(
+    message.memberId
+  );
+  const { mutate, isPending, error } = useAskAgentMutation();
 
-  const debouncedAskAgent = useDebounce(askAgent, 500);
+  const askAgent = () => {
+    if (isMemberPending) return;
+    if (isPending) return;
+    if (message.state !== "pending") return;
+
+    mutate({
+      message,
+      messages,
+      member,
+    });
+  };
+  const debouncedAskAgent = debounce(askAgent, 500);
 
   useEffect(() => {
     if (error) {
@@ -32,10 +40,10 @@ export function ChatPendingMessage(props: {
   }, [error]);
 
   useEffect(() => {
-    if (isPending) return;
+    if (isMemberPending) return;
 
     debouncedAskAgent();
-  }, [message?.id]);
+  }, [isMemberPending]);
 
   return (
     <div className="overflow-hidden">
@@ -52,7 +60,11 @@ export function ChatPendingMessage(props: {
       ) : (
         <div className="overflow-x-auto flex">
           <div className="bg-background rounded-lg">
-            <Button onClick={() => askAgent()} variant="ghost" className="">
+            <Button
+              onClick={() => debouncedAskAgent()}
+              variant="ghost"
+              className=""
+            >
               <Icon icon="tabler:refresh" className="size-5" />
               <span className="text-sm">{t("retry")}</span>
             </Button>
