@@ -1,7 +1,9 @@
 import { ChatMember } from "@renderer/components/chat-members";
-import { Button } from "../ui/button";
+import { Button } from "@renderer/components/ui";
 import { Icon } from "@iconify/react";
 import { formatDateTime } from "@renderer/lib/utils";
+import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export function ChatAgentMessage(props: { message: ChatMessageEntity }) {
   const { message } = props;
@@ -12,7 +14,7 @@ export function ChatAgentMessage(props: { message: ChatMessageEntity }) {
         <ChatMember id={message.memberId} />
       </div>
       <div className="w-full bg-background rounded-lg px-4 py-2 overflow-x-auto font-serif text-lg">
-        {message.content}
+        <Markdown remarkPlugins={[remarkGfm]}>{message.content}</Markdown>
       </div>
       <div className="flex items-center justify-between">
         <div className="flex items-center opacity-0 hover:opacity-100">

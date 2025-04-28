@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { ChatMember } from "../chat-members";
 import { useAskAgentMutation } from "@renderer/hooks";
 import { Icon } from "@iconify/react";
@@ -19,6 +19,7 @@ export function ChatPendingMessage(props: {
     message.memberId
   );
   const { mutate, isPending, error } = useAskAgentMutation();
+  const ref = useRef<HTMLDivElement>(null);
 
   const askAgent = () => {
     if (isMemberPending) return;
@@ -45,8 +46,13 @@ export function ChatPendingMessage(props: {
     debouncedAskAgent();
   }, [isMemberPending]);
 
+  useEffect(() => {
+    if (!ref.current) return;
+    ref.current.scrollIntoView({ behavior: "smooth" });
+  }, [ref.current]);
+
   return (
-    <div className="overflow-hidden">
+    <div ref={ref} className="overflow-hidden">
       <div className="flex items-center justify-between gap-2 mb-1">
         <ChatMember id={message.memberId} />
       </div>
