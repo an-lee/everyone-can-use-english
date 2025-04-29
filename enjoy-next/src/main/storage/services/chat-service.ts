@@ -1,4 +1,4 @@
-import { Chat } from "../entities/chat";
+import { Chat, ChatMember, ChatMessage } from "@main/storage/entities";
 import { instanceToPlain } from "class-transformer";
 
 export class ChatService {
@@ -63,6 +63,8 @@ export class ChatService {
       return false;
     }
     await chat.remove();
+    await ChatMessage.delete({ chatId: id });
+    await ChatMember.delete({ chatId: id });
     return true;
   }
 

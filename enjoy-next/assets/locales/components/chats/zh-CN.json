@@ -1,3 +1,5 @@
 {
-  "newChat": "新对话"
+  "newChat": "新对话",
+  "delete": "删除",
+  "areYouSureToDeleteChat": "确定要删除对话「{{chatName}}」吗？"
 }

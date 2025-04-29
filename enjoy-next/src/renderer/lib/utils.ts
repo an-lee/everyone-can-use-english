@@ -124,9 +124,9 @@ export function formatDate(date: string | Date) {
   const then = dayjs(date);
 
   if (now.diff(then, "day") === 0) {
-    return t("common.today");
+    return t("today", { ns: "common" });
   } else if (now.diff(then, "day") === 1) {
-    return t("common.yesterday");
+    return t("yesterday", { ns: "common" });
   } else {
     return then.fromNow();
   }

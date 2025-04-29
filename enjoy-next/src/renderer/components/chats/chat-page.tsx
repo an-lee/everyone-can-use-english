@@ -1,4 +1,8 @@
-import { useChat, useChatMessagesQuery, useUpdateChat } from "@renderer/hooks";
+import {
+  useChatQuery,
+  useChatMessagesQuery,
+  useUpdateChatMutation,
+} from "@renderer/hooks";
 import { LoadingView, ErrorView } from "@renderer/components/status-views";
 import {
   ChatMessageForm,
@@ -14,9 +18,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 export function ChatPage({ chatId }: { chatId: string }) {
-  const { data, isLoading, error } = useChat(chatId);
+  const { data, isLoading, error } = useChatQuery(chatId);
   const { data: messages } = useChatMessagesQuery(chatId);
-  const { mutate: updateChat } = useUpdateChat();
+  const { mutate: updateChat } = useUpdateChatMutation();
   const { currentGptEngine } = useSettingsStore();
   const { t } = useTranslation("components/chats");
 

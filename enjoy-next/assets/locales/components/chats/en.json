@@ -1,3 +1,5 @@
 {
-  "newChat": "New Chat"
+  "newChat": "New Chat",
+  "delete": "Delete",
+  "areYouSureToDeleteChat": "Are you sure you want to delete the chat \"{{chatName}}\"?"
 }

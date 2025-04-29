@@ -11,15 +11,15 @@ import {
 import { Icon } from "@iconify/react";
 import { Link, useLocation } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { useChats, useCreateChat } from "@renderer/hooks";
+import { useChatsQuery, useCreateChatMutation } from "@renderer/hooks";
 import { toast } from "sonner";
 import { useRouter } from "@tanstack/react-router";
 
 export function NavAiChats() {
   const { pathname } = useLocation();
   const { t } = useTranslation("components/layouts/sidebar");
-  const { data, isLoading } = useChats();
-  const { mutate: createChat } = useCreateChat();
+  const { data, isLoading } = useChatsQuery();
+  const { mutate: createChat } = useCreateChatMutation();
   const router = useRouter();
 
   return (

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-export const useChats = () => {
+export const useChatsQuery = () => {
   return useQuery({
     queryKey: ["chats"],
     queryFn: () => {
@@ -13,7 +13,7 @@ export const useChats = () => {
   });
 };
 
-export const useChat = (chatId: string) => {
+export const useChatQuery = (chatId: string) => {
   return useQuery({
     queryKey: ["chat", chatId],
     queryFn: () => {
@@ -26,7 +26,7 @@ export const useChat = (chatId: string) => {
   });
 };
 
-export const useCreateChat = () => {
+export const useCreateChatMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: Partial<ChatEntity>) => {
@@ -38,7 +38,7 @@ export const useCreateChat = () => {
   });
 };
 
-export const useUpdateChat = () => {
+export const useUpdateChatMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -53,7 +53,7 @@ export const useUpdateChat = () => {
   });
 };
 
-export const useDeleteChat = () => {
+export const useDeleteChatMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => {

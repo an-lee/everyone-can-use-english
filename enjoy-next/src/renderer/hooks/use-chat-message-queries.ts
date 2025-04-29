@@ -1,11 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useSettingsStore } from "../store/use-settings-store";
-import { useAuthStore } from "../store/use-auth-store";
-import { useChatMemberByIdQuery } from "./use-chat-member-queries";
-import { useAppStore } from "../store/use-app-store";
+import { useSettingsStore } from "@renderer/store/use-settings-store";
+import { useAuthStore } from "@renderer/store/use-auth-store";
+import { useAppStore } from "@renderer/store/use-app-store";
 import { BaseMessageLike } from "@langchain/core/messages";
-import { useMemo } from "react";
-import { textCommand } from "../commands/text.command";
+import { textCommand } from "@renderer/commands/text.command";
 
 export const useChatMessagesQuery = (chatId: string) => {
   return useQuery({
