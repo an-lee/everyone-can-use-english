@@ -22,6 +22,7 @@ export function useChatAgentByIdQuery(id: string) {
 
       return window.EnjoyAPI.db.chatAgent.findById(id);
     },
+    enabled: !!id,
   });
 }
 

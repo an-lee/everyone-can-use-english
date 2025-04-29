@@ -12,16 +12,20 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useTranslation } from "react-i18next";
-import { useCreateChatMessageMutation } from "@renderer/hooks";
+import {
+  useCreateChatMessageMutation,
+  useChatAgentByIdQuery,
+} from "@renderer/hooks";
 import { useEffect } from "react";
 
-export function ChatMessageForm(props: { chatId: string }) {
-  const { chatId } = props;
+export function ChatMessageForm(props: { chatId: string; agentId?: string }) {
+  const { chatId, agentId } = props;
   const {
     mutate: createChatMessage,
     isPending,
     data: newMessage,
   } = useCreateChatMessageMutation();
+  const { data: agent } = useChatAgentByIdQuery(agentId ?? "");
 
   const { t } = useTranslation("components/chat-messages");
 
@@ -68,6 +72,12 @@ export function ChatMessageForm(props: { chatId: string }) {
                     className="w-full border-0 shadow-none focus-visible:ring-0 focus-visible:outline-0 px-2 py-1"
                     rows={2}
                     placeholder={t("messageFormPlaceholder")}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        form.handleSubmit(onSubmit)();
+                      }
+                    }}
                     {...field}
                   />
                 </FormControl>
@@ -76,6 +86,7 @@ export function ChatMessageForm(props: { chatId: string }) {
             )}
           />
           <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">{agent?.name}</div>
             <Button
               type="submit"
               disabled={isPending}

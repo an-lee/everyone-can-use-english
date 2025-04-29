@@ -13,7 +13,7 @@ export function ChatAgentMessage(props: { message: ChatMessageEntity }) {
       <div className="flex items-center gap-2 mb-1">
         <ChatMember id={message.memberId} />
       </div>
-      <div className="w-full bg-background rounded-lg px-4 py-2 overflow-x-auto font-serif text-lg">
+      <div className="w-full bg-background rounded-lg px-4 py-2 overflow-x-auto font-serif">
         <Markdown remarkPlugins={[remarkGfm]}>{message.content}</Markdown>
       </div>
       <div className="flex items-center justify-between">

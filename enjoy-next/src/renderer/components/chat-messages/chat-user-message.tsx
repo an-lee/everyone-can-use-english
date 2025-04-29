@@ -6,7 +6,7 @@ export function ChatUserMessage(props: { message: ChatMessageEntity }) {
   const { message } = props;
   return (
     <div className="overflow-hidden">
-      <div className="w-full bg-transparent overflow-x-auto font-serif text-lg mb-2">
+      <div className="w-full bg-transparent overflow-x-auto mb-2">
         {message.content}
       </div>
       <div className="flex items-center justify-between">

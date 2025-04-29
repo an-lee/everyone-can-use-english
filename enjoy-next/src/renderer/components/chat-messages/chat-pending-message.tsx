@@ -60,7 +60,7 @@ export function ChatPendingMessage(props: {
         <div className="overflow-x-auto flex">
           <div className="bg-background rounded-lg px-4 py-2 flex items-center gap-2">
             <Icon icon="tabler:loader" className="size-4 animate-spin" />
-            <span className="text-sm">{t("loading")}</span>
+            <span className="text-sm">{t("thinking")}</span>
           </div>
         </div>
       ) : (

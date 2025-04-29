@@ -10,13 +10,15 @@ import { toast } from "sonner";
 import { summarizeTopicCommand } from "@renderer/commands";
 import { useSettingsStore } from "@renderer/store/use-settings-store";
 import { cn } from "@renderer/lib/utils";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export function ChatPage({ chatId }: { chatId: string }) {
   const { data, isLoading, error } = useChat(chatId);
   const { data: messages } = useChatMessagesQuery(chatId);
   const { mutate: updateChat } = useUpdateChat();
   const { currentGptEngine } = useSettingsStore();
+  const { t } = useTranslation("components/chats");
 
   const [updatingName, setUpdatingName] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -49,6 +51,24 @@ export function ChatPage({ chatId }: { chatId: string }) {
       setUpdatingName(false);
     }
   };
+
+  const currentAgentId = useMemo(() => {
+    return messages
+      ?.filter((m: ChatMessageEntity) => m.role === "AGENT")
+      ?.at(-1)?.agentId;
+  }, [messages]);
+
+  useEffect(() => {
+    if (!data?.name) return;
+    if (
+      data.name === t("newChat") &&
+      messages &&
+      messages.filter((m: ChatMessageEntity) => m.state === "completed")
+        .length >= 2
+    ) {
+      generateChatName();
+    }
+  }, [data?.name, messages]);
 
   if (isLoading) {
     return (
@@ -132,7 +152,7 @@ export function ChatPage({ chatId }: { chatId: string }) {
       </ScrollArea>
       <div className="absolute bottom-4 left-0 w-full px-4">
         <div className="w-full max-w-screen-sm mx-auto">
-          <ChatMessageForm chatId={chatId} />
+          <ChatMessageForm chatId={chatId} agentId={currentAgentId} />
         </div>
       </div>
     </div>

@@ -19,6 +19,7 @@ export const useChatMessagesQuery = (chatId: string) => {
         chat_id: chatId,
       });
     },
+    enabled: !!chatId,
   });
 };
 

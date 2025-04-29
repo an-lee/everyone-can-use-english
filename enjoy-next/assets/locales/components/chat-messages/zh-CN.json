@@ -1,3 +1,5 @@
 {
-  "messageFormPlaceholder": "问我任何问题..."
+  "messageFormPlaceholder": "问我任何问题...",
+  "thinking": "思考中...",
+  "retry": "重试"
 }

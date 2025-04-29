@@ -1,3 +1,5 @@
 {
-  "messageFormPlaceholder": "Ask me anything..."
+  "messageFormPlaceholder": "Ask me anything...",
+  "thinking": "Thinking...",
+  "retry": "Retry"
 }
